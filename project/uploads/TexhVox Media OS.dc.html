@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #070707; }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-thumb { background: #262629; border-radius: 0; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::selection { background: #2A1014; color: #F3444D; }
+</style>
+</helmet>
+
+<div style="display:flex; width:100%; height:100vh; background:#070707; font-family:'Inter',sans-serif; color:#F5F5F5; overflow:hidden;">
+
+  <!-- SIDEBAR -->
+  <div style="width:236px; min-width:236px; height:100%; background:#0B0B0D; border-right:1px solid #262629; display:flex; flex-direction:column;">
+    <div style="height:60px; display:flex; align-items:center; gap:8px; padding:0 16px; border-bottom:1px solid #262629;">
+      <div style="width:20px; height:20px; background:#E92732; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; color:#F5F5F5;">T</div>
+      <div style="line-height:1.1;">
+        <div style="font-size:13px; font-weight:700; letter-spacing:0.2px;">TexhVox</div>
+        <div style="font-size:9px; font-weight:600; color:#66666D; letter-spacing:1px;">MEDIA OS</div>
+      </div>
+    </div>
+    <div style="flex:1; overflow-y:auto; padding:12px 8px;">
+      <sc-for list="{{ navGroups }}" as="group" hint-placeholder-count="4">
+        <div style="margin-bottom:18px;">
+          <div style="font-size:10px; font-weight:700; color:#66666D; letter-spacing:1px; padding:0 8px 6px;">{{ group.label }}</div>
+          <sc-for list="{{ group.items }}" as="item" hint-placeholder-count="3">
+            <div onClick="{{ item.onClick }}" style="{{ item.rowStyle }}">
+              <div style="{{ item.barStyle }}"></div>
+              <div style="{{ item.labelStyle }}">{{ item.label }}</div>
+              <sc-if value="{{ item.hasBadge }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:10px; font-weight:600; color:#9A9AA0; background:#151517; border:1px solid #262629; padding:1px 6px; min-width:16px; text-align:center;">{{ item.badge }}</div>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </sc-for>
+    </div>
+    <div style="padding:12px 16px; border-top:1px solid #262629; font-size:11px; color:#66666D; display:flex; align-items:center; gap:6px;">
+      <div style="width:6px; height:6px; border-radius:50%; background:#6B9E78;"></div>
+      Synced 4m ago
+    </div>
+  </div>
+
+  <!-- MAIN COLUMN -->
+  <div style="flex:1; height:100%; display:flex; flex-direction:column; min-width:0;">
+
+    <!-- TOP BAR -->
+    <div style="height:60px; min-height:60px; display:flex; align-items:center; gap:16px; padding:0 20px; border-bottom:1px solid #262629; background:#070707;">
+      <div onClick="{{ openCommand }}" style="flex:1; min-width:0; max-width:520px; height:34px; display:flex; align-items:center; gap:8px; padding:0 10px; background:#101012; border:1px solid #262629; cursor:pointer;">
+        <span style="color:#66666D; font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0;">Search trends, research, content, audience signals...</span>
+        <span style="margin-left:auto; flex-shrink:0; font-size:11px; color:#66666D; border:1px solid #262629; padding:1px 5px; font-family:'JetBrains Mono',monospace;">⌘K</span>
+      </div>
+      <div style="flex:1;"></div>
+      <div style="display:flex; align-items:center; gap:6px; font-size:11px; color:#66666D;">
+        <div style="width:6px; height:6px; border-radius:50%; background:#6B9E78;"></div>
+        IG synced 47m ago
+      </div>
+      <div style="width:32px; height:32px; display:flex; align-items:center; justify-content:center; border:1px solid #262629; color:#9A9AA0; font-size:13px; cursor:pointer;">🔔</div>
+      <div style="height:32px; padding:0 14px; background:#E92732; color:#F5F5F5; font-size:12px; font-weight:600; display:flex; align-items:center; cursor:pointer;">+ Create</div>
+      <div style="width:32px; height:32px; background:#151517; border:1px solid #262629; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:600; color:#9A9AA0; cursor:pointer;">EK</div>
+    </div>
+
+    <!-- WORKSPACE -->
+    <div style="flex:1; overflow-y:auto; position:relative;">
+
+      <!-- COMMAND CENTER -->
+      <sc-if value="{{ isCommandCenter }}" hint-placeholder-val="{{ true }}">
+        <div style="padding:28px 32px 60px;">
+          <div style="margin-bottom:24px;">
+            <div style="font-size:24px; font-weight:700;">Command Center</div>
+            <div style="font-size:13px; color:#9A9AA0; margin-top:4px;">What needs attention across audience, editorial, and distribution.</div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:#262629; border:1px solid #262629; margin-bottom:28px;">
+            <sc-for list="{{ topMetrics }}" as="m" hint-placeholder-count="4">
+              <div style="background:#0B0B0D; padding:16px 18px;">
+                <div style="font-size:11px; color:#9A9AA0; font-weight:600; letter-spacing:0.3px;">{{ m.label }}</div>
+                <div style="font-size:26px; font-weight:700; margin-top:8px; font-variant-numeric:tabular-nums;">{{ m.value }}</div>
+                <div style="{{ m.deltaStyle }}">{{ m.delta }}</div>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="display:grid; grid-template-columns:2fr 1fr; gap:1px; background:#262629; border:1px solid #262629; margin-bottom:28px;">
+            <div style="background:#0B0B0D; padding:20px;">
+              <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+                <div style="font-size:14px; font-weight:600;">Audience Momentum</div>
+                <div style="display:flex; gap:2px;">
+                  <sc-for list="{{ rangeOptions }}" as="r" hint-placeholder-count="3">
+                    <div onClick="{{ r.onClick }}" style="{{ r.style }}">{{ r.label }}</div>
+                  </sc-for>
+                </div>
+              </div>
+              <svg width="100%" height="200" viewBox="0 0 640 200" preserveAspectRatio="none">
+                <line x1="0" y1="50" x2="640" y2="50" stroke="#1A1A1C" stroke-width="1"></line>
+                <line x1="0" y1="100" x2="640" y2="100" stroke="#1A1A1C" stroke-width="1"></line>
+                <line x1="0" y1="150" x2="640" y2="150" stroke="#1A1A1C" stroke-width="1"></line>
+                <polyline points="{{ growthLinePoints }}" fill="none" stroke="#E92732" stroke-width="2"></polyline>
+                <polyline points="{{ activeLinePoints }}" fill="none" stroke="#66666D" stroke-width="1.5" stroke-dasharray="3,3"></polyline>
+              </svg>
+              <div style="display:flex; gap:16px; margin-top:10px; font-size:11px; color:#9A9AA0;">
+                <div style="display:flex; align-items:center; gap:6px;"><div style="width:10px; height:2px; background:#E92732;"></div>Follower growth</div>
+                <div style="display:flex; align-items:center; gap:6px;"><div style="width:10px; height:2px; background:#66666D;"></div>Active audience</div>
+              </div>
+            </div>
+            <div style="background:#0B0B0D; padding:20px;">
+              <div style="font-size:14px; font-weight:600; margin-bottom:14px;">Weekly Intelligence</div>
+              <sc-for list="{{ weeklyIntelligence }}" as="w" hint-placeholder-count="3">
+                <div style="border-top:1px solid #1A1A1C; padding:12px 0;">
+                  <div style="display:flex; align-items:center; gap:8px; margin-bottom:5px;">
+                    <div style="{{ w.tagStyle }}">{{ w.action }}</div>
+                    <div style="font-size:12px; font-weight:600;">{{ w.title }}</div>
+                  </div>
+                  <div style="font-size:12px; color:#9A9AA0; line-height:1.5;">{{ w.evidence }}</div>
+                  <div style="font-size:11px; color:#66666D; margin-top:4px;">Confidence: {{ w.confidence }} · {{ w.nextAction }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="margin-bottom:28px;">
+            <div style="font-size:14px; font-weight:600; margin-bottom:12px;">Editorial Opportunities</div>
+            <div style="border:1px solid #262629;">
+              <div style="display:grid; grid-template-columns:2.2fr 1fr 0.8fr 1fr 1.4fr 1fr; padding:9px 14px; background:#101012; border-bottom:1px solid #262629; font-size:11px; font-weight:600; color:#66666D;">
+                <div>Topic</div><div>Momentum</div><div>Score</div><div>Pillar</div><div>Recommended series</div><div>Status</div>
+              </div>
+              <sc-for list="{{ editorialOpportunities }}" as="o" hint-placeholder-count="4">
+                <div style="display:grid; grid-template-columns:2.2fr 1fr 0.8fr 1fr 1.4fr 1fr; padding:11px 14px; border-bottom:1px solid #1A1A1C; font-size:12px; align-items:center;">
+                  <div style="font-weight:500;">{{ o.topic }}</div>
+                  <div style="color:#9A9AA0;">{{ o.momentum }}</div>
+                  <div style="{{ o.scoreStyle }}">{{ o.score }}</div>
+                  <div style="color:#9A9AA0;">{{ o.pillar }}</div>
+                  <div style="color:#9A9AA0;">{{ o.series }}</div>
+                  <div style="{{ o.statusStyle }}">{{ o.status }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+
+          <div>
+            <div style="font-size:14px; font-weight:600; margin-bottom:12px;">Recent Content Performance</div>
+            <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:#262629; border:1px solid #262629;">
+              <sc-for list="{{ recentContent }}" as="c" hint-placeholder-count="4">
+                <div style="background:#0B0B0D; padding:14px 16px;">
+                  <div style="{{ c.classStyle }}">{{ c.classification }}</div>
+                  <div style="font-size:12px; font-weight:500; margin-top:8px; line-height:1.4;">{{ c.title }}</div>
+                  <div style="font-size:11px; color:#66666D; margin-top:8px;">{{ c.series }} · Reach {{ c.reach }} · ER {{ c.er }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- TREND RADAR -->
+      <sc-if value="{{ isTrendRadar }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:28px 32px 60px; display:flex; gap:20px;">
+          <div style="flex:1; min-width:0;">
+            <div style="margin-bottom:18px;">
+              <div style="font-size:24px; font-weight:700;">Trend Radar</div>
+              <div style="font-size:13px; color:#9A9AA0; margin-top:4px;">Rank and route editorial opportunities before they peak.</div>
+            </div>
+            <div style="display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap;">
+              <sc-for list="{{ trendFilters }}" as="f" hint-placeholder-count="6">
+                <div style="height:30px; padding:0 12px; display:flex; align-items:center; font-size:12px; color:#9A9AA0; background:#101012; border:1px solid #262629;">{{ f }}</div>
+              </sc-for>
+            </div>
+            <div style="border:1px solid #262629; overflow-x:auto;">
+              <div style="display:grid; grid-template-columns:0.4fr 2fr 0.7fr 0.9fr 0.8fr 0.7fr 1fr; padding:9px 14px; background:#101012; border-bottom:1px solid #262629; font-size:11px; font-weight:600; color:#66666D; min-width:900px;">
+                <div>#</div><div>Topic</div><div>Discovered</div><div>Sources</div><div>Momentum</div><div>Score</div><div>Status</div>
+              </div>
+              <sc-for list="{{ trends }}" as="t" hint-placeholder-count="8">
+                <div onClick="{{ t.onClick }}" style="{{ t.rowStyle }}">
+                  <div style="color:#66666D; font-family:'JetBrains Mono',monospace;">{{ t.rank }}</div>
+                  <div>
+                    <div style="font-weight:500;">{{ t.topic }}</div>
+                    <div style="font-size:11px; color:#66666D; margin-top:2px;">{{ t.entities }}</div>
+                  </div>
+                  <div style="color:#9A9AA0;">{{ t.discovered }}</div>
+                  <div style="color:#9A9AA0;">{{ t.sources }}</div>
+                  <div style="color:#9A9AA0;">{{ t.momentum }}</div>
+                  <div style="{{ t.scoreStyle }}">{{ t.score }}</div>
+                  <div style="{{ t.statusStyle }}">{{ t.status }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+
+          <sc-if value="{{ trendInspectorOpen }}" hint-placeholder-val="{{ false }}">
+            <div style="width:340px; min-width:340px; background:#0B0B0D; border:1px solid #262629; padding:18px; align-self:flex-start; position:sticky; top:0;">
+              <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
+                <div style="font-size:14px; font-weight:600; line-height:1.4; padding-right:8px;">{{ selectedTrend.topic }}</div>
+                <div onClick="{{ closeTrend }}" style="cursor:pointer; color:#66666D; font-size:16px; line-height:1;">×</div>
+              </div>
+              <div style="font-size:12px; color:#9A9AA0; line-height:1.6; margin-bottom:14px;">{{ selectedTrend.summary }}</div>
+              <div style="font-size:11px; font-weight:600; color:#66666D; margin-bottom:6px;">SCORE BREAKDOWN</div>
+              <sc-for list="{{ selectedTrend.scoreBreakdown }}" as="s" hint-placeholder-count="4">
+                <div style="display:flex; justify-content:space-between; font-size:12px; padding:5px 0; border-bottom:1px solid #1A1A1C;">
+                  <div style="color:#9A9AA0;">{{ s.label }}</div>
+                  <div style="font-family:'JetBrains Mono',monospace;">{{ s.value }}</div>
+                </div>
+              </sc-for>
+              <div style="font-size:11px; font-weight:600; color:#66666D; margin:14px 0 6px;">SOURCES</div>
+              <sc-for list="{{ selectedTrend.sourceList }}" as="s" hint-placeholder-count="3">
+                <div style="font-size:12px; padding:5px 0; color:#9A9AA0;">{{ s }}</div>
+              </sc-for>
+              <div style="font-size:11px; font-weight:600; color:#66666D; margin:14px 0 6px;">SUGGESTED ANGLE</div>
+              <div style="font-size:12px; color:#F5F5F5;">{{ selectedTrend.angle }}</div>
+              <div onClick="{{ goResearch }}" style="margin-top:18px; height:34px; background:#E92732; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:600; cursor:pointer;">Start Research</div>
+            </div>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <!-- RESEARCH -->
+      <sc-if value="{{ isResearch }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex; height:100%;">
+          <div style="width:260px; min-width:260px; border-right:1px solid #262629; padding:20px 16px; overflow-y:auto;">
+            <div style="font-size:11px; font-weight:600; color:#66666D; margin-bottom:10px;">SOURCE NAVIGATOR</div>
+            <sc-for list="{{ researchSources }}" as="s" hint-placeholder-count="6">
+              <div style="padding:10px 0; border-bottom:1px solid #1A1A1C;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <div style="font-size:12px; font-weight:500;">{{ s.publisher }}</div>
+                  <div style="{{ s.priorityStyle }}">{{ s.priority }}</div>
+                </div>
+                <div style="font-size:11px; color:#9A9AA0; margin-top:3px; line-height:1.4;">{{ s.title }}</div>
+                <div style="font-size:10px; color:#66666D; margin-top:4px;">{{ s.type }} · {{ s.date }} · {{ s.verification }}</div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="flex:1; padding:24px 28px; overflow-y:auto; min-width:0;">
+            <div style="font-size:20px; font-weight:700; margin-bottom:4px;">Stripe's Agent Payments Protocol</div>
+            <div style="font-size:12px; color:#9A9AA0; margin-bottom:20px;">Research workspace · started 2h ago</div>
+            <sc-for list="{{ researchSections }}" as="sec" hint-placeholder-count="5">
+              <div style="margin-bottom:20px;">
+                <div style="font-size:11px; font-weight:600; color:#66666D; letter-spacing:0.3px; margin-bottom:8px;">{{ sec.label }}</div>
+                <sc-for list="{{ sec.claims }}" as="c" hint-placeholder-count="2">
+                  <div style="background:#0B0B0D; border:1px solid #262629; padding:12px 14px; margin-bottom:8px;">
+                    <div style="font-size:12px; line-height:1.5;">{{ c.text }}</div>
+                    <div style="font-size:11px; color:#66666D; margin-top:6px;">Support: {{ c.support }} · Confidence: {{ c.confidence }}</div>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-for>
+          </div>
+          <div style="width:300px; min-width:300px; border-left:1px solid #262629; padding:20px 18px; overflow-y:auto;">
+            <div style="font-size:11px; font-weight:600; color:#66666D; margin-bottom:8px;">TEXHVOX CONTENT SCORE</div>
+            <div style="font-size:32px; font-weight:700; color:#F3444D; font-variant-numeric:tabular-nums;">88</div>
+            <div style="font-size:11px; color:#9A9AA0; margin-bottom:16px;">Strong candidate</div>
+            <sc-for list="{{ selectedTrend.scoreBreakdown }}" as="s" hint-placeholder-count="4">
+              <div style="display:flex; justify-content:space-between; font-size:12px; padding:5px 0; border-bottom:1px solid #1A1A1C;">
+                <div style="color:#9A9AA0;">{{ s.label }}</div><div style="font-family:'JetBrains Mono',monospace;">{{ s.value }}</div>
+              </div>
+            </sc-for>
+            <div style="font-size:11px; font-weight:600; color:#66666D; margin:16px 0 6px;">RECOMMENDED ANGLE</div>
+            <div style="font-size:12px;">Business — what agent-native payments mean for SaaS pricing.</div>
+            <div style="font-size:11px; font-weight:600; color:#66666D; margin:16px 0 6px;">WHY IT MATTERS</div>
+            <div style="font-size:12px; color:#9A9AA0; line-height:1.5;">First major infrastructure move treating AI agents as payment-capable actors, not just assistants.</div>
+            <div onClick="{{ goPipeline }}" style="margin-top:20px; height:34px; background:#E92732; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:600; cursor:pointer;">Send to Editorial</div>
+            <div style="margin-top:8px; height:34px; background:transparent; border:1px solid #262629; display:flex; align-items:center; justify-content:center; font-size:12px; color:#9A9AA0; cursor:pointer;">Generate More Angles</div>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- EDITORIAL PIPELINE -->
+      <sc-if value="{{ isPipeline }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:28px 32px 40px;">
+          <div style="margin-bottom:20px;">
+            <div style="font-size:24px; font-weight:700;">Editorial Pipeline</div>
+            <div style="font-size:13px; color:#9A9AA0; margin-top:4px;">Track content from idea to publication.</div>
+          </div>
+          <div style="display:flex; gap:12px; overflow-x:auto; padding-bottom:8px;">
+            <sc-for list="{{ pipelineColumns }}" as="col" hint-placeholder-count="7">
+              <div style="width:216px; min-width:216px;">
+                <div style="display:flex; justify-content:space-between; padding:0 4px 10px; font-size:11px; font-weight:600; color:#66666D; border-bottom:1px solid #262629; margin-bottom:10px;">
+                  <div>{{ col.name }}</div><div>{{ col.count }}</div>
+                </div>
+                <sc-for list="{{ col.items }}" as="it" hint-placeholder-count="2">
+                  <div onClick="{{ goContentStudio }}" style="background:#0B0B0D; border:1px solid #262629; padding:11px 12px; margin-bottom:8px; cursor:pointer;">
+                    <div style="{{ it.seriesStyle }}">{{ it.series }}</div>
+                    <div style="font-size:12px; font-weight:500; margin-top:7px; line-height:1.4;">{{ it.title }}</div>
+                    <div style="display:flex; justify-content:space-between; margin-top:9px; font-size:10px; color:#66666D;">
+                      <div>{{ it.pillar }}</div><div style="font-family:'JetBrains Mono',monospace; color:#9A9AA0;">{{ it.score }}</div>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- CONTENT STUDIO -->
+      <sc-if value="{{ isContentStudio }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex; height:100%;">
+          <div style="width:260px; min-width:260px; border-right:1px solid #262629; padding:20px 16px; overflow-y:auto;">
+            <div style="font-size:11px; font-weight:600; color:#66666D; margin-bottom:12px;">EDITORIAL SETUP</div>
+            <sc-for list="{{ studioFields }}" as="f" hint-placeholder-count="6">
+              <div style="margin-bottom:14px;">
+                <div style="font-size:11px; color:#66666D; margin-bottom:5px;">{{ f.label }}</div>
+                <div style="font-size:12px; padding:8px 10px; background:#101012; border:1px solid #262629;">{{ f.value }}</div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="flex:1; overflow-y:auto; padding:20px 24px; min-width:0;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+              <div style="font-size:14px; font-weight:600;">Stripe's Agent Payments Protocol, by the numbers</div>
+              <div style="display:flex; gap:8px;">
+                <div style="height:30px; padding:0 12px; display:flex; align-items:center; font-size:12px; color:#9A9AA0; border:1px solid #262629; cursor:pointer;">Export</div>
+                <div style="height:30px; padding:0 12px; display:flex; align-items:center; font-size:12px; font-weight:600; background:#E92732; cursor:pointer;">Send to Review</div>
+              </div>
+            </div>
+            <sc-for list="{{ slides }}" as="sl" hint-placeholder-count="8">
+              <div style="background:#0B0B0D; border:1px solid #262629; padding:14px 16px; margin-bottom:10px;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                  <div style="display:flex; gap:10px; align-items:center;">
+                    <div style="font-size:11px; font-family:'JetBrains Mono',monospace; color:#66666D;">{{ sl.number }}</div>
+                    <div style="font-size:10px; font-weight:600; color:#F3444D; letter-spacing:0.5px;">{{ sl.role }}</div>
+                  </div>
+                  <div style="display:flex; gap:12px; font-size:11px; color:#66666D;">
+                    <div style="cursor:pointer;">Rewrite</div><div style="cursor:pointer;">Sharpen Hook</div><div style="cursor:pointer;">Check Claims</div>
+                  </div>
+                </div>
+                <div style="font-size:15px; font-weight:600; margin-bottom:5px;">{{ sl.headline }}</div>
+                <div style="font-size:12px; color:#9A9AA0; line-height:1.5;">{{ sl.copy }}</div>
+                <div style="font-size:10px; color:#66666D; margin-top:8px;">{{ sl.evidence }}</div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="width:300px; min-width:300px; border-left:1px solid #262629; padding:20px 18px; overflow-y:auto;">
+            <div style="font-size:11px; font-weight:600; color:#66666D; margin-bottom:10px;">PREVIEW</div>
+            <div style="width:100%; aspect-ratio:1/1; background:#070707; border:1px solid #262629; padding:20px; display:flex; flex-direction:column; justify-content:space-between;">
+              <div style="font-size:10px; color:#66666D; letter-spacing:1px;">VOX NUMBERS</div>
+              <div style="font-size:19px; font-weight:700; line-height:1.25;">{{ slides.0.headline }}</div>
+              <div style="width:24px; height:3px; background:#E92732;"></div>
+            </div>
+            <div style="font-size:11px; font-weight:600; color:#66666D; margin:18px 0 8px;">INSPECTOR</div>
+            <sc-for list="{{ inspectorChecks }}" as="c" hint-placeholder-count="5">
+              <div style="display:flex; justify-content:space-between; font-size:12px; padding:6px 0; border-bottom:1px solid #1A1A1C;">
+                <div style="color:#9A9AA0;">{{ c.label }}</div><div style="{{ c.style }}">{{ c.value }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- CALENDAR -->
+      <sc-if value="{{ isCalendar }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:28px 32px 40px;">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px;">
+            <div>
+              <div style="font-size:24px; font-weight:700;">Editorial Calendar</div>
+              <div style="font-size:13px; color:#9A9AA0; margin-top:4px;">AI 31% · SaaS 24% · Founders 19% · Business 16% · Tools 10%</div>
+            </div>
+            <div style="display:flex; gap:2px;">
+              <div style="height:30px; padding:0 14px; display:flex; align-items:center; font-size:12px; background:#151517; border:1px solid #262629;">Week</div>
+              <div style="height:30px; padding:0 14px; display:flex; align-items:center; font-size:12px; color:#66666D; border:1px solid #262629;">Month</div>
+            </div>
+          </div>
+          <div style="background:#2A1014; border:1px solid #E92732; padding:10px 14px; font-size:12px; color:#F3444D; margin-bottom:18px;">Pillar overconcentration risk — AI &amp; Emerging Technology at 38% this week, above the 30% target.</div>
+          <div style="display:grid; grid-template-columns:repeat(7,1fr); gap:1px; background:#262629; border:1px solid #262629;">
+            <sc-for list="{{ calendarDays }}" as="d" hint-placeholder-count="7">
+              <div style="background:#0B0B0D; min-height:180px; padding:10px;">
+                <div style="font-size:11px; font-weight:600; color:#66666D; margin-bottom:8px;">{{ d.label }}</div>
+                <sc-for list="{{ d.items }}" as="it" hint-placeholder-count="1">
+                  <div style="{{ it.style }}">
+                    <div style="font-size:11px; font-weight:600; line-height:1.3;">{{ it.title }}</div>
+                    <div style="font-size:10px; color:#9A9AA0; margin-top:4px;">{{ it.time }} · {{ it.series }}</div>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- ANALYTICS -->
+      <sc-if value="{{ isAnalytics }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:28px 32px 60px;">
+          <div style="margin-bottom:20px;">
+            <div style="font-size:24px; font-weight:700;">Analytics</div>
+            <div style="font-size:13px; color:#9A9AA0; margin-top:4px;">What happened, why it happened, and what to do next.</div>
+          </div>
+          <div style="display:grid; grid-template-columns:repeat(5,1fr); gap:1px; background:#262629; border:1px solid #262629; margin-bottom:24px;">
+            <sc-for list="{{ analyticsMetrics }}" as="m" hint-placeholder-count="5">
+              <div style="background:#0B0B0D; padding:14px 16px;" title="{{ m.formula }}">
+                <div style="font-size:10px; color:#9A9AA0; font-weight:600;">{{ m.label }}</div>
+                <div style="font-size:20px; font-weight:700; margin-top:6px; font-variant-numeric:tabular-nums;">{{ m.value }}</div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="display:grid; grid-template-columns:1.1fr 0.9fr; gap:1px; background:#262629; border:1px solid #262629; margin-bottom:24px;">
+            <div style="background:#0B0B0D; padding:20px;">
+              <div style="font-size:14px; font-weight:600; margin-bottom:14px;">Performance Matrix</div>
+              <svg width="100%" height="260" viewBox="0 0 400 260">
+                <line x1="0" y1="130" x2="400" y2="130" stroke="#1A1A1C" stroke-width="1"></line>
+                <line x1="200" y1="0" x2="200" y2="260" stroke="#1A1A1C" stroke-width="1"></line>
+                <sc-for list="{{ scatterPoints }}" as="p" hint-placeholder-count="20">
+                  <circle cx="{{ p.x }}" cy="{{ p.y }}" r="5" fill="{{ p.color }}" opacity="0.85"></circle>
+                </sc-for>
+                <text x="4" y="14" fill="#66666D" font-size="10">HERO</text>
+                <text x="4" y="252" fill="#66666D" font-size="10">COMMUNITY</text>
+                <text x="356" y="14" fill="#66666D" font-size="10">DISCOVERY</text>
+                <text x="356" y="252" fill="#66666D" font-size="10">WEAK</text>
+              </svg>
+              <div style="font-size:11px; color:#66666D; margin-top:6px;">X: reach percentile · Y: engagement percentile</div>
+            </div>
+            <div style="background:#0B0B0D; padding:20px;">
+              <div style="font-size:14px; font-weight:600; margin-bottom:14px;">Series Performance</div>
+              <sc-for list="{{ seriesPerformance }}" as="s" hint-placeholder-count="6">
+                <div style="margin-bottom:10px;">
+                  <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px;">
+                    <div>{{ s.name }}</div><div style="font-family:'JetBrains Mono',monospace; color:#9A9AA0;">{{ s.er }}</div>
+                  </div>
+                  <div style="height:5px; background:#151517;"><div style="{{ s.barStyle }}"></div></div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+          <div style="background:#0B0B0D; border:1px solid #262629; padding:20px;">
+            <div style="font-size:14px; font-weight:600; margin-bottom:14px;">AI Performance Interpretation</div>
+            <sc-for list="{{ interpretationRows }}" as="r" hint-placeholder-count="5">
+              <div style="display:grid; grid-template-columns:120px 1fr; padding:8px 0; border-bottom:1px solid #1A1A1C; font-size:12px;">
+                <div style="font-weight:600; color:#66666D;">{{ r.label }}</div>
+                <div style="color:#F5F5F5; line-height:1.5;">{{ r.value }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- COMMUNITY -->
+      <sc-if value="{{ isCommunity }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:28px 32px 60px; display:flex; gap:20px;">
+          <div style="flex:1; min-width:0;">
+            <div style="margin-bottom:18px;">
+              <div style="font-size:24px; font-weight:700;">Community Intelligence</div>
+              <div style="font-size:13px; color:#9A9AA0; margin-top:4px;">Signals from comments, DMs and replies — persona reads are inferred, not verified demographics.</div>
+            </div>
+            <div style="font-size:14px; font-weight:600; margin-bottom:10px;">Emerging Themes</div>
+            <div style="border:1px solid #262629;">
+              <div style="display:grid; grid-template-columns:2fr 0.8fr 0.8fr 1fr 1fr; padding:9px 14px; background:#101012; border-bottom:1px solid #262629; font-size:11px; font-weight:600; color:#66666D;">
+                <div>Theme</div><div>Signal volume</div><div>Growth</div><div>Persona (inferred)</div><div>Status</div>
+              </div>
+              <sc-for list="{{ communityThemes }}" as="t" hint-placeholder-count="5">
+                <div onClick="{{ t.onClick }}" style="{{ t.rowStyle }}">
+                  <div style="font-weight:500;">{{ t.theme }}</div>
+                  <div style="color:#9A9AA0;">{{ t.volume }}</div>
+                  <div style="color:#6B9E78;">{{ t.growth }}</div>
+                  <div style="color:#9A9AA0;">{{ t.persona }}</div>
+                  <div style="{{ t.statusStyle }}">{{ t.status }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+          <sc-if value="{{ communityInspectorOpen }}" hint-placeholder-val="{{ false }}">
+            <div style="width:320px; min-width:320px; background:#0B0B0D; border:1px solid #262629; padding:18px; align-self:flex-start;">
+              <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                <div style="font-size:14px; font-weight:600;">{{ selectedTheme.theme }}</div>
+                <div onClick="{{ closeCommunity }}" style="cursor:pointer; color:#66666D;">×</div>
+              </div>
+              <div style="font-size:11px; font-weight:600; color:#66666D; margin-bottom:6px;">SAMPLE SIGNALS</div>
+              <sc-for list="{{ selectedTheme.samples }}" as="s" hint-placeholder-count="3">
+                <div style="font-size:12px; color:#9A9AA0; padding:6px 0; border-bottom:1px solid #1A1A1C; line-height:1.5;">"{{ s }}"</div>
+              </sc-for>
+              <div onClick="{{ goPipeline }}" style="margin-top:16px; height:34px; background:#E92732; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:600; cursor:pointer;">Create Editorial Idea</div>
+            </div>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <!-- EXPERIMENTS -->
+      <sc-if value="{{ isExperiments }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:28px 32px 60px;">
+          <div style="margin-bottom:18px;">
+            <div style="font-size:24px; font-weight:700;">Experiments</div>
+            <div style="font-size:13px; color:#9A9AA0; margin-top:4px;">Hypothesis → test → result → decision.</div>
+          </div>
+          <div style="border:1px solid #262629;">
+            <div style="display:grid; grid-template-columns:0.5fr 2fr 0.9fr 0.7fr 0.7fr 0.8fr 0.8fr; padding:9px 14px; background:#101012; border-bottom:1px solid #262629; font-size:11px; font-weight:600; color:#66666D;">
+              <div>ID</div><div>Hypothesis</div><div>Metric</div><div>Baseline</div><div>Result</div><div>Confidence</div><div>Decision</div>
+            </div>
+            <sc-for list="{{ experiments }}" as="e" hint-placeholder-count="5">
+              <div style="display:grid; grid-template-columns:0.5fr 2fr 0.9fr 0.7fr 0.7fr 0.8fr 0.8fr; padding:11px 14px; border-bottom:1px solid #1A1A1C; font-size:12px; align-items:center;">
+                <div style="color:#66666D; font-family:'JetBrains Mono',monospace;">{{ e.id }}</div>
+                <div>{{ e.hypothesis }}</div>
+                <div style="color:#9A9AA0;">{{ e.metric }}</div>
+                <div style="color:#9A9AA0; font-family:'JetBrains Mono',monospace;">{{ e.baseline }}</div>
+                <div style="font-family:'JetBrains Mono',monospace;">{{ e.result }}</div>
+                <div style="color:#9A9AA0;">{{ e.confidence }}</div>
+                <div style="{{ e.decisionStyle }}">{{ e.decision }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- BRAIN -->
+      <sc-if value="{{ isBrain }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex; height:100%;">
+          <div style="width:220px; min-width:220px; border-right:1px solid #262629; padding:20px 12px; overflow-y:auto;">
+            <sc-for list="{{ brainTabs }}" as="t" hint-placeholder-count="12">
+              <div onClick="{{ t.onClick }}" style="{{ t.style }}">{{ t.label }}</div>
+            </sc-for>
+          </div>
+          <div style="flex:1; padding:24px 28px; overflow-y:auto;">
+            <div style="font-size:11px; font-weight:600; color:#F3444D; letter-spacing:1px; margin-bottom:6px;">TEXHVOX BRAIN v1.7</div>
+            <div style="font-size:18px; font-weight:700; margin-bottom:16px;">{{ brainTitle }}</div>
+
+            <sc-if value="{{ isBrainPillars }}" hint-placeholder-val="{{ false }}">
+              <sc-for list="{{ pillars }}" as="p" hint-placeholder-count="5">
+                <div style="margin-bottom:14px; max-width:520px;">
+                  <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:5px;"><div>{{ p.name }}</div><div style="color:#9A9AA0;">{{ p.pct }}</div></div>
+                  <div style="height:6px; background:#151517;"><div style="{{ p.barStyle }}"></div></div>
+                </div>
+              </sc-for>
+            </sc-if>
+            <sc-if value="{{ isBrainSeries }}" hint-placeholder-val="{{ false }}">
+              <sc-for list="{{ seriesDefs }}" as="s" hint-placeholder-count="6">
+                <div style="border:1px solid #262629; padding:12px 14px; margin-bottom:8px; max-width:560px;">
+                  <div style="font-size:12px; font-weight:600;">{{ s.name }}</div>
+                  <div style="font-size:11px; color:#9A9AA0; margin-top:4px;">Objective: {{ s.objective }}</div>
+                </div>
+              </sc-for>
+            </sc-if>
+            <sc-if value="{{ isBrainFirewall }}" hint-placeholder-val="{{ false }}">
+              <div style="display:inline-block; font-size:10px; font-weight:700; letter-spacing:0.5px; color:#F3444D; background:#2A1014; border:1px solid #E92732; padding:4px 10px; margin-bottom:14px;">EDITORIAL FIREWALL ACTIVE</div>
+              <div style="font-size:12px; color:#9A9AA0; line-height:1.6; max-width:560px; margin-bottom:16px;">A commercial or SaaS Ranked relationship never improves an editorial recommendation score. Every trend and idea inspector surfaces its commercial classification alongside its editorial score.</div>
+              <sc-for list="{{ firewallCategories }}" as="c" hint-placeholder-count="5">
+                <div style="display:flex; justify-content:space-between; font-size:12px; padding:8px 0; border-bottom:1px solid #1A1A1C; max-width:560px;">
+                  <div>{{ c.label }}</div><div style="color:#66666D;">{{ c.desc }}</div>
+                </div>
+              </sc-for>
+            </sc-if>
+            <sc-if value="{{ isBrainTone }}" hint-placeholder-val="{{ false }}">
+              <div style="font-size:12px; color:#9A9AA0; margin-bottom:14px;">Editorial philosophy: what happened → why it matters → what it changes. Credibility over hype.</div>
+              <sc-for list="{{ toneTraits }}" as="t" hint-placeholder-count="9">
+                <div style="display:inline-block; font-size:11px; padding:5px 10px; border:1px solid #262629; margin:0 6px 6px 0;">{{ t }}</div>
+              </sc-for>
+            </sc-if>
+            <sc-if value="{{ isBrainGeneric }}" hint-placeholder-val="{{ true }}">
+              <div style="font-size:12px; color:#9A9AA0; line-height:1.6; max-width:560px;">{{ brainBody }}</div>
+            </sc-if>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- INTEGRATIONS -->
+      <sc-if value="{{ isIntegrations }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:28px 32px 60px;">
+          <div style="margin-bottom:20px;">
+            <div style="font-size:24px; font-weight:700;">Integrations</div>
+            <div style="font-size:13px; color:#9A9AA0; margin-top:4px;">Connections powering research, storage, intelligence and publishing.</div>
+          </div>
+          <sc-for list="{{ integrations }}" as="i" hint-placeholder-count="5">
+            <div style="display:grid; grid-template-columns:1.6fr 2fr 1fr 1fr 0.8fr; align-items:center; padding:14px 16px; border:1px solid #262629; border-top:none; margin-top:-1px; font-size:12px;">
+              <div>
+                <div style="font-weight:600;">{{ i.name }}</div>
+                <div style="font-size:11px; color:#66666D; margin-top:2px;">{{ i.role }}</div>
+              </div>
+              <div style="color:#9A9AA0;">{{ i.detail }}</div>
+              <div style="{{ i.statusStyle }}">{{ i.status }}</div>
+              <div style="color:#66666D;">{{ i.lastSync }}</div>
+              <div style="color:#9A9AA0; cursor:pointer;">Manage →</div>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <!-- SETTINGS -->
+      <sc-if value="{{ isSettings }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:28px 32px 60px;">
+          <div style="font-size:24px; font-weight:700; margin-bottom:20px;">Settings</div>
+          <div style="max-width:480px;">
+            <div style="font-size:11px; font-weight:600; color:#66666D; margin-bottom:6px;">WORKSPACE NAME</div>
+            <div style="font-size:13px; padding:9px 12px; background:#101012; border:1px solid #262629; margin-bottom:16px;">TexhVox</div>
+            <div style="font-size:11px; font-weight:600; color:#66666D; margin-bottom:6px;">MEMBERS</div>
+            <div style="border:1px solid #262629; margin-bottom:16px;">
+              <div style="display:flex; justify-content:space-between; padding:10px 12px; border-bottom:1px solid #1A1A1C; font-size:12px;"><div>Editor Kim</div><div style="color:#9A9AA0;">Owner</div></div>
+              <div style="display:flex; justify-content:space-between; padding:10px 12px; font-size:12px;"><div>Analyst Ro</div><div style="color:#9A9AA0;">Editor</div></div>
+            </div>
+            <div style="font-size:11px; font-weight:600; color:#66666D; margin-bottom:6px;">DANGER ZONE</div>
+            <div style="border:1px solid #262629; padding:12px 14px; display:flex; justify-content:space-between; align-items:center;">
+              <div style="font-size:12px; color:#9A9AA0;">Reset Brain to default configuration</div>
+              <div style="font-size:12px; color:#F3444D; cursor:pointer;">Reset</div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+    </div>
+  </div>
+
+  <!-- COMMAND PALETTE -->
+  <sc-if value="{{ commandOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeCommand }}" style="position:fixed; inset:0; background:rgba(0,0,0,0.6); display:flex; align-items:flex-start; justify-content:center; padding-top:120px; z-index:50;">
+      <div onClick="{{ stopProp }}" style="width:560px; background:#101012; border:1px solid #262629;">
+        <div style="padding:14px 16px; border-bottom:1px solid #262629; display:flex; align-items:center; gap:10px;">
+          <span style="color:#66666D;">⌘K</span>
+          <input autofocus="true" placeholder="Search trends, research, content, audience signals..." style="flex:1; background:transparent; border:none; outline:none; color:#F5F5F5; font-size:13px; font-family:'Inter',sans-serif;"></input>
+        </div>
+        <div style="padding:8px;">
+          <sc-for list="{{ paletteItems }}" as="p" hint-placeholder-count="6">
+            <div onClick="{{ p.onClick }}" style="display:flex; justify-content:space-between; padding:9px 10px; font-size:12px; cursor:pointer;">
+              <div>{{ p.label }}</div><div style="color:#66666D;">{{ p.hint }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const RED = '#E92732';
+const BRIGHT_RED = '#F3444D';
+const GREEN = '#6B9E78';
+const AMBER = '#C99A52';
+const BLUE = '#6E86A8';
+const MUTED = '#66666D';
+const SEC = '#9A9AA0';
+
+function scoreStyle(score) {
+  const color = score >= 90 ? BRIGHT_RED : score >= 80 ? RED : score >= 70 ? AMBER : MUTED;
+  return `font-weight:700; font-family:'JetBrains Mono',monospace; color:${color};`;
+}
+function statusStyle(status) {
+  const map = {
+    'New': [BLUE, '#16202A'], 'Monitoring': [MUTED, '#1A1A1C'], 'Researching': [AMBER, '#2A2013'],
+    'Selected': [BRIGHT_RED, '#2A1014'], 'Published': [GREEN, '#16241A'], 'Skip': [MUTED, '#1A1A1C']
+  };
+  const [c, bg] = map[status] || [MUTED, '#1A1A1C'];
+  return `display:inline-block; font-size:11px; font-weight:600; color:${c}; background:${bg}; padding:2px 8px;`;
+}
+
+class Component extends DCLogic {
+  state = { screen: 'command-center', commandOpen: false, trendInspectorIdx: 0, communityInspectorIdx: null, brainTab: 'brand' };
+
+  go = (screen) => this.setState({ screen });
+  openCommand = () => this.setState({ commandOpen: true });
+  closeCommand = () => this.setState({ commandOpen: false });
+  stopProp = (e) => e.stopPropagation();
+  openTrend = (idx) => this.setState({ trendInspectorIdx: idx });
+  closeTrend = () => this.setState({ trendInspectorIdx: null });
+  openCommunity = (idx) => this.setState({ communityInspectorIdx: idx });
+  closeCommunity = () => this.setState({ communityInspectorIdx: null });
+  setBrainTab = (tab) => this.setState({ brainTab: tab });
+  goResearch = () => this.setState({ screen: 'research' });
+  goPipeline = () => this.setState({ screen: 'editorial-pipeline' });
+  goContentStudio = () => this.setState({ screen: 'content-studio' });
+
+  renderVals() {
+    const s = this.state.screen;
+
+    const navGroups = [
+      { label: 'INTELLIGENCE', items: [
+        { id: 'command-center', label: 'Command Center' },
+        { id: 'trend-radar', label: 'Trend Radar', badge: 12 },
+        { id: 'research', label: 'Research' },
+      ]},
+      { label: 'EDITORIAL', items: [
+        { id: 'editorial-pipeline', label: 'Editorial Pipeline', badge: 4 },
+        { id: 'content-studio', label: 'Content Studio' },
+        { id: 'calendar', label: 'Calendar' },
+      ]},
+      { label: 'AUDIENCE', items: [
+        { id: 'analytics', label: 'Analytics' },
+        { id: 'community', label: 'Community', badge: 3 },
+        { id: 'experiments', label: 'Experiments' },
+      ]},
+      { label: 'SYSTEM', items: [
+        { id: 'brain', label: 'TexhVox Brain' },
+        { id: 'integrations', label: 'Integrations' },
+        { id: 'settings', label: 'Settings' },
+      ]},
+    ].map(g => ({
+      ...g,
+      items: g.items.map(it => {
+        const active = s === it.id;
+        return {
+          ...it,
+          onClick: () => this.go(it.id),
+          hasBadge: !!it.badge,
+          rowStyle: `display:flex; align-items:center; gap:8px; height:32px; padding:0 8px; cursor:pointer; margin-bottom:1px; background:${active ? '#2A1014' : 'transparent'};`,
+          barStyle: `width:2px; height:14px; background:${active ? RED : 'transparent'};`,
+          labelStyle: `flex:1; font-size:13px; font-weight:${active ? 600 : 500}; color:${active ? '#F5F5F5' : '#9A9AA0'};`,
+        };
+      })
+    }));
+
+    const topMetrics = [
+      { label: 'FOLLOWERS', value: '84,210', delta: '+412 (7d)', up: true },
+      { label: 'ACTIVE AUDIENCE', value: '31,940', delta: '+2.1% (7d)', up: true },
+      { label: 'AVG. ER BY REACH', value: '6.4%', delta: '-0.3pt (7d)', up: false },
+      { label: 'FOLLOW CONVERSION', value: '3.8%', delta: '+0.4pt (7d)', up: true },
+    ].map(m => ({ ...m, deltaStyle: `font-size:11px; margin-top:6px; color:${m.up ? GREEN : AMBER};` }));
+
+    const rangeOptions = ['7D', '30D', '90D'].map((r, i) => ({
+      label: r, onClick: () => {},
+      style: `height:26px; padding:0 10px; display:flex; align-items:center; font-size:11px; cursor:pointer; background:${i === 1 ? '#151517' : 'transparent'}; color:${i === 1 ? '#F5F5F5' : MUTED}; border:1px solid ${i === 1 ? '#262629' : 'transparent'};`
+    }));
+
+    const growthVals = [40,60,75,90,120,140,190,210,260,300,340,392];
+    const activeVals = [30,35,45,55,60,70,90,100,120,135,150,168];
+    const toPts = (arr, max) => arr.map((v, i) => `${(i/(arr.length-1))*640},${190 - (v/max)*170}`).join(' ');
+    const growthLinePoints = toPts(growthVals, 400);
+    const activeLinePoints = toPts(activeVals, 400);
+
+    const weeklyIntelligence = [
+      { action: 'Increase', title: 'VOX NUMBERS', evidence: 'Posts containing meaningful business metrics generated 1.8× higher Share Rate than the 60-day account median.', confidence: 'High', nextAction: 'Schedule 2 more this week' },
+      { action: 'Maintain', title: 'VOX BREAKDOWN', evidence: 'Strong Save Rate and healthy follower conversion, in line with target.', confidence: 'Medium', nextAction: 'No change' },
+      { action: 'Reduce', title: 'Generic AI launch news', evidence: 'High discovery, weak repeat engagement — audience treats it as disposable.', confidence: 'Medium', nextAction: 'Cap to 1 per week' },
+    ].map(w => ({ ...w, tagStyle: `font-size:10px; font-weight:700; letter-spacing:0.4px; color:${w.action === 'Increase' ? GREEN : w.action === 'Reduce' ? AMBER : SEC}; text-transform:uppercase;` }));
+
+    const editorialOpportunities = [
+      { topic: "Stripe's Agent Payments Protocol", momentum: 'Rising fast', score: 92, pillar: 'AI', series: 'VOX NUMBERS', status: 'Selected' },
+      { topic: "OpenAI o-series pricing cuts", momentum: 'Peaking', score: 88, pillar: 'AI', series: 'VOX SIGNAL', status: 'Researching' },
+      { topic: "Ramp Series E at $16B", momentum: 'Steady', score: 78, pillar: 'Founders', series: 'VOX FOUNDER', status: 'Monitoring' },
+      { topic: "AI browser wars", momentum: 'Rising', score: 81, pillar: 'AI', series: 'VOX TAKE', status: 'New' },
+    ].map(o => ({ ...o, scoreStyle: scoreStyle(o.score), statusStyle: statusStyle(o.status) }));
+
+    const recentContent = [
+      { classification: 'HERO', title: "Stripe's agent payments protocol, explained", series: 'VOX NUMBERS', reach: '412K', er: '9.1%' },
+      { classification: 'DISCOVERY', title: 'OpenAI cuts API pricing again', series: 'VOX SIGNAL', reach: '380K', er: '3.2%' },
+      { classification: 'COMMUNITY', title: 'The real cost of switching off Zapier', series: 'VOX BREAKDOWN', reach: '88K', er: '11.4%' },
+      { classification: 'WEAK', title: 'Weekly AI launch roundup', series: 'VOX SIGNAL', reach: '52K', er: '1.8%' },
+    ].map(c => {
+      const cmap = { HERO: BRIGHT_RED, DISCOVERY: BLUE, COMMUNITY: GREEN, WEAK: MUTED };
+      return { ...c, classStyle: `display:inline-block; font-size:10px; font-weight:700; letter-spacing:0.5px; color:${cmap[c.classification]};` };
+    });
+
+    const trendFilters = ['Timeframe: 7D', 'Pillar: All', 'Source: All', 'Momentum: All', 'Min. score: 60', 'Status: All'];
+
+    const trendsRaw = [
+      { topic: "Stripe's Agent Payments Protocol", entities: 'Stripe, Anthropic', discovered: '2h ago', sources: 6, momentum: 'Rising fast', score: 92, status: 'Selected',
+        summary: 'Stripe introduced a protocol letting AI agents autonomously initiate and authorize payments within spending limits — first major infra treating agents as payment-capable actors.',
+        scoreBreakdown: [{label:'Audience Relevance',value:'18/20'},{label:'Momentum',value:'14/15'},{label:'Shareability',value:'14/15'},{label:'Business Impact',value:'14/15'}],
+        sourceList: ['Stripe Engineering Blog — official', 'The Information — industry', 'TechCrunch — news'],
+        angle: 'Business — what agent-native payments mean for SaaS pricing models.' },
+      { topic: "OpenAI o-series pricing cuts squeeze wrapper startups", entities: 'OpenAI', discovered: '5h ago', sources: 8, momentum: 'Peaking', score: 88, status: 'Researching',
+        summary: "OpenAI's latest price cuts compress margins for startups built as thin wrappers around the API.",
+        scoreBreakdown: [{label:'Audience Relevance',value:'17/20'},{label:'Momentum',value:'15/15'},{label:'Shareability',value:'12/15'},{label:'Business Impact',value:'13/15'}],
+        sourceList: ['OpenAI pricing page — official', 'Bloomberg — news', 'Founder threads — secondary'],
+        angle: 'Market — which startup categories are most exposed.' },
+      { topic: 'AI browser wars: Perplexity, Arc, Dia', entities: 'Perplexity, The Browser Company', discovered: '1d ago', sources: 5, momentum: 'Rising', score: 81, status: 'New',
+        summary: 'Three well-funded players are racing to redefine the browser as an AI-native surface.',
+        scoreBreakdown: [{label:'Audience Relevance',value:'16/20'},{label:'Momentum',value:'12/15'},{label:'Shareability',value:'13/15'},{label:'Business Impact',value:'10/15'}],
+        sourceList: ['Company blogs — official', 'The Verge — news'],
+        angle: 'Take — is the browser actually the right form factor for agents?' },
+      { topic: "Ramp raises Series E at $16B valuation", entities: 'Ramp', discovered: '1d ago', sources: 4, momentum: 'Steady', score: 78, status: 'Monitoring',
+        summary: 'Ramp closed a new round, reinforcing spend-management as a durable SaaS category.',
+        scoreBreakdown: [{label:'Audience Relevance',value:'14/20'},{label:'Momentum',value:'10/15'},{label:'Shareability',value:'11/15'},{label:'Business Impact',value:'13/15'}],
+        sourceList: ['Company announcement — official', 'Axios Pro Rata — news'],
+        angle: 'Founder — how Ramp is positioning for an AI-heavy finance stack.' },
+      { topic: 'Founders quietly ditching Zapier for custom agent pipelines', entities: 'Zapier', discovered: '2d ago', sources: 3, momentum: 'Rising', score: 74, status: 'Monitoring',
+        summary: 'A recurring pattern in founder communities: replacing no-code automation with lightweight custom agents.',
+        scoreBreakdown: [{label:'Audience Relevance',value:'15/20'},{label:'Momentum',value:'9/15'},{label:'Shareability',value:'12/15'},{label:'Business Impact',value:'9/15'}],
+        sourceList: ['Community threads — secondary', 'Indie Hackers — secondary'],
+        angle: 'User — a breakdown of what a custom stack actually costs.' },
+      { topic: 'Linear ships async standups', entities: 'Linear', discovered: '3d ago', sources: 2, momentum: 'Flat', score: 66, status: 'New',
+        summary: 'A minor workflow feature ship, useful mainly as a product-craft reference.',
+        scoreBreakdown: [{label:'Audience Relevance',value:'12/20'},{label:'Momentum',value:'6/15'},{label:'Shareability',value:'9/15'},{label:'Business Impact',value:'6/15'}],
+        sourceList: ['Linear changelog — official'],
+        angle: 'Tools — a short craft note, not a full feature.' },
+      { topic: "Notion's new AI meeting notes", entities: 'Notion', discovered: '3d ago', sources: 3, momentum: 'Flat', score: 61, status: 'Skip',
+        summary: 'Incremental feature parity move, low differentiation for our audience.',
+        scoreBreakdown: [{label:'Audience Relevance',value:'11/20'},{label:'Momentum',value:'6/15'},{label:'Shareability',value:'7/15'},{label:'Business Impact',value:'5/15'}],
+        sourceList: ['Notion blog — official'],
+        angle: 'Low priority — cover only if traction data changes.' },
+      { topic: 'Anthropic enterprise usage-based pricing tier', entities: 'Anthropic', discovered: '4d ago', sources: 7, momentum: 'Rising fast', score: 90, status: 'Published',
+        summary: 'A new Claude Enterprise tier bills by usage rather than seats, a shift for enterprise AI procurement.',
+        scoreBreakdown: [{label:'Audience Relevance',value:'19/20'},{label:'Momentum',value:'13/15'},{label:'Shareability',value:'13/15'},{label:'Business Impact',value:'14/15'}],
+        sourceList: ['Anthropic announcement — official', 'The Information — industry', 'Forbes — news'],
+        angle: 'Published as VOX NUMBERS — see Recent Content Performance.' },
+    ];
+    const trendInspectorOpen = this.state.trendInspectorIdx !== null;
+    const trends = trendsRaw.map((t, i) => ({
+      ...t, rank: i + 1, onClick: () => this.openTrend(i),
+      scoreStyle: scoreStyle(t.score), statusStyle: statusStyle(t.status),
+      rowStyle: `display:grid; grid-template-columns:0.4fr 2fr 0.7fr 0.9fr 0.8fr 0.7fr 1fr; padding:11px 14px; border-bottom:1px solid #1A1A1C; font-size:12px; align-items:center; cursor:pointer; min-width:900px; background:${this.state.trendInspectorIdx === i ? '#101012' : 'transparent'};`,
+    }));
+    const selectedTrend = trends[this.state.trendInspectorIdx] || trends[0];
+
+    const researchSources = [
+      { publisher: 'Stripe Engineering', title: 'Introducing the Agent Payments Protocol', type: 'Official company source', date: 'Aug 12', priority: 'High', verification: 'Verified' },
+      { publisher: 'The Information', title: 'Stripe bets on autonomous agent commerce', type: 'Industry publication', date: 'Aug 12', priority: 'High', verification: 'Verified' },
+      { publisher: 'TechCrunch', title: "What Stripe's agent protocol means for merchants", type: 'Major news publication', date: 'Aug 13', priority: 'Medium', verification: 'Verified' },
+      { publisher: '@patrickc', title: 'Thread on protocol design decisions', type: 'Founder/executive statement', date: 'Aug 12', priority: 'High', verification: 'Verified' },
+      { publisher: 'a16z Research Note', title: 'Agent-native commerce infrastructure', type: 'Research paper', date: 'Aug 13', priority: 'Medium', verification: 'Unverified' },
+      { publisher: 'Hacker News thread', title: 'Discussion: agent payment protocol', type: 'Secondary analysis', date: 'Aug 12', priority: 'Low', verification: 'Unverified' },
+    ].map(s => ({ ...s, priorityStyle: `font-size:10px; font-weight:600; color:${s.priority === 'High' ? BRIGHT_RED : s.priority === 'Medium' ? AMBER : MUTED};` }));
+
+    const researchSections = [
+      { label: 'CONFIRMED FACTS', claims: [
+        { text: 'Stripe launched a protocol allowing AI agents to initiate payments within pre-set limits, announced via official engineering blog.', support: '3 sources', confidence: 'High' },
+        { text: 'Anthropic is a launch partner integrating the protocol into Claude-based agents.', support: '2 sources', confidence: 'High' } ]},
+      { label: 'REPORTED INFORMATION', claims: [
+        { text: 'The protocol is expected to roll out to select merchants before general availability.', support: '1 source', confidence: 'Medium' } ]},
+      { label: 'ESTIMATES', claims: [
+        { text: "Industry analysts estimate agent-initiated transactions could represent a meaningful share of e-commerce volume within 3 years.", support: '1 source (analyst estimate)', confidence: 'Low' } ]},
+      { label: 'SPECULATION', claims: [
+        { text: 'Some commentators speculate this pressures PayPal and Adyen to ship competing agent protocols.', support: 'Unsupported', confidence: 'Low' } ]},
+      { label: 'TEXHVOX INTERPRETATION', claims: [
+        { text: 'This is the first infrastructure-level acknowledgment that agents will transact, not just assist — a genuine category shift worth a VOX NUMBERS treatment.', support: 'Editorial judgment', confidence: 'High' } ]},
+    ];
+
+    const pipelineColumns = [
+      { name: 'IDEAS', items: [
+        { title: 'AI browser wars: is the browser the right surface?', series: 'VOX TAKE', pillar: 'AI', score: 81 },
+        { title: 'Founders ditching Zapier for custom agents', series: 'VOX BREAKDOWN', pillar: 'Tools', score: 74 } ]},
+      { name: 'RESEARCH', items: [
+        { title: "Stripe's Agent Payments Protocol", series: 'VOX NUMBERS', pillar: 'AI', score: 92 } ]},
+      { name: 'DRAFTING', items: [
+        { title: "OpenAI's pricing cuts, who gets squeezed", series: 'VOX SIGNAL', pillar: 'AI', score: 88 } ]},
+      { name: 'REVIEW', items: [
+        { title: 'Ramp at $16B — the founder read', series: 'VOX FOUNDER', pillar: 'Founders', score: 78 } ]},
+      { name: 'READY', items: [
+        { title: 'SaaS tools worth paying for, Q3 edition', series: 'VOX STACK', pillar: 'SaaS', score: 83 } ]},
+      { name: 'SCHEDULED', items: [
+        { title: "Vercel's AI SDK hits 1M weekly downloads", series: 'VOX SIGNAL', pillar: 'SaaS', score: 79 } ]},
+      { name: 'PUBLISHED', items: [
+        { title: 'Anthropic enterprise usage-based pricing', series: 'VOX NUMBERS', pillar: 'AI', score: 90 } ]},
+    ].map(c => ({ ...c, count: c.items.length, items: c.items.map(it => ({ ...it, scoreStyle: scoreStyle(it.score), seriesStyle: `display:inline-block; font-size:10px; font-weight:700; color:${BRIGHT_RED}; letter-spacing:0.4px;` })) }));
+
+    const studioFields = [
+      { label: 'TOPIC', value: "Stripe's Agent Payments Protocol" },
+      { label: 'OBJECTIVE', value: 'Shares / Credibility' },
+      { label: 'TARGET PERSONA', value: 'Builders & Founders' },
+      { label: 'PILLAR', value: 'AI & Emerging Technology' },
+      { label: 'SERIES', value: 'VOX NUMBERS' },
+      { label: 'ANGLE', value: 'Business' },
+    ];
+
+    const slides = [
+      { role: 'HOOK', headline: 'Stripe just let AI agents spend your money.', copy: 'A new protocol lets autonomous agents initiate payments within limits you set.', evidence: '✓ Sourced' },
+      { role: 'CONTEXT', headline: "Agents have been assistants. Now they're actors.", copy: 'Until now, AI could recommend a purchase. It could not make one.', evidence: '✓ Sourced' },
+      { role: 'WHAT HAPPENED', headline: 'The Agent Payments Protocol, explained', copy: 'Agents can authorize transactions inside merchant-defined spending limits, with Anthropic as launch partner.', evidence: '✓ 3 sources' },
+      { role: 'WHY IT MATTERS', headline: 'This is infrastructure, not a feature', copy: "It's the first time a major payments company has built for agents transacting on their own.", evidence: '✓ Sourced' },
+      { role: 'EVIDENCE', headline: 'What we know for certain', copy: 'Confirmed via Stripe engineering blog and Anthropic partnership statement — not rumor.', evidence: '✓ 2 sources' },
+      { role: 'BUSINESS IMPLICATION', headline: 'Every SaaS pricing model just got a new customer type', copy: 'Vendors will need to price for agent-initiated usage, not just human seats.', evidence: '△ 1 source' },
+      { role: 'TEXHVOX TAKE', headline: 'The interesting fight is downstream', copy: 'The protocol matters less than who builds trust infrastructure around it — fraud, limits, audit trails.', evidence: 'Editorial judgment' },
+      { role: 'CTA', headline: 'Which vendor ships an agent-spend limit dashboard first?', copy: 'Drop your bet in the comments.', evidence: '—' },
+    ].map((sl, i) => ({ ...sl, number: `0${i + 1}` }));
+
+    const inspectorChecks = [
+      { label: 'Word count', value: '214', style: 'color:#F5F5F5;' },
+      { label: 'Source coverage', value: '6/8 slides', style: `color:${AMBER};` },
+      { label: 'Unsupported claims', value: '1 flagged', style: `color:${AMBER};` },
+      { label: 'Tone consistency', value: 'Consistent', style: `color:${GREEN};` },
+      { label: 'Objective alignment', value: 'Strong — Shares', style: `color:${GREEN};` },
+    ];
+
+    const calendarDays = ['MON 17','TUE 18','WED 19','THU 20','FRI 21','SAT 22','SUN 23'].map((label, i) => {
+      const map = {
+        0: [{ title: "Stripe's Agent Payments Protocol", time: '9:00 AM', series: 'VOX NUMBERS' }],
+        2: [{ title: "OpenAI's pricing cuts", time: '9:00 AM', series: 'VOX SIGNAL' }],
+        3: [{ title: 'SaaS tools worth paying for', time: '11:00 AM', series: 'VOX STACK' }],
+        5: [{ title: 'Ramp founder read', time: '9:00 AM', series: 'VOX FOUNDER' }],
+      };
+      const items = (map[i] || []).map(it => ({ ...it, style: 'background:#101012; border:1px solid #262629; border-left:2px solid #E92732; padding:8px 9px; margin-bottom:6px;' }));
+      return { label, items };
+    });
+
+    const analyticsMetrics = [
+      { label: 'REACH', value: '2.1M', formula: 'Unique accounts reached' },
+      { label: 'ER BY REACH', value: '6.4%', formula: '(Likes+Comments+Saves+Shares)/Reach' },
+      { label: 'SHARE RATE', value: '1.9%', formula: 'Shares/Reach' },
+      { label: 'SAVE RATE', value: '2.8%', formula: 'Saves/Reach' },
+      { label: 'FOLLOW CONVERSION', value: '3.8%', formula: 'Followers Gained/Profile Visits' },
+    ];
+
+    function seededRandom(seed) { let x = Math.sin(seed) * 10000; return x - Math.floor(x); }
+    const scatterPoints = Array.from({ length: 24 }).map((_, i) => {
+      const reach = seededRandom(i * 3.1) * 380 + 10;
+      const eng = seededRandom(i * 7.7 + 1) * 240 + 10;
+      const hero = reach > 220 && eng < 100, disc = reach > 220 && eng >= 100, comm = reach <= 220 && eng < 100;
+      const color = hero ? BRIGHT_RED : disc ? BLUE : comm ? GREEN : MUTED;
+      return { x: reach.toFixed(1), y: eng.toFixed(1), color };
+    });
+
+    const seriesPerformance = [
+      { name: 'VOX NUMBERS', er: '9.1%', pct: 91 }, { name: 'VOX BREAKDOWN', er: '7.8%', pct: 78 },
+      { name: 'VOX FOUNDER', er: '6.9%', pct: 69 }, { name: 'VOX STACK', er: '5.4%', pct: 54 },
+      { name: 'VOX TAKE', er: '4.7%', pct: 47 }, { name: 'VOX SIGNAL', er: '3.1%', pct: 31 },
+    ].map(s => ({ ...s, barStyle: `height:5px; width:${s.pct}%; background:${RED};` }));
+
+    const interpretationRows = [
+      { label: 'Pattern', value: 'Posts with a specific financial figure in the hook outperform on Share Rate.' },
+      { label: 'Evidence', value: 'VOX NUMBERS averages 9.1% ER by Reach vs. a 6.4% account median, over the last 30 days.' },
+      { label: 'Interpretation', value: 'Concrete numbers signal credibility and give readers something quotable to share.' },
+      { label: 'Decision', value: 'Increase VOX NUMBERS cadence from 1 to 2 posts per week.' },
+      { label: 'Suggested experiment', value: 'Test numeric vs. narrative hooks on the same story within VOX BREAKDOWN.' },
+    ];
+
+    const communityThemesRaw = [
+      { theme: 'AI coding agents replacing junior devs', volume: 412, growth: '+38%', persona: 'AI Practitioner', status: 'New',
+        samples: ['Is anyone else worried agents are eating the junior dev role entirely?', 'Curious what tasks are actually safe to hand off vs not yet.'] },
+      { theme: 'Confusion over usage-based AI pricing', volume: 286, growth: '+22%', persona: 'Business Professional', status: 'Monitoring',
+        samples: ['I genuinely cannot predict our Claude bill month to month.', 'Wish someone would just explain usage pricing in plain terms.'] },
+      { theme: 'Founders want an automation stack breakdown', volume: 194, growth: '+15%', persona: 'Builders & Founders', status: 'Content Opportunity',
+        samples: ['What do you actually run instead of Zapier now?', 'Would pay for a real teardown of someone\u2019s agent stack.'] },
+      { theme: 'Which SaaS tools are actually worth paying for', volume: 165, growth: '+9%', persona: 'Tech Curious', status: 'Monitoring',
+        samples: ['Feels like every tool claims AI now, hard to tell what\u2019s real.'] },
+      { theme: 'Founder interest: agent-native fintech', volume: 98, growth: '+41%', persona: 'Builders & Founders', status: 'New',
+        samples: ['Building something adjacent to the Stripe protocol, would love a deep dive.'] },
+    ];
+    const communityInspectorOpen = this.state.communityInspectorIdx !== null;
+    const communityThemes = communityThemesRaw.map((t, i) => ({
+      ...t, onClick: () => this.openCommunity(i),
+      statusStyle: statusStyle(t.status === 'Content Opportunity' ? 'Selected' : t.status),
+      rowStyle: `display:grid; grid-template-columns:2fr 0.8fr 0.8fr 1fr 1fr; padding:11px 14px; border-bottom:1px solid #1A1A1C; font-size:12px; align-items:center; cursor:pointer; background:${this.state.communityInspectorIdx === i ? '#101012' : 'transparent'};`,
+    }));
+    const selectedTheme = communityThemes[this.state.communityInspectorIdx] || communityThemes[0];
+
+    const experiments = [
+      { id: 'EXP-014', hypothesis: 'Hooks with a meaningful financial number generate higher Share Rate.', metric: 'Share Rate', baseline: '2.7%', result: '4.1%', confidence: 'High', decision: 'ADOPT' },
+      { id: 'EXP-015', hypothesis: 'Posting VOX BREAKDOWN on Thursdays improves Save Rate.', metric: 'Save Rate', baseline: '2.9%', result: '3.0%', confidence: 'Low', decision: 'RETEST' },
+      { id: 'EXP-016', hypothesis: 'A visible source citation on slide 1 increases trust and Comment Rate.', metric: 'Comment Rate', baseline: '1.1%', result: '1.6%', confidence: 'Medium', decision: 'ADOPT' },
+      { id: 'EXP-017', hypothesis: 'Founder-quote openers outperform stat openers for VOX FOUNDER.', metric: 'ER by Reach', baseline: '6.9%', result: '6.7%', confidence: 'Low', decision: 'MAINTAIN' },
+      { id: 'EXP-018', hypothesis: 'Weekly roundup format sustains reach without hurting engagement.', metric: 'ER by Reach', baseline: '4.2%', result: '1.8%', confidence: 'High', decision: 'STOP' },
+    ].map(e => {
+      const dmap = { ADOPT: GREEN, MAINTAIN: SEC, RETEST: AMBER, REDUCE: AMBER, STOP: BRIGHT_RED };
+      return { ...e, decisionStyle: `font-weight:700; color:${dmap[e.decision]};` };
+    });
+
+    const brainTabs = ['brand','personas','pillars','series','research','score','community','tone','firewall','routing','knowledge','versions'].map(id => {
+      const labels = { brand:'Brand', personas:'Audience Personas', pillars:'Editorial Pillars', series:'Editorial Series', research:'Research Standards', score:'Content Score Rules', community:'Community Rules', tone:'Tone & Writing Rules', firewall:'SaaS Ranked Firewall', routing:'AI Routing', knowledge:'Knowledge Documents', versions:'Brain Versions' };
+      const active = this.state.brainTab === id;
+      return { id, label: labels[id], onClick: () => this.setBrainTab(id),
+        style: `padding:8px 10px; font-size:12px; cursor:pointer; color:${active ? '#F5F5F5' : SEC}; background:${active ? '#151517' : 'transparent'}; border-left:2px solid ${active ? RED : 'transparent'}; margin-bottom:2px;` };
+    });
+
+    const pillars = [
+      { name: 'AI & Emerging Technology', pct: '30%', w: 30 }, { name: 'SaaS', pct: '25%', w: 25 },
+      { name: 'Startups & Founders', pct: '20%', w: 20 }, { name: 'Business of Technology', pct: '15%', w: 15 },
+      { name: 'Tools & Workflows', pct: '10%', w: 10 },
+    ].map(p => ({ ...p, barStyle: `height:100%; width:${p.w}%; background:${RED};` }));
+
+    const seriesDefs = [
+      { name: 'VOX SIGNAL', objective: 'Reach / Discovery' }, { name: 'VOX BREAKDOWN', objective: 'Saves / Authority' },
+      { name: 'VOX NUMBERS', objective: 'Shares / Credibility' }, { name: 'VOX STACK', objective: 'Shares / Discovery' },
+      { name: 'VOX FOUNDER', objective: 'Community / Founder Network' }, { name: 'VOX TAKE', objective: 'Brand Identity / Discussion' },
+    ];
+
+    const firewallCategories = [
+      { label: 'Organic Editorial', desc: 'No commercial relationship' }, { label: 'Sponsored', desc: 'Disclosed paid placement' },
+      { label: 'Partner', desc: 'Ongoing commercial partner' }, { label: 'Affiliate', desc: 'Revenue-share link present' },
+      { label: 'SaaS Ranked relationship', desc: 'Cross-owned property' }, { label: 'Founder Lead', desc: 'Sourced via founder network' },
+    ];
+    const toneTraits = ['Intelligent','Modern','Conversational','Concise','Analytical','Confident','Curious','Evidence-based','Opinionated when justified'];
+
+    const brainBodyMap = {
+      brand: 'TexhVox covers AI, SaaS, startups and the business of technology for a technical, builder-leaning audience. Voice is direct and evidence-first.',
+      personas: 'Tech Curious · AI Practitioner · Builders & Founders · Business Professionals — each carries distinct tone and depth defaults used across Content Studio.',
+      research: 'Minimum two independent sources for any factual claim in a HERO-track story. Official company sources and filings outrank secondary analysis.',
+      score: 'Audience Relevance 20 · Trend/News Momentum 15 · Shareability 15 · Unique Angle 15 · Business Impact 15 · Discussion Potential 10 · Brand Fit 10.',
+      community: 'Persona reads from community signals are always labeled inferred. No signal converts directly to a demographic claim.',
+      routing: 'Anthropic Claude handles research synthesis, editorial reasoning and final content generation. OpenRouter models handle classification, tagging and deduplication.',
+      knowledge: '14 documents indexed: style guide, source priority rules, series playbooks, past performance patterns, SaaS Ranked firewall policy.',
+      versions: 'v1.7 (current) — added SaaS Ranked firewall guardrails. v1.6 — introduced Follow Conversion fallback formula. v1.5 — added VOX STACK series.',
+    };
+    const brainTab = this.state.brainTab;
+    const brainTitleMap = { pillars: 'Editorial Pillars', series: 'Editorial Series', firewall: 'SaaS Ranked Editorial Firewall', tone: 'Tone & Writing Rules' };
+    const brainTitle = brainTitleMap[brainTab] || brainTabs.find(t => t.id === brainTab).label;
+
+    const integrations = [
+      { name: 'Neon PostgreSQL', role: 'Structured application database', detail: 'Editorial, research, analytics & experiment objects', status: 'Connected', lastSync: 'Live' },
+      { name: 'Cloudinary', role: 'Media asset storage', detail: 'Generated visuals, thumbnails, carousel exports', status: 'Connected', lastSync: '3m ago' },
+      { name: 'Anthropic Claude', role: 'Primary intelligence model', detail: 'Research synthesis, editorial reasoning, content generation', status: 'Connected', lastSync: 'Live' },
+      { name: 'OpenRouter', role: 'Utility / low-cost models', detail: 'Classification, tagging, entity extraction, dedup', status: 'Connected', lastSync: '1m ago' },
+      { name: 'Meta / Instagram', role: 'Publishing & metrics', detail: 'Account connection, metric ingestion, webhooks', status: 'Degraded', lastSync: '47m ago' },
+    ].map(i => ({ ...i, statusStyle: `font-weight:600; color:${i.status === 'Connected' ? GREEN : i.status === 'Degraded' ? AMBER : BRIGHT_RED};` }));
+
+    const paletteItems = [
+      { label: 'Open Trend Radar', hint: 'go', onClick: () => { this.closeCommand(); this.go('trend-radar'); } },
+      { label: 'Start Research', hint: 'action', onClick: () => { this.closeCommand(); this.go('research'); } },
+      { label: 'Open Content Studio', hint: 'go', onClick: () => { this.closeCommand(); this.go('content-studio'); } },
+      { label: 'Analyze recent performance', hint: 'ask TexhVox', onClick: () => { this.closeCommand(); this.go('analytics'); } },
+      { label: 'Open Editorial Calendar', hint: 'go', onClick: () => { this.closeCommand(); this.go('calendar'); } },
+      { label: 'Ask TexhVox intelligence...', hint: 'AI', onClick: () => this.closeCommand() },
+    ];
+
+    return {
+      navGroups, topMetrics, rangeOptions, growthLinePoints, activeLinePoints, weeklyIntelligence, editorialOpportunities, recentContent,
+      trendFilters, trends, trendInspectorOpen, selectedTrend,
+      researchSources, researchSections,
+      pipelineColumns, studioFields, slides, inspectorChecks, calendarDays,
+      analyticsMetrics, scatterPoints, seriesPerformance, interpretationRows,
+      communityThemes, communityInspectorOpen, selectedTheme,
+      experiments, brainTabs, brainTitle, brainBody: brainBodyMap[brainTab] || '',
+      isBrainPillars: brainTab === 'pillars', isBrainSeries: brainTab === 'series', isBrainFirewall: brainTab === 'firewall',
+      isBrainTone: brainTab === 'tone', isBrainGeneric: !['pillars','series','firewall','tone'].includes(brainTab),
+      pillars, seriesDefs, firewallCategories, toneTraits,
+      integrations, paletteItems,
+      commandOpen: this.state.commandOpen, openCommand: this.openCommand, closeCommand: this.closeCommand, stopProp: this.stopProp,
+      closeTrend: this.closeTrend, closeCommunity: this.closeCommunity, goResearch: this.goResearch, goPipeline: this.goPipeline, goContentStudio: this.goContentStudio,
+      isCommandCenter: s === 'command-center', isTrendRadar: s === 'trend-radar', isResearch: s === 'research',
+      isPipeline: s === 'editorial-pipeline', isContentStudio: s === 'content-studio', isCalendar: s === 'calendar',
+      isAnalytics: s === 'analytics', isCommunity: s === 'community', isExperiments: s === 'experiments',
+      isBrain: s === 'brain', isIntegrations: s === 'integrations', isSettings: s === 'settings',
+    };
+  }
+}
+</script>
+</body>
+</html>

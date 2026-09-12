@@ -1,0 +1,1441 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    body { margin: 0; font-family: 'Inter', sans-serif; background: #F6F8FB; color: #17202D; }
+    a { color: #2D6CDF; text-decoration: none; }
+    a:hover { color: #0F2747; text-decoration: underline; }
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-thumb { background: #DCE4EE; border-radius:0; }
+  </style>
+</helmet>
+
+<div style="display:flex; width:100%; min-height:100vh; background:#F6F8FB;">
+
+  <!-- SIDEBAR -->
+  <div style="width:236px; flex-shrink:0; background:#0F2747; display:flex; flex-direction:column; height:100vh; position:sticky; top:0;">
+    <div style="display:flex; align-items:center; gap:10px; padding:22px 20px 18px;">
+      <img src="assets/tsi-logo.png" alt="TSI" style="width:30px; height:30px; object-fit:contain; background:#fff; border-radius:0; padding:3px;" />
+      <div>
+        <div style="color:#fff; font-weight:700; font-size:14.5px; letter-spacing:0.2px;">Content Machine</div>
+        <div style="color:#8FA6C4; font-size:11px;">TSI Sertifikasi Internasional</div>
+      </div>
+    </div>
+    <div style="flex:1; overflow-y:auto; padding:10px 10px;">
+      <sc-for list="{{ navGroups }}" as="grp" hint-placeholder-count="5">
+        <div style="font-size:10.5px; font-weight:700; color:#5B7091; letter-spacing:0.9px; text-transform:uppercase; padding:16px 10px 6px;">{{ grp.label }}</div>
+        <sc-for list="{{ grp.items }}" as="ni" hint-placeholder-count="2">
+          <div onClick="{{ ni.onClick }}" style="{{ ni.rowStyle }}">
+            <span style="{{ ni.labelStyle }}">{{ ni.label }}</span>
+            <sc-if value="{{ ni.hasBadge }}" hint-placeholder-val="{{ false }}">
+              <div style="font-size:10px; font-weight:700; color:#B9C7DA; background:#163B69; border:1px solid #2A4E7C; padding:1px 6px; min-width:16px; text-align:center;">{{ ni.badge }}</div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </sc-for>
+    </div>
+    <div style="padding:12px 12px; border-top:1px solid #1E3A5F; display:flex; flex-direction:column; gap:1px;">
+      <div style="padding:8px 10px; color:#6E86A8; font-size:12.5px; cursor:default;">Help</div>
+      <div style="padding:8px 10px; color:#6E86A8; font-size:12.5px; cursor:default;">Documentation</div>
+      <div style="display:flex; align-items:center; gap:10px; padding:10px 10px 4px;">
+        <div style="width:26px; height:26px; border-radius:0; background:#163B69; color:#fff; font-size:11.5px; font-weight:700; display:flex; align-items:center; justify-content:center;">MR</div>
+        <div style="color:#B9C7DA; font-size:12.5px; font-weight:600;">Marketing Team</div>
+      </div>
+      <div style="display:flex; align-items:center; gap:6px; padding:8px 10px 2px;">
+        <div style="width:6px; height:6px; border-radius:50%; background:#1F9D68;"></div>
+        <span style="font-size:11.5px; color:#5B7091;">Synced 4m ago</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div style="flex:1; min-width:0; display:flex; flex-direction:column; height:100vh; overflow:hidden;">
+
+    <!-- TOP BAR -->
+    <div style="height:64px; flex-shrink:0; background:#fff; border-bottom:1px solid #DCE4EE; display:flex; align-items:center; justify-content:space-between; padding:0 28px; gap:20px;">
+      <div style="display:flex; align-items:center; gap:10px; flex:1; max-width:420px; background:#F6F8FB; border:1px solid #DCE4EE; border-radius:0; padding:9px 12px;">
+        <span style="color:#98A2B3; font-size:13px; flex:1;">Search articles, keywords, posts…</span>
+        <span style="font-size:11px; color:#B7C0CC; border:1px solid #DCE4EE; border-radius:0; padding:1px 6px;">⌘K</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div style="display:flex; align-items:center; gap:6px;">
+          <div style="width:6px; height:6px; border-radius:50%; background:#1F9D68;"></div>
+          <span style="font-size:12.5px; color:#667085;">Synced 4m ago</span>
+        </div>
+        <div style="position:relative; width:34px; height:34px; border-radius:0; border:1px solid #DCE4EE; display:flex; align-items:center; justify-content:center;">
+          <div style="width:8px; height:8px; border-radius:50%; background:#D64545; position:absolute; top:6px; right:7px;"></div>
+          <div style="width:14px; height:14px; border:1.5px solid #667085; border-radius:0;"></div>
+        </div>
+        <div style="position:relative;">
+          <button onClick="{{ toggleQuickCreate }}" style="display:flex; align-items:center; gap:6px; background:#0F2747; color:#fff; border:none; border-radius:0; padding:9px 16px; font-size:13px; font-weight:700; cursor:pointer;">+ Create</button>
+          <sc-if value="{{ quickCreateOpen }}" hint-placeholder-val="{{ false }}">
+            <div style="position:absolute; top:44px; right:0; background:#fff; border:1px solid #DCE4EE; border-radius:0; box-shadow:0 12px 24px rgba(15,39,71,0.14); width:200px; padding:6px; z-index:20;">
+              <div style="padding:9px 12px; border-radius:0; font-size:13px; color:#344054; cursor:pointer;">New Article</div>
+              <div style="padding:9px 12px; border-radius:0; font-size:13px; color:#344054; cursor:pointer;">New Social Post</div>
+              <div style="padding:9px 12px; border-radius:0; font-size:13px; color:#344054; cursor:pointer;">New Campaign</div>
+              <div style="padding:9px 12px; border-radius:0; font-size:13px; color:#344054; cursor:pointer;">New Content Idea</div>
+            </div>
+          </sc-if>
+        </div>
+        <div style="width:34px; height:34px; border-radius:0; border:1px solid #DCE4EE; color:#0F2747; font-size:12.5px; font-weight:700; display:flex; align-items:center; justify-content:center;">MR</div>
+      </div>
+    </div>
+
+    <!-- SCREEN BODY -->
+    <div style="flex:1; overflow-y:auto; padding:32px 32px 56px;">
+
+      <sc-if value="{{ isDashboard }}" hint-placeholder-val="{{ true }}">
+        <div>
+          <div style="margin-bottom:28px;">
+            <div style="font-size:30px; font-weight:700; color:#0F2747; letter-spacing:-0.3px;">Dashboard Overview</div>
+            <div style="font-size:15px; color:#667085; margin-top:4px;">Content, SEO &amp; Social Intelligence</div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:#DCE4EE; border:1px solid #DCE4EE; margin-bottom:32px;">
+            <sc-for list="{{ dashboardKpis }}" as="dk" hint-placeholder-count="8">
+              <div style="background:#fff; padding:18px 20px;">
+                <div style="font-size:11.5px; color:#667085; font-weight:700; letter-spacing:0.4px; text-transform:uppercase;">{{ dk.label }}</div>
+                <div style="font-size:25px; font-weight:800; color:#0F2747; margin-top:8px; font-family:'JetBrains Mono',monospace;">{{ dk.value }}</div>
+                <div style="display:flex; align-items:center; gap:6px; margin-top:8px;">
+                  <span style="{{ dk.changeStyle }}">{{ dk.changeText }}</span>
+                  <span style="font-size:12px; color:#98A2B3;">{{ dk.period }}</span>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="display:grid; grid-template-columns:2fr 1fr; gap:24px; align-items:start;">
+            <div style="display:flex; flex-direction:column; gap:24px;">
+
+              <div style="background:#fff; border:1px solid #DCE4EE; border-radius:0; padding:24px;">
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+                  <div style="font-size:17px; font-weight:600; color:#17202D;">SEO Visibility Trend</div>
+                  <div style="display:flex; gap:2px; border:1px solid #DCE4EE; border-radius:0; padding:2px;">
+                    <sc-for list="{{ chartRanges }}" as="cr1" hint-placeholder-count="4">
+                      <div onClick="{{ cr1.onClick }}" style="{{ cr1.style }}">{{ cr1.label }}</div>
+                    </sc-for>
+                  </div>
+                </div>
+                <svg viewBox="0 0 600 200" style="width:100%; height:200px; display:block;">
+                  <polyline points="{{ visibilityPoints }}" fill="none" stroke="#2D6CDF" stroke-width="2.5"></polyline>
+                  <polygon points="{{ visibilityArea }}" fill="#2D6CDF" opacity="0.08"></polygon>
+                </svg>
+              </div>
+
+              <div style="background:#fff; border:1px solid #DCE4EE; border-radius:0; padding:24px;">
+                <div style="font-size:17px; font-weight:600; color:#17202D; margin-bottom:16px;">Keyword Movements</div>
+                <table style="width:100%; border-collapse:collapse; font-size:13.5px;">
+                  <tr>
+                    <td style="color:#667085; font-size:12px; font-weight:600; padding-bottom:10px;">Keyword</td>
+                    <td style="color:#667085; font-size:12px; font-weight:600; padding-bottom:10px;">Current</td>
+                    <td style="color:#667085; font-size:12px; font-weight:600; padding-bottom:10px;">Previous</td>
+                    <td style="color:#667085; font-size:12px; font-weight:600; padding-bottom:10px;">Movement</td>
+                    <td style="color:#667085; font-size:12px; font-weight:600; padding-bottom:10px;">Intent</td>
+                    <td style="color:#667085; font-size:12px; font-weight:600; padding-bottom:10px;">Landing Page</td>
+                  </tr>
+                  <sc-for list="{{ keywordMovements }}" as="km" hint-placeholder-count="5">
+                    <tr style="border-top:1px solid #EEF1F5;">
+                      <td style="padding:10px 0; font-weight:600; color:#17202D;">{{ km.kw }}</td>
+                      <td style="padding:10px 0;">#{{ km.cur }}</td>
+                      <td style="padding:10px 0; color:#98A2B3;">#{{ km.prev }}</td>
+                      <td style="padding:10px 0;"><span style="{{ km.moveStyle }}">{{ km.moveText }}</span></td>
+                      <td style="padding:10px 0; color:#667085;">{{ km.intent }}</td>
+                      <td style="padding:10px 0; color:#2D6CDF; font-size:12.5px;">{{ km.page }}</td>
+                    </tr>
+                  </sc-for>
+                </table>
+              </div>
+
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px;">
+                <div style="background:#fff; border:1px solid #DCE4EE; border-radius:0; padding:24px;">
+                  <div style="font-size:17px; font-weight:600; color:#17202D; margin-bottom:14px;">Top Performing Content</div>
+                  <sc-for list="{{ topContent }}" as="tc" hint-placeholder-count="3">
+                    <div style="padding:12px 0; border-top:1px solid #EEF1F5;">
+                      <div style="font-size:13.5px; font-weight:600; color:#17202D;">{{ tc.title }}</div>
+                      <div style="display:flex; gap:14px; margin-top:6px; font-size:12px; color:#667085;">
+                        <span>Traffic {{ tc.traffic }}</span><span>Rank {{ tc.pos }}</span><span>CTR {{ tc.ctr }}</span><span>Leads {{ tc.leads }}</span>
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+                <div style="background:#fff; border:1px solid #DCE4EE; border-radius:0; padding:24px;">
+                  <div style="font-size:17px; font-weight:600; color:#17202D; margin-bottom:14px;">Content Requiring Attention</div>
+                  <sc-for list="{{ attentionContent }}" as="atc" hint-placeholder-count="4">
+                    <div style="padding:11px 0; border-top:1px solid #EEF1F5; display:flex; align-items:center; justify-content:space-between;">
+                      <div style="font-size:13px; color:#17202D; font-weight:500;">{{ atc.title }}</div>
+                      <div style="font-size:11.5px; color:#D64545; background:#FBEAEA; padding:3px 9px; border-radius:0; flex-shrink:0; margin-left:10px;">{{ atc.reason }}</div>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:24px;">
+              <div style="background:#fff; border:1px solid #DCE4EE; border-radius:0; padding:22px;">
+                <div style="font-size:16px; font-weight:600; color:#17202D; margin-bottom:14px;">AI Opportunities</div>
+                <sc-for list="{{ aiOpportunities }}" as="aio" hint-placeholder-count="4">
+                  <div style="padding:14px 0; border-top:1px solid #EEF1F5;">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                      <span>{{ aio.icon }}</span>
+                      <span style="font-size:11.5px; font-weight:600; color:#667085; text-transform:uppercase; letter-spacing:0.3px;">{{ aio.category }}</span>
+                      <span style="{{ aio.priorityStyle }}">{{ aio.priority }}</span>
+                    </div>
+                    <div style="font-size:13.5px; color:#17202D; margin-top:8px; line-height:1.4;">{{ aio.insight }}</div>
+                    <div style="font-size:12.5px; color:#667085; margin-top:6px; line-height:1.4;">{{ aio.action }}</div>
+                    <div style="font-size:12.5px; color:#2D6CDF; font-weight:600; margin-top:8px; cursor:pointer;">{{ aio.cta }} →</div>
+                  </div>
+                </sc-for>
+              </div>
+
+              <div style="background:#fff; border:1px solid #DCE4EE; border-radius:0; padding:22px;">
+                <div style="font-size:16px; font-weight:600; color:#17202D; margin-bottom:14px;">Upcoming Content</div>
+                <sc-for list="{{ upcomingContent }}" as="upc" hint-placeholder-count="3">
+                  <div style="padding:11px 0; border-top:1px solid #EEF1F5;">
+                    <div style="display:flex; justify-content:space-between; align-items:baseline;">
+                      <div style="font-size:13px; font-weight:600; color:#17202D;">{{ upc.title }}</div>
+                      <div style="font-size:11.5px; color:#98A2B3; flex-shrink:0; margin-left:8px;">{{ upc.date }}</div>
+                    </div>
+                    <div style="display:flex; gap:8px; margin-top:6px; font-size:11.5px; color:#667085;">
+                      <span>{{ upc.channel }}</span><span>·</span><span>{{ upc.owner }}</span><span>·</span><span style="{{ upc.statusStyle }}">{{ upc.status }}</span>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+
+              <div style="background:#fff; border:1px solid #DCE4EE; border-radius:0; padding:22px;">
+                <div style="font-size:16px; font-weight:600; color:#17202D; margin-bottom:14px;">Recent Agent Activity</div>
+                <sc-for list="{{ agentActivity }}" as="aa" hint-placeholder-count="5">
+                  <div style="display:flex; gap:10px; padding:10px 0; border-top:1px solid #EEF1F5;">
+                    <div style="width:6px; height:6px; border-radius:50%; background:#2D6CDF; margin-top:6px; flex-shrink:0;"></div>
+                    <div>
+                      <div style="font-size:12.5px; font-weight:600; color:#0F2747;">{{ aa.agent }}</div>
+                      <div style="font-size:12.5px; color:#344054; margin-top:2px; line-height:1.4;">{{ aa.text }}</div>
+                      <div style="font-size:11px; color:#98A2B3; margin-top:2px;">{{ aa.time }}</div>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isPlanner }}" hint-placeholder-val="{{ false }}">
+        <div>
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px;">
+            <div>
+              <div style="font-size:28px; font-weight:700; color:#0F2747;">Content Planner</div>
+              <div style="font-size:14px; color:#667085; margin-top:4px;">Editorial calendar across articles and social channels</div>
+            </div>
+            <div style="display:flex; gap:6px; background:#F6F8FB; border:1px solid #DCE4EE; border-radius:0; padding:4px;">
+              <sc-for list="{{ plannerViews }}" as="pv" hint-placeholder-count="3">
+                <div onClick="{{ pv.onClick }}" style="{{ pv.style }}">{{ pv.label }}</div>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="display:flex; gap:10px; margin-bottom:22px; flex-wrap:wrap;">
+            <sc-for list="{{ plannerFilters }}" as="pf" hint-placeholder-count="7">
+              <div style="border:1px solid #DCE4EE; background:#fff; border-radius:0; padding:8px 14px; font-size:12.5px; color:#344054;">{{ pf }}</div>
+            </sc-for>
+          </div>
+
+          <sc-if value="{{ isPlannerKanban }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex; gap:14px; overflow-x:auto; padding-bottom:8px;">
+              <sc-for list="{{ kanbanColumns }}" as="col" hint-placeholder-count="8">
+                <div style="width:230px; flex-shrink:0;">
+                  <div style="font-size:12.5px; font-weight:700; color:#0F2747; text-transform:uppercase; letter-spacing:0.3px; padding:0 4px 10px;">{{ col.name }} <span style="color:#98A2B3; font-weight:500;">{{ col.count }}</span></div>
+                  <div style="display:flex; flex-direction:column; gap:10px;">
+                    <sc-for list="{{ col.cards }}" as="card" hint-placeholder-count="1">
+                      <div style="background:#fff; border:1px solid #DCE4EE; border-radius:0; padding:13px; box-shadow:0 1px 2px rgba(15,39,71,0.04); cursor:grab;">
+                        <div style="font-size:13px; font-weight:600; color:#17202D; line-height:1.3;">{{ card.title }}</div>
+                        <div style="font-size:11.5px; color:#2D6CDF; margin-top:6px;">{{ card.keyword }}</div>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
+                          <span style="{{ card.platformStyle }}">{{ card.platform }}</span>
+                          <span style="font-size:11px; color:#98A2B3;">{{ card.due }}</span>
+                        </div>
+                      </div>
+                    </sc-for>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isPlannerCalendar }}" hint-placeholder-val="{{ false }}">
+            <div style="background:#fff; border:1px solid #DCE4EE; border-radius:0; padding:20px; display:grid; grid-template-columns:repeat(7,1fr); gap:10px;">
+              <sc-for list="{{ calendarDays }}" as="day" hint-placeholder-count="7">
+                <div style="min-height:150px; border:1px solid #EEF1F5; border-radius:0; padding:10px;">
+                  <div style="font-size:11.5px; font-weight:700; color:#667085; margin-bottom:8px;">{{ day.label }}</div>
+                  <sc-for list="{{ day.items }}" as="it" hint-placeholder-count="1">
+                    <div style="{{ it.style }}">{{ it.title }}</div>
+                  </sc-for>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isPlannerList }}" hint-placeholder-val="{{ false }}">
+            <div style="background:#fff; border:1px solid #DCE4EE; border-radius:0; padding:8px 20px;">
+              <table style="width:100%; border-collapse:collapse; font-size:13.5px;">
+                <tr>
+                  <td style="color:#667085; font-size:12px; font-weight:600; padding:14px 0;">Title</td>
+                  <td style="color:#667085; font-size:12px; font-weight:600; padding:14px 0;">Column</td>
+                  <td style="color:#667085; font-size:12px; font-weight:600; padding:14px 0;">Platform</td>
+                  <td style="color:#667085; font-size:12px; font-weight:600; padding:14px 0;">Owner</td>
+                  <td style="color:#667085; font-size:12px; font-weight:600; padding:14px 0;">Due</td>
+                </tr>
+                <sc-for list="{{ plannerListRows }}" as="pl" hint-placeholder-count="10">
+                  <tr style="border-top:1px solid #EEF1F5;">
+                    <td style="padding:11px 0; font-weight:600; color:#17202D;">{{ pl.title }}</td>
+                    <td style="padding:11px 0; color:#344054;">{{ pl.column }}</td>
+                    <td style="padding:11px 0;"><span style="{{ pl.platformStyle }}">{{ pl.platform }}</span></td>
+                    <td style="padding:11px 0; color:#344054;">{{ pl.owner }}</td>
+                    <td style="padding:11px 0; color:#98A2B3;">{{ pl.due }}</td>
+                  </tr>
+                </sc-for>
+              </table>
+            </div>
+          </sc-if>
+
+          <div style="margin-top:32px;">
+            <div style="font-size:17px; font-weight:600; color:#17202D; margin-bottom:14px;">AI Topic Recommendations</div>
+            <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:16px;">
+              <sc-for list="{{ topicRecommendations }}" as="tpr" hint-placeholder-count="3">
+                <div style="background:#fff; border:1px solid #DCE4EE; border-radius:0; padding:20px;">
+                  <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                    <div style="font-size:14.5px; font-weight:700; color:#0F2747;">{{ tpr.kw }}</div>
+                    <div style="background:#EAF2FF; color:#2D6CDF; font-size:12px; font-weight:700; padding:3px 9px; border-radius:0;">{{ tpr.score }}</div>
+                  </div>
+                  <div style="font-size:12px; color:#667085; margin-top:10px;">Intent: {{ tpr.intent }}</div>
+                  <div style="font-size:12px; color:#667085; margin-top:4px;">Relevance: {{ tpr.relevance }}</div>
+                  <div style="font-size:12.5px; color:#344054; margin-top:10px; line-height:1.4;">Recommendation: {{ tpr.type }}</div>
+                  <div style="margin-top:14px; font-size:12.5px; font-weight:600; color:#2D6CDF; cursor:pointer;">{{ tpr.cta }} →</div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isArticles }}" hint-placeholder-val="{{ false }}">
+        <div>
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px;">
+            <div>
+              <div style="font-size:28px; font-weight:700; color:#0F2747;">Articles</div>
+              <div style="font-size:14px; color:#667085; margin-top:4px;">All website content for tsicertification.com</div>
+            </div>
+            <button style="background:#0F2747; color:#fff; border:none; border-radius:0; padding:10px 18px; font-size:13px; font-weight:600; cursor:pointer;">+ New Article</button>
+          </div>
+
+          <div style="background:#fff; border:1px solid #DCE4EE; border-radius:0; overflow:hidden;">
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid #DCE4EE;">
+              <div style="display:flex; align-items:center; gap:8px; background:#F6F8FB; border:1px solid #DCE4EE; border-radius:0; padding:8px 12px; width:280px;">
+                <span style="color:#98A2B3; font-size:13px;">Search articles…</span>
+              </div>
+              <div style="display:flex; gap:8px;">
+                <div style="border:1px solid #DCE4EE; border-radius:0; padding:7px 12px; font-size:12.5px; color:#344054; background:#fff;">Status: All</div>
+                <div style="border:1px solid #DCE4EE; border-radius:0; padding:7px 12px; font-size:12.5px; color:#344054; background:#fff;">Cluster: All</div>
+                <div style="border:1px solid #DCE4EE; border-radius:0; padding:7px 12px; font-size:12.5px; color:#344054; background:#fff;">Bulk Actions</div>
+              </div>
+            </div>
+            <table style="width:100%; border-collapse:collapse; font-size:13.5px;">
+              <tr style="background:#FAFBFC;">
+                <td style="color:#667085; font-size:11.5px; font-weight:600; padding:12px 20px;">ARTICLE</td>
+                <td style="color:#667085; font-size:11.5px; font-weight:600; padding:12px 8px;">CLUSTER</td>
+                <td style="color:#667085; font-size:11.5px; font-weight:600; padding:12px 8px;">STATUS</td>
+                <td style="color:#667085; font-size:11.5px; font-weight:600; padding:12px 8px;">AUTHOR</td>
+                <td style="color:#667085; font-size:11.5px; font-weight:600; padding:12px 8px;">SEO</td>
+                <td style="color:#667085; font-size:11.5px; font-weight:600; padding:12px 8px;">RANK</td>
+                <td style="color:#667085; font-size:11.5px; font-weight:600; padding:12px 8px;">TRAFFIC</td>
+                <td style="color:#667085; font-size:11.5px; font-weight:600; padding:12px 8px;">LEADS</td>
+                <td style="color:#667085; font-size:11.5px; font-weight:600; padding:12px 20px;">PUBLISHED</td>
+              </tr>
+              <sc-for list="{{ articles }}" as="art" hint-placeholder-count="10">
+                <tr onClick="{{ art.onClick }}" style="border-top:1px solid #EEF1F5; cursor:pointer;">
+                  <td style="padding:13px 20px;">
+                    <div style="font-weight:600; color:#17202D;">{{ art.title }}</div>
+                    <div style="font-size:11.5px; color:#98A2B3; margin-top:2px;">{{ art.kw }}</div>
+                  </td>
+                  <td style="padding:13px 8px; color:#344054;">{{ art.cluster }}</td>
+                  <td style="padding:13px 8px;"><span style="{{ art.statusStyle }}">{{ art.status }}</span></td>
+                  <td style="padding:13px 8px; color:#344054;">{{ art.author }}</td>
+                  <td style="padding:13px 8px; color:#344054;">{{ art.seo }}</td>
+                  <td style="padding:13px 8px; color:#344054;">{{ art.rank }}</td>
+                  <td style="padding:13px 8px; color:#344054;">{{ art.traffic }}</td>
+                  <td style="padding:13px 8px; color:#344054;">{{ art.leads }}</td>
+                  <td style="padding:13px 20px; color:#98A2B3; font-size:12.5px;">{{ art.date }}</td>
+                </tr>
+              </sc-for>
+            </table>
+          </div>
+        </div>
+
+        <sc-if value="{{ articleDrawerOpen }}" hint-placeholder-val="{{ false }}">
+          <div onClick="{{ closeArticleDrawer }}" style="position:fixed; inset:0; background:rgba(15,39,71,0.28); z-index:30;">
+            <div onClick="{{ stopClick }}" style="position:absolute; top:0; right:0; width:460px; height:100%; background:#fff; box-shadow:-12px 0 32px rgba(15,39,71,0.18); display:flex; flex-direction:column;">
+              <div style="padding:22px 24px; border-bottom:1px solid #DCE4EE; display:flex; justify-content:space-between; align-items:flex-start;">
+                <div>
+                  <div style="font-size:17px; font-weight:700; color:#0F2747; line-height:1.3;">{{ selectedArticle.title }}</div>
+                  <div style="font-size:12px; color:#2D6CDF; margin-top:6px;">tsicertification.com{{ selectedArticle.url }}</div>
+                </div>
+                <div onClick="{{ closeArticleDrawer }}" style="width:28px; height:28px; border-radius:0; border:1px solid #DCE4EE; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; color:#667085;">✕</div>
+              </div>
+              <div style="display:flex; padding:0 24px; border-bottom:1px solid #DCE4EE; gap:20px;">
+                <sc-for list="{{ articleTabs }}" as="tab" hint-placeholder-count="5">
+                  <div onClick="{{ tab.onClick }}" style="{{ tab.style }}">{{ tab.label }}</div>
+                </sc-for>
+              </div>
+              <div style="flex:1; overflow-y:auto; padding:22px 24px;">
+                <sc-if value="{{ isArticleTabOverview }}" hint-placeholder-val="{{ true }}">
+                  <div style="display:flex; flex-direction:column; gap:16px;">
+                    <div><div style="font-size:11.5px; color:#98A2B3; font-weight:600;">STATUS</div><div style="margin-top:4px;"><span style="{{ selectedArticle.statusStyle }}">{{ selectedArticle.status }}</span></div></div>
+                    <div><div style="font-size:11.5px; color:#98A2B3; font-weight:600;">PRIMARY KEYWORD</div><div style="font-size:13.5px; color:#17202D; margin-top:4px;">{{ selectedArticle.kw }}</div></div>
+                    <div><div style="font-size:11.5px; color:#98A2B3; font-weight:600;">SECONDARY KEYWORDS</div><div style="font-size:13.5px; color:#17202D; margin-top:4px;">{{ selectedArticle.secondaryKw }}</div></div>
+                    <div><div style="font-size:11.5px; color:#98A2B3; font-weight:600;">AUTHOR</div><div style="font-size:13.5px; color:#17202D; margin-top:4px;">{{ selectedArticle.author }}</div></div>
+                    <div><div style="font-size:11.5px; color:#98A2B3; font-weight:600;">PUBLISH DATE</div><div style="font-size:13.5px; color:#17202D; margin-top:4px;">{{ selectedArticle.date }}</div></div>
+                    <div><div style="font-size:11.5px; color:#98A2B3; font-weight:600;">AI SUMMARY</div><div style="font-size:13px; color:#344054; margin-top:4px; line-height:1.5;">{{ selectedArticle.summary }}</div></div>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ isArticleTabSeo }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:flex; flex-direction:column; gap:14px;">
+                    <sc-for list="{{ qualityScores }}" as="q" hint-placeholder-count="5">
+                      <div>
+                        <div style="display:flex; justify-content:space-between; font-size:13px; color:#344054; margin-bottom:6px;"><span>{{ q.label }}</span><span style="font-weight:700; color:#17202D;">{{ q.value }}</span></div>
+                        <div style="height:6px; background:#EEF1F5; border-radius:0; overflow:hidden;"><div style="{{ q.barStyle }}"></div></div>
+                      </div>
+                    </sc-for>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ isArticleTabSocial }}" hint-placeholder-val="{{ false }}">
+                  <div style="font-size:13px; color:#667085;">No linked social posts have been generated from this article yet.</div>
+                </sc-if>
+                <sc-if value="{{ isArticleTabAnalytics }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+                    <div><div style="font-size:11.5px; color:#98A2B3; font-weight:600;">TRAFFIC</div><div style="font-size:19px; font-weight:700; color:#17202D; margin-top:4px;">{{ selectedArticle.traffic }}</div></div>
+                    <div><div style="font-size:11.5px; color:#98A2B3; font-weight:600;">RANKING</div><div style="font-size:19px; font-weight:700; color:#17202D; margin-top:4px;">{{ selectedArticle.rank }}</div></div>
+                    <div><div style="font-size:11.5px; color:#98A2B3; font-weight:600;">LEADS</div><div style="font-size:19px; font-weight:700; color:#17202D; margin-top:4px;">{{ selectedArticle.leads }}</div></div>
+                    <div><div style="font-size:11.5px; color:#98A2B3; font-weight:600;">SEO SCORE</div><div style="font-size:19px; font-weight:700; color:#17202D; margin-top:4px;">{{ selectedArticle.seo }}</div></div>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ isArticleTabHistory }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:flex; flex-direction:column; gap:12px;">
+                    <sc-for list="{{ articleHistory }}" as="ah" hint-placeholder-count="4">
+                      <div style="display:flex; gap:10px;">
+                        <div style="width:6px; height:6px; border-radius:50%; background:#2D6CDF; margin-top:6px; flex-shrink:0;"></div>
+                        <div><div style="font-size:12.5px; color:#17202D;">{{ ah.text }}</div><div style="font-size:11px; color:#98A2B3;">{{ ah.time }}</div></div>
+                      </div>
+                    </sc-for>
+                  </div>
+                </sc-if>
+              </div>
+              <div style="padding:18px 24px; border-top:1px solid #DCE4EE; display:flex; gap:10px;">
+                <button style="flex:1; background:#F6F8FB; border:1px solid #DCE4EE; border-radius:0; padding:10px; font-size:13px; font-weight:600; color:#344054; cursor:pointer;">Edit</button>
+                <button style="flex:1; background:#F6F8FB; border:1px solid #DCE4EE; border-radius:0; padding:10px; font-size:13px; font-weight:600; color:#344054; cursor:pointer;">Generate Revision</button>
+                <button style="flex:1; background:#0F2747; border:none; border-radius:0; padding:10px; font-size:13px; font-weight:600; color:#fff; cursor:pointer;">Send for Approval</button>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+      </sc-if>
+
+      <sc-if value="{{ isSocial }}" hint-placeholder-val="{{ false }}">
+        <div>
+          <div style="margin-bottom:20px;">
+            <div style="font-size:28px; font-weight:700; color:#0F2747;">Social Media</div>
+            <div style="font-size:14px; color:#667085; margin-top:4px;">Instagram, Facebook &amp; LinkedIn command center</div>
+          </div>
+
+          <div style="display:flex; gap:6px; margin-bottom:22px;">
+            <sc-for list="{{ socialTabs }}" as="st" hint-placeholder-count="4">
+              <div onClick="{{ st.onClick }}" style="{{ st.style }}">{{ st.label }}</div>
+            </sc-for>
+          </div>
+
+          <div style="display:grid; grid-template-columns:repeat(5,1fr); gap:16px; margin-bottom:28px;">
+            <sc-for list="{{ socialSummary }}" as="ss" hint-placeholder-count="5">
+              <div style="background:#fff; border:1px solid #DCE4EE; border-radius:0; padding:18px 20px;">
+                <div style="font-size:12.5px; color:#667085; font-weight:600;">{{ ss.label }}</div>
+                <div style="font-size:22px; font-weight:700; color:#17202D; margin-top:8px;">{{ ss.value }}</div>
+                <div style="font-size:12px; color:#1F9D68; margin-top:6px; font-weight:600;">{{ ss.change }}</div>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="display:grid; grid-template-columns:2fr 1fr; gap:24px; align-items:start;">
+            <div>
+              <div style="font-size:17px; font-weight:600; color:#17202D; margin-bottom:14px;">Scheduled Posts</div>
+              <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:14px;">
+                <sc-for list="{{ filteredPosts }}" as="p" hint-placeholder-count="4">
+                  <div style="background:#fff; border:1px solid #DCE4EE; border-radius:0; overflow:hidden;">
+                    <div style="height:120px; background:repeating-linear-gradient(45deg, #EAF2FF, #EAF2FF 10px, #F6F8FB 10px, #F6F8FB 20px); display:flex; align-items:center; justify-content:center; font-family:monospace; font-size:11px; color:#8FA6C4;">post visual</div>
+                    <div style="padding:14px;">
+                      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                        <span style="{{ p.platformStyle }}">{{ p.platform }}</span>
+                        <span style="{{ p.statusStyle }}">{{ p.status }}</span>
+                      </div>
+                      <div style="font-size:13px; color:#17202D; line-height:1.4;">{{ p.caption }}</div>
+                      <div style="display:flex; justify-content:space-between; margin-top:10px; font-size:11.5px; color:#98A2B3;"><span>{{ p.campaign }}</span><span>{{ p.date }}</span></div>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+            <div style="background:#fff; border:1px solid #DCE4EE; border-radius:0; padding:22px;">
+              <div style="font-size:16px; font-weight:600; color:#17202D; margin-bottom:14px;">AI Social Trend Intelligence</div>
+              <sc-for list="{{ socialTrends }}" as="tr" hint-placeholder-count="3">
+                <div style="padding:14px 0; border-top:1px solid #EEF1F5;">
+                  <div style="font-size:13px; color:#17202D; line-height:1.4;">{{ tr.trend }}</div>
+                  <div style="margin-top:8px; font-size:12.5px; font-weight:600; color:#2D6CDF; cursor:pointer;">{{ tr.action }} →</div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isSeo }}" hint-placeholder-val="{{ false }}">
+        <div>
+          <div style="margin-bottom:24px;">
+            <div style="font-size:28px; font-weight:700; color:#0F2747;">SEO Intelligence</div>
+            <div style="font-size:14px; color:#667085; margin-top:4px;">Organic visibility, keyword performance and optimization opportunities</div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:#DCE4EE; border:1px solid #DCE4EE; margin-bottom:28px;">
+            <sc-for list="{{ seoKpis }}" as="sk" hint-placeholder-count="8">
+              <div style="background:#fff; padding:16px 18px;">
+                <div style="font-size:12px; color:#667085; font-weight:600;">{{ sk.label }}</div>
+                <div style="font-size:21px; font-weight:700; color:#17202D; margin-top:6px; font-family:'JetBrains Mono',monospace;">{{ sk.value }}</div>
+                <div style="margin-top:6px;"><span style="{{ sk.changeStyle }}">{{ sk.changeText }}</span></div>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="background:#fff; border:1px solid #DCE4EE; border-radius:0; padding:24px; margin-bottom:24px;">
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+              <div style="font-size:17px; font-weight:600; color:#17202D;">Organic Visibility</div>
+              <div style="display:flex; gap:2px; border:1px solid #DCE4EE; border-radius:0; padding:2px;">
+                <sc-for list="{{ chartRanges }}" as="cr2" hint-placeholder-count="4">
+                  <div onClick="{{ cr2.onClick }}" style="{{ cr2.style }}">{{ cr2.label }}</div>
+                </sc-for>
+              </div>
+            </div>
+            <svg viewBox="0 0 600 200" style="width:100%; height:200px; display:block;">
+              <polyline points="{{ visibilityPoints }}" fill="none" stroke="#2D6CDF" stroke-width="2.5"></polyline>
+              <polyline points="{{ visibilityPointsPrev }}" fill="none" stroke="#B7C0CC" stroke-width="2" stroke-dasharray="4 4"></polyline>
+            </svg>
+          </div>
+
+          <div style="background:#fff; border:1px solid #DCE4EE; border-radius:0; padding:8px 22px; margin-bottom:24px;">
+            <div style="font-size:17px; font-weight:600; color:#17202D; padding:14px 0;">Keyword Tracker</div>
+            <table style="width:100%; border-collapse:collapse; font-size:13px;">
+              <tr>
+                <td style="color:#667085; font-size:11px; font-weight:600; padding-bottom:10px;">KEYWORD</td>
+                <td style="color:#667085; font-size:11px; font-weight:600; padding-bottom:10px;">CURRENT</td>
+                <td style="color:#667085; font-size:11px; font-weight:600; padding-bottom:10px;">PAGE</td>
+                <td style="color:#667085; font-size:11px; font-weight:600; padding-bottom:10px;">INTENT</td>
+                <td style="color:#667085; font-size:11px; font-weight:600; padding-bottom:10px;">CLICKS</td>
+                <td style="color:#667085; font-size:11px; font-weight:600; padding-bottom:10px;">IMPR.</td>
+                <td style="color:#667085; font-size:11px; font-weight:600; padding-bottom:10px;">CTR</td>
+                <td style="color:#667085; font-size:11px; font-weight:600; padding-bottom:10px;">OPP.</td>
+                <td style="color:#667085; font-size:11px; font-weight:600; padding-bottom:10px;">STATUS</td>
+              </tr>
+              <sc-for list="{{ keywordTracker }}" as="kt" hint-placeholder-count="8">
+                <tr style="border-top:1px solid #EEF1F5;">
+                  <td style="padding:10px 0; font-weight:600; color:#17202D;">{{ kt.kw }}</td>
+                  <td style="padding:10px 0;">{{ kt.cur }}</td>
+                  <td style="padding:10px 0; color:#344054;">{{ kt.page }}</td>
+                  <td style="padding:10px 0; color:#667085; font-size:12px;">{{ kt.intent }}</td>
+                  <td style="padding:10px 0; color:#344054;">{{ kt.clicks }}</td>
+                  <td style="padding:10px 0; color:#344054;">{{ kt.impr }}</td>
+                  <td style="padding:10px 0; color:#344054;">{{ kt.ctr }}</td>
+                  <td style="padding:10px 0; font-weight:600; color:#17202D;">{{ kt.opp }}</td>
+                  <td style="padding:10px 0;"><span style="{{ kt.statusStyle }}">{{ kt.status }}</span></td>
+                </tr>
+              </sc-for>
+            </table>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:24px;">
+            <div style="background:#fff; border:1px solid #DCE4EE; border-radius:0; padding:22px;">
+              <div style="font-size:16px; font-weight:600; color:#17202D; margin-bottom:16px;">Keyword Distribution</div>
+              <div style="display:flex; height:22px; border-radius:0; overflow:hidden;">
+                <sc-for list="{{ keywordDistribution }}" as="kd" hint-placeholder-count="5">
+                  <div style="{{ kd.barStyle }}"></div>
+                </sc-for>
+              </div>
+              <div style="display:flex; flex-wrap:wrap; gap:14px; margin-top:14px;">
+                <sc-for list="{{ keywordDistribution }}" as="kd2" hint-placeholder-count="5">
+                  <div style="display:flex; align-items:center; gap:6px; font-size:12px; color:#344054;">
+                    <div style="{{ kd2.dotStyle }}"></div>{{ kd2.label }} ({{ kd2.count }})
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+            <div style="background:#fff; border:1px solid #DCE4EE; border-radius:0; padding:22px;">
+              <div style="font-size:16px; font-weight:600; color:#17202D; margin-bottom:6px;">Keyword Cannibalization</div>
+              <div style="font-size:13px; font-weight:600; color:#F2A93B; margin-bottom:10px;">⚠ {{ cannibalization.kw }}</div>
+              <div style="font-size:12px; color:#98A2B3; font-weight:600; margin-bottom:6px;">COMPETING URLS</div>
+              <sc-for list="{{ cannibalization.urls }}" as="curl" hint-placeholder-count="3">
+                <div style="font-size:12.5px; color:#2D6CDF; margin-bottom:4px;">{{ curl }}</div>
+              </sc-for>
+              <div style="font-size:12.5px; color:#344054; margin-top:10px; line-height:1.5;">{{ cannibalization.rec }}</div>
+            </div>
+          </div>
+
+          <div style="margin-bottom:24px;">
+            <div style="font-size:17px; font-weight:600; color:#17202D; margin-bottom:14px;">SEO Opportunities</div>
+            <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:16px;">
+              <sc-for list="{{ seoOpportunities }}" as="o" hint-placeholder-count="3">
+                <div style="background:#fff; border:1px solid #DCE4EE; border-radius:0; padding:20px;">
+                  <div style="font-size:14px; font-weight:700; color:#0F2747; line-height:1.3;">{{ o.title }}</div>
+                  <div style="font-size:12px; color:#667085; margin-top:10px;">Current position: {{ o.pos }}</div>
+                  <div style="font-size:12px; color:#667085; margin-top:2px;">Impressions: {{ o.impr }}</div>
+                  <div style="margin-top:8px;"><span style="{{ o.oppStyle }}">{{ o.opp }} Opportunity</span></div>
+                  <div style="font-size:12.5px; color:#344054; margin-top:10px; line-height:1.4;">{{ o.action }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="margin-bottom:24px;">
+            <div style="font-size:17px; font-weight:600; color:#17202D; margin-bottom:14px;">Technical SEO Health</div>
+            <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:16px;">
+              <sc-for list="{{ techHealth }}" as="h" hint-placeholder-count="8">
+                <div style="background:#fff; border:1px solid #DCE4EE; border-radius:0; padding:16px 18px;">
+                  <div style="font-size:12px; color:#667085; font-weight:600;">{{ h.label }}</div>
+                  <div style="display:flex; align-items:baseline; gap:8px; margin-top:8px;">
+                    <div style="font-size:22px; font-weight:700; color:#17202D;">{{ h.count }}</div>
+                    <span style="{{ h.sevStyle }}">{{ h.severity }}</span>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+
+          <div>
+            <div style="font-size:17px; font-weight:600; color:#17202D; margin-bottom:14px;">SEO Action Center</div>
+            <div style="background:#fff; border:1px solid #DCE4EE; border-radius:0; padding:8px 20px;">
+              <table style="width:100%; border-collapse:collapse; font-size:13.5px;">
+                <tr>
+                  <td style="color:#667085; font-size:11px; font-weight:600; padding:12px 0;">PRIORITY</td>
+                  <td style="color:#667085; font-size:11px; font-weight:600; padding:12px 0;">ISSUE</td>
+                  <td style="color:#667085; font-size:11px; font-weight:600; padding:12px 0;">KEYWORD</td>
+                  <td style="color:#667085; font-size:11px; font-weight:600; padding:12px 0;">RECOMMENDED ACTION</td>
+                  <td style="color:#667085; font-size:11px; font-weight:600; padding:12px 0;">IMPACT</td>
+                  <td style="color:#667085; font-size:11px; font-weight:600; padding:12px 0;">STATUS</td>
+                </tr>
+                <sc-for list="{{ actionCenter }}" as="ac" hint-placeholder-count="5">
+                  <tr style="border-top:1px solid #EEF1F5;">
+                    <td style="padding:11px 0;"><span style="{{ ac.priorityStyle }}">{{ ac.priority }}</span></td>
+                    <td style="padding:11px 0; font-weight:600; color:#17202D;">{{ ac.issue }}</td>
+                    <td style="padding:11px 0; color:#344054;">{{ ac.kw }}</td>
+                    <td style="padding:11px 0; color:#344054;">{{ ac.action }}</td>
+                    <td style="padding:11px 0; color:#344054;">{{ ac.impact }}</td>
+                    <td style="padding:11px 0;"><span style="{{ ac.statusStyle }}">{{ ac.status }}</span></td>
+                  </tr>
+                </sc-for>
+              </table>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isAnalytics }}" hint-placeholder-val="{{ false }}">
+        <div>
+          <div style="margin-bottom:24px;">
+            <div style="font-size:28px; font-weight:700; color:#0F2747;">Analytics</div>
+            <div style="font-size:14px; color:#667085; margin-top:4px;">Unified content, SEO and social performance</div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:repeat(6,1fr); gap:1px; background:#DCE4EE; border:1px solid #DCE4EE; margin-bottom:28px;">
+            <sc-for list="{{ analyticsTop }}" as="atk" hint-placeholder-count="6">
+              <div style="background:#fff; padding:16px 16px;">
+                <div style="font-size:11.5px; color:#667085; font-weight:600;">{{ atk.label }}</div>
+                <div style="font-size:19px; font-weight:700; color:#17202D; margin-top:6px; font-family:'JetBrains Mono',monospace;">{{ atk.value }}</div>
+                <div style="font-size:11.5px; color:#1F9D68; margin-top:6px; font-weight:600;">{{ atk.change }}</div>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:24px;">
+            <div style="background:#fff; border:1px solid #DCE4EE; border-radius:0; padding:22px;">
+              <div style="font-size:16px; font-weight:600; color:#17202D; margin-bottom:16px;">Acquisition Overview</div>
+              <sc-for list="{{ acquisition }}" as="acq" hint-placeholder-count="4">
+                <div style="margin-bottom:12px;">
+                  <div style="display:flex; justify-content:space-between; font-size:13px; color:#344054; margin-bottom:5px;"><span>{{ acq.label }}</span><span style="font-weight:700;">{{ acq.pct }}%</span></div>
+                  <div style="height:8px; background:#EEF1F5; border-radius:0; overflow:hidden;"><div style="{{ acq.barStyle }}"></div></div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="background:#fff; border:1px solid #DCE4EE; border-radius:0; padding:22px;">
+              <div style="font-size:16px; font-weight:600; color:#17202D; margin-bottom:16px;">Conversion Funnel</div>
+              <sc-for list="{{ funnel }}" as="fn" hint-placeholder-count="7">
+                <div style="margin-bottom:10px;">
+                  <div style="display:flex; justify-content:space-between; font-size:12.5px; color:#344054; margin-bottom:4px;"><span>{{ fn.label }}</span><span style="font-weight:700;">{{ fn.value }}</span></div>
+                  <div style="height:16px; background:#EEF1F5; border-radius:0; overflow:hidden;"><div style="{{ fn.barStyle }}"></div></div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="background:#fff; border:1px solid #DCE4EE; border-radius:0; padding:8px 22px; margin-bottom:24px;">
+            <div style="font-size:17px; font-weight:600; color:#17202D; padding:14px 0;">Content Performance</div>
+            <table style="width:100%; border-collapse:collapse; font-size:13.5px;">
+              <tr>
+                <td style="color:#667085; font-size:11px; font-weight:600; padding-bottom:10px;">CONTENT</td>
+                <td style="color:#667085; font-size:11px; font-weight:600; padding-bottom:10px;">TRAFFIC</td>
+                <td style="color:#667085; font-size:11px; font-weight:600; padding-bottom:10px;">ENGAGEMENT</td>
+                <td style="color:#667085; font-size:11px; font-weight:600; padding-bottom:10px;">RANKING</td>
+                <td style="color:#667085; font-size:11px; font-weight:600; padding-bottom:10px;">CONVERSIONS</td>
+                <td style="color:#667085; font-size:11px; font-weight:600; padding-bottom:10px;">LEADS</td>
+                <td style="color:#667085; font-size:11px; font-weight:600; padding-bottom:10px;">TREND</td>
+              </tr>
+              <sc-for list="{{ contentPerformance }}" as="cpf" hint-placeholder-count="4">
+                <tr style="border-top:1px solid #EEF1F5;">
+                  <td style="padding:11px 0; font-weight:600; color:#17202D;">{{ cpf.title }}</td>
+                  <td style="padding:11px 0; color:#344054;">{{ cpf.traffic }}</td>
+                  <td style="padding:11px 0; color:#344054;">{{ cpf.engagement }}</td>
+                  <td style="padding:11px 0; color:#344054;">{{ cpf.rank }}</td>
+                  <td style="padding:11px 0; color:#344054;">{{ cpf.conv }}</td>
+                  <td style="padding:11px 0; color:#344054;">{{ cpf.leads }}</td>
+                  <td style="padding:11px 0;"><span style="{{ cpf.trendStyle }}">{{ cpf.trendText }}</span></td>
+                </tr>
+              </sc-for>
+            </table>
+          </div>
+
+          <div style="margin-bottom:24px;">
+            <div style="font-size:17px; font-weight:600; color:#17202D; margin-bottom:14px;">Social Performance</div>
+            <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:16px;">
+              <sc-for list="{{ socialPerformance }}" as="sp" hint-placeholder-count="3">
+                <div style="background:#fff; border:1px solid #DCE4EE; border-radius:0; padding:20px;">
+                  <div style="font-size:14px; font-weight:700; color:#0F2747; margin-bottom:12px;">{{ sp.platform }}</div>
+                  <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; font-size:12.5px; color:#344054;">
+                    <div>Reach<div style="font-size:15px; font-weight:700; color:#17202D;">{{ sp.reach }}</div></div>
+                    <div>Impressions<div style="font-size:15px; font-weight:700; color:#17202D;">{{ sp.impr }}</div></div>
+                    <div>Engagement<div style="font-size:15px; font-weight:700; color:#17202D;">{{ sp.engagement }}</div></div>
+                    <div>CTR<div style="font-size:15px; font-weight:700; color:#17202D;">{{ sp.ctr }}</div></div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+
+          <div>
+            <div style="font-size:17px; font-weight:600; color:#17202D; margin-bottom:14px;">Campaign Performance</div>
+            <div style="background:#fff; border:1px solid #DCE4EE; border-radius:0; padding:8px 20px;">
+              <table style="width:100%; border-collapse:collapse; font-size:13.5px;">
+                <tr>
+                  <td style="color:#667085; font-size:11px; font-weight:600; padding:12px 0;">CAMPAIGN</td>
+                  <td style="color:#667085; font-size:11px; font-weight:600; padding:12px 0;">CONTENT CREATED</td>
+                  <td style="color:#667085; font-size:11px; font-weight:600; padding:12px 0;">TRAFFIC</td>
+                  <td style="color:#667085; font-size:11px; font-weight:600; padding:12px 0;">ENGAGEMENT</td>
+                  <td style="color:#667085; font-size:11px; font-weight:600; padding:12px 0;">LEADS</td>
+                  <td style="color:#667085; font-size:11px; font-weight:600; padding:12px 0;">CONV. RATE</td>
+                </tr>
+                <sc-for list="{{ campaignPerformance }}" as="cmp" hint-placeholder-count="3">
+                  <tr style="border-top:1px solid #EEF1F5;">
+                    <td style="padding:11px 0; font-weight:600; color:#17202D;">{{ cmp.name }}</td>
+                    <td style="padding:11px 0; color:#344054;">{{ cmp.created }}</td>
+                    <td style="padding:11px 0; color:#344054;">{{ cmp.traffic }}</td>
+                    <td style="padding:11px 0; color:#344054;">{{ cmp.engagement }}</td>
+                    <td style="padding:11px 0; color:#344054;">{{ cmp.leads }}</td>
+                    <td style="padding:11px 0; color:#344054;">{{ cmp.conv }}</td>
+                  </tr>
+                </sc-for>
+              </table>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isApproval }}" hint-placeholder-val="{{ false }}">
+        <div>
+          <div style="margin-bottom:20px;">
+            <div style="font-size:28px; font-weight:700; color:#0F2747;">Approval Queue</div>
+            <div style="font-size:14px; color:#667085; margin-top:4px;">Human-in-the-loop review before publishing</div>
+          </div>
+          <div style="display:grid; grid-template-columns:340px 1fr; gap:24px; align-items:start;">
+            <div style="display:flex; flex-direction:column; gap:10px;">
+              <sc-for list="{{ approvalQueue }}" as="item" hint-placeholder-count="4">
+                <div onClick="{{ item.onClick }}" style="{{ item.rowStyle }}">
+                  <div style="display:flex; justify-content:space-between; align-items:baseline;">
+                    <span style="font-size:11.5px; font-weight:600; color:#667085; text-transform:uppercase;">{{ item.type }}</span>
+                    <span style="font-size:11px; color:#98A2B3;">{{ item.submitted }}</span>
+                  </div>
+                  <div style="font-size:13.5px; font-weight:600; color:#17202D; margin-top:6px; line-height:1.35;">{{ item.title }}</div>
+                  <div style="font-size:12px; color:#98A2B3; margin-top:6px;">by {{ item.author }}</div>
+                </div>
+              </sc-for>
+            </div>
+
+            <div style="background:#fff; border:1px solid #DCE4EE; border-radius:0; padding:26px;">
+              <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:18px;">
+                <div>
+                  <div style="font-size:11.5px; font-weight:600; color:#667085; text-transform:uppercase;">{{ selectedApproval.type }}</div>
+                  <div style="font-size:19px; font-weight:700; color:#0F2747; margin-top:6px;">{{ selectedApproval.title }}</div>
+                  <div style="font-size:12.5px; color:#98A2B3; margin-top:6px;">Submitted by {{ selectedApproval.author }} · {{ selectedApproval.submitted }}</div>
+                </div>
+              </div>
+
+              <div style="background:#F6F8FB; border:1px solid #EEF1F5; border-radius:0; padding:18px; margin-bottom:20px; font-size:13.5px; color:#344054; line-height:1.6;">{{ selectedApproval.preview }}</div>
+
+              <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:20px;">
+                <div style="border:1px solid #DCE4EE; border-radius:0; padding:14px;">
+                  <div style="font-size:11.5px; color:#98A2B3; font-weight:600;">AI QA SCORE</div>
+                  <div style="font-size:22px; font-weight:700; color:#17202D; margin-top:6px; font-family:'JetBrains Mono',monospace;">{{ selectedApproval.qa }}</div>
+                </div>
+                <div style="border:1px solid #DCE4EE; border-radius:0; padding:14px;">
+                  <div style="font-size:11.5px; color:#98A2B3; font-weight:600;">SEO SCORE</div>
+                  <div style="font-size:22px; font-weight:700; color:#17202D; margin-top:6px; font-family:'JetBrains Mono',monospace;">{{ selectedApproval.seo }}</div>
+                </div>
+                <div style="border:1px solid #DCE4EE; border-radius:0; padding:14px;">
+                  <div style="font-size:11.5px; color:#98A2B3; font-weight:600;">BRAND COMPLIANCE</div>
+                  <div style="font-size:22px; font-weight:700; color:#17202D; margin-top:6px; font-family:'JetBrains Mono',monospace;">{{ selectedApproval.brand }}</div>
+                </div>
+              </div>
+
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:20px;">
+                <div>
+                  <div style="font-size:12px; color:#98A2B3; font-weight:600; margin-bottom:8px;">SOURCES CHECKED</div>
+                  <div style="font-size:13.5px; color:#17202D;">{{ selectedApproval.sources }} references verified</div>
+                </div>
+                <div>
+                  <div style="font-size:12px; color:#98A2B3; font-weight:600; margin-bottom:8px;">POTENTIAL RISKS</div>
+                  <div style="font-size:13px; color:#344054; line-height:1.5;">{{ selectedApproval.risks }}</div>
+                </div>
+              </div>
+
+              <div style="display:flex; gap:10px; margin-bottom:26px;">
+                <button style="flex:1; background:#1F9D68; color:#fff; border:none; border-radius:0; padding:11px; font-size:13.5px; font-weight:700; cursor:pointer;">Approve</button>
+                <button style="flex:1; background:#fff; color:#344054; border:1px solid #DCE4EE; border-radius:0; padding:11px; font-size:13.5px; font-weight:600; cursor:pointer;">Request Revision</button>
+                <button style="flex:1; background:#fff; color:#D64545; border:1px solid #F3D3D3; border-radius:0; padding:11px; font-size:13.5px; font-weight:600; cursor:pointer;">Reject</button>
+              </div>
+
+              <div style="font-size:12px; color:#98A2B3; font-weight:600; margin-bottom:12px;">APPROVAL TIMELINE</div>
+              <div style="display:flex; flex-direction:column; gap:0;">
+                <sc-for list="{{ approvalTimeline }}" as="atl" hint-placeholder-count="5">
+                  <div style="display:flex; gap:10px; padding:8px 0;">
+                    <div style="{{ atl.dotStyle }}"></div>
+                    <div style="display:flex; justify-content:space-between; flex:1;">
+                      <span style="font-size:12.5px; color:#17202D;">{{ atl.step }}</span>
+                      <span style="font-size:11.5px; color:#98A2B3;">{{ atl.time }}</span>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isReports }}" hint-placeholder-val="{{ false }}">
+        <div>
+          <div style="margin-bottom:20px;">
+            <div style="font-size:28px; font-weight:700; color:#0F2747;">Reports</div>
+            <div style="font-size:14px; color:#667085; margin-top:4px;">Executive reporting center</div>
+          </div>
+
+          <div style="display:flex; gap:6px; margin-bottom:22px;">
+            <sc-for list="{{ reportTabs }}" as="rt" hint-placeholder-count="3">
+              <div onClick="{{ rt.onClick }}" style="{{ rt.style }}">{{ rt.label }}</div>
+            </sc-for>
+          </div>
+
+          <div style="display:grid; grid-template-columns:2fr 1fr; gap:24px; align-items:start;">
+            <div style="display:flex; flex-direction:column; gap:14px;">
+              <sc-for list="{{ reportCards }}" as="rc" hint-placeholder-count="3">
+                <div style="background:#fff; border:1px solid #DCE4EE; border-radius:0; padding:20px;">
+                  <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                    <div>
+                      <div style="font-size:14.5px; font-weight:700; color:#0F2747;">{{ rc.period }}</div>
+                      <div style="font-size:12px; color:#98A2B3; margin-top:6px;">Generated {{ rc.generated }}</div>
+                    </div>
+                    <span style="{{ rc.statusStyle }}">{{ rc.status }}</span>
+                  </div>
+                  <div style="display:flex; gap:16px; margin-top:14px;">
+                    <div style="{{ rc.telegramStyle }}">Telegram {{ rc.telegramMark }}</div>
+                    <div style="{{ rc.whatsappStyle }}">WhatsApp {{ rc.whatsappMark }}</div>
+                    <div style="{{ rc.emailStyle }}">Email {{ rc.emailMark }}</div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+
+            <div style="background:#fff; border:1px solid #DCE4EE; border-radius:0; padding:22px;">
+              <div style="font-size:16px; font-weight:600; color:#17202D; margin-bottom:14px;">AI Executive Summary</div>
+              <div style="font-size:13.5px; color:#344054; line-height:1.6;">
+                Organic traffic increased 18% this week. 7 keywords entered Google's first page. ISO 42001 content generated the highest organic growth. ISO 9001 cluster requires attention due to declining rankings.
+              </div>
+              <div style="font-size:12px; color:#98A2B3; font-weight:600; margin-top:18px; margin-bottom:8px;">RECOMMENDED FOCUS NEXT WEEK</div>
+              <sc-for list="{{ recommendedFocus }}" as="rf" hint-placeholder-count="3">
+                <div style="font-size:13px; color:#17202D; padding:6px 0; border-top:1px solid #EEF1F5;">{{ rf }}</div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isOther }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex; align-items:center; justify-content:center; height:60vh;">
+          <div style="text-align:center;">
+            <div style="width:48px; height:48px; border-radius:0; background:#EAF2FF; margin:0 auto 16px;"></div>
+            <div style="font-size:18px; font-weight:700; color:#0F2747;">{{ activeLabel }}</div>
+            <div style="font-size:13.5px; color:#667085; margin-top:8px;">This screen is planned for a follow-up pass.</div>
+          </div>
+        </div>
+      </sc-if>
+
+    </div>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const NAV_ITEMS = [
+  { key: 'dashboard', label: 'Dashboard', group: 'Overview' },
+  { key: 'planner', label: 'Content Planner', group: 'Editorial', badge: 4 },
+  { key: 'articles', label: 'Articles', group: 'Editorial' },
+  { key: 'social', label: 'Social Media', group: 'Growth' },
+  { key: 'seo', label: 'SEO Intelligence', group: 'Growth' },
+  { key: 'analytics', label: 'Analytics', group: 'Growth' },
+  { key: 'approval', label: 'Approval Queue', group: 'Workflow', badge: 9 },
+  { key: 'reports', label: 'Reports', group: 'Workflow' },
+  { key: 'media', label: 'Media Library', group: 'Workflow' },
+  { key: 'workflow', label: 'Workflow Logs', group: 'Workflow' },
+  { key: 'settings', label: 'Settings', group: 'System' },
+];
+
+const DASHBOARD_KPIS = [
+  { label: 'Organic Traffic', value: '28,421', change: '+18.4%', dir: 'up', period: 'vs previous period' },
+  { label: 'SEO Visibility', value: '64.2%', change: '+5.1%', dir: 'up', period: 'vs previous period' },
+  { label: 'Keywords in Top 10', value: '142', change: '+12', dir: 'up', period: 'vs previous period' },
+  { label: 'Organic Leads', value: '386', change: '+9.2%', dir: 'up', period: 'vs previous period' },
+  { label: 'Articles Published', value: '58', change: '+4', dir: 'up', period: 'this quarter' },
+  { label: 'Scheduled Content', value: '23', change: '—', dir: 'flat', period: 'next 14 days' },
+  { label: 'Social Engagement', value: '12.4K', change: '+7.8%', dir: 'up', period: 'vs previous period' },
+  { label: 'Pending Approvals', value: '9', change: '+3', dir: 'up', period: 'awaiting review' },
+];
+
+const AI_OPPORTUNITIES = [
+  { icon: '🔥', category: 'SEO Opportunity', priority: 'High', insight: 'ISO 42001 requirements gaining visibility across AI governance searches.', action: 'Expand content depth and add an FAQ schema block.', cta: 'Review Opportunity' },
+  { icon: '🔥', category: 'SEO Opportunity', priority: 'High', insight: 'ISO 27001 fintech keyword cluster approaching Page 1.', action: 'Strengthen internal links from the cybersecurity hub page.', cta: 'Review Opportunity' },
+  { icon: '⚠', category: 'Ranking Risk', priority: 'Medium', insight: 'ISO 9001 certification article losing ranking over the last 14 days.', action: 'Refresh statistics and update the publish date.', cta: 'Review Opportunity' },
+  { icon: '⚠', category: 'CTR Issue', priority: 'Medium', insight: 'Low CTR detected on the "ISO certification cost" keyword.', action: 'Rewrite meta title and description.', cta: 'Review Opportunity' },
+];
+
+const KEYWORD_MOVEMENTS = [
+  { kw: 'ISO 27001 Certification', cur: 5, prev: 9, move: 4, dir: 'up', intent: 'Commercial', page: '/article/iso-27001-certification' },
+  { kw: 'ISO 14001 Certification', cur: 8, prev: 13, move: 5, dir: 'up', intent: 'Commercial', page: '/article/iso-14001-certification' },
+  { kw: 'ISO 9001 Certification', cur: 11, prev: 7, move: 4, dir: 'down', intent: 'Commercial', page: '/article/iso-9001-certification' },
+  { kw: 'ISO 42001 Indonesia', cur: 14, prev: 14, move: 0, dir: 'flat', intent: 'Informational', page: '/article/iso-42001-indonesia' },
+  { kw: 'ISO 37001 Anti Bribery', cur: 6, prev: 10, move: 4, dir: 'up', intent: 'Commercial', page: '/article/iso-37001-anti-bribery' },
+];
+
+const TOP_CONTENT = [
+  { title: 'ISO 27001 Certification: Complete Guide', traffic: '4,820', pos: '#5', ctr: '6.2%', leads: 42, trend: 'up' },
+  { title: 'ISO 9001 vs ISO 14001: Key Differences', traffic: '3,910', pos: '#7', ctr: '5.4%', leads: 31, trend: 'up' },
+  { title: 'How Much Does ISO Certification Cost', traffic: '3,140', pos: '#9', ctr: '3.1%', leads: 18, trend: 'down' },
+];
+
+const ATTENTION_CONTENT = [
+  { title: 'ISO 9001 Certification Requirements', reason: 'Ranking declining' },
+  { title: 'ISO Certification Cost Breakdown', reason: 'Low CTR' },
+  { title: 'What is ISO 22000', reason: 'Content outdated' },
+  { title: 'ISO 27001 Implementation Steps', reason: 'Keyword cannibalization' },
+];
+
+const UPCOMING_CONTENT = [
+  { date: '22 Aug', title: 'ISO 42001 AI Management Explained', channel: 'Article', owner: 'Nadia R.', status: 'Scheduled' },
+  { date: '23 Aug', title: '5 Benefits of ISO 45001 for Manufacturing', channel: 'LinkedIn', owner: 'Bagus P.', status: 'Draft' },
+  { date: '25 Aug', title: 'ISO 14001 Renewal Checklist', channel: 'Article', owner: 'Nadia R.', status: 'Review' },
+];
+
+const AGENT_ACTIVITY = [
+  { agent: 'Research Agent', text: 'Discovered 12 new keyword opportunities in the ISO 42001 cluster.', time: '10 min ago' },
+  { agent: 'SEO Agent', text: 'Flagged 3 declining articles for content refresh.', time: '42 min ago' },
+  { agent: 'Content Agent', text: 'Generated draft for "ISO 37001 Certification Process".', time: '1 hr ago' },
+  { agent: 'Approval', text: 'ISO 27001 fintech article approved by Marketing Manager.', time: '2 hr ago' },
+  { agent: 'Social Agent', text: 'LinkedIn post scheduled for the ISO 45001 campaign.', time: '3 hr ago' },
+];
+
+const KANBAN_DATA = [
+  { name: 'Ideas', cards: [{ title: 'ISO 50001 Energy Management Overview', keyword: 'ISO 50001', platform: 'Article', due: '—' }] },
+  { name: 'Researching', cards: [{ title: 'ISO 42001 vs NIST AI Framework', keyword: 'ISO 42001 comparison', platform: 'Article', due: 'Sep 2' }] },
+  { name: 'Brief Ready', cards: [{ title: 'ISO 27001 for Fintech', keyword: 'ISO 27001 fintech', platform: 'Article', due: 'Aug 28' }] },
+  { name: 'Drafting', cards: [{ title: 'ISO 42001 AI Management Explained', keyword: 'ISO 42001 requirements', platform: 'Article', due: 'Aug 22' }, { title: '5 Benefits of ISO 45001', keyword: 'ISO 45001 manufacturing', platform: 'LinkedIn', due: 'Aug 23' }] },
+  { name: 'Review', cards: [{ title: 'ISO 14001 Renewal Checklist', keyword: 'ISO 14001 renewal', platform: 'Article', due: 'Aug 25' }] },
+  { name: 'Approved', cards: [{ title: 'ISO 37001 Anti Bribery Certification', keyword: 'ISO 37001 anti bribery', platform: 'Article', due: 'Aug 26' }] },
+  { name: 'Scheduled', cards: [{ title: 'Checklist Dokumen ISO 37001', keyword: 'ISO 37001 dokumen', platform: 'Instagram', due: 'Aug 24' }] },
+  { name: 'Published', cards: [{ title: 'ISO 27001 Certification: Complete Guide', keyword: 'ISO 27001 certification', platform: 'Article', due: 'Jul 12' }] },
+];
+
+const TOPIC_RECOMMENDATIONS = [
+  { kw: 'ISO 27001 for Fintech', score: 92, intent: 'Commercial Investigation', relevance: 'High', type: 'Create dedicated long-form article.', cta: 'Create Content Brief' },
+  { kw: 'ISO 42001 Requirements', score: 88, intent: 'Informational', relevance: 'High', type: 'Pillar guide with FAQ section.', cta: 'Create Content Brief' },
+  { kw: 'ISO 45001 Manufacturing', score: 81, intent: 'Commercial', relevance: 'Medium', type: 'Case study article.', cta: 'Create Content Brief' },
+];
+
+const ARTICLES = [
+  { title: 'ISO 27001 Certification: Complete Guide', kw: 'ISO 27001 certification', cluster: 'Information Security', status: 'Published', author: 'Nadia R.', seo: 92, rank: '#5', traffic: '4,820', leads: 42, date: '12 Jul 2026', url: '/article/iso-27001-certification', secondaryKw: 'ISO 27001 requirements, ISMS implementation', traffic2: '4,820', summary: 'A comprehensive guide covering ISO 27001 requirements, implementation steps and certification timeline for Indonesian organizations.' },
+  { title: 'ISO 9001 Certification Requirements', kw: 'ISO 9001 requirements', cluster: 'Quality Management', status: 'Published', author: 'Bagus P.', seo: 74, rank: '#11', traffic: '2,140', leads: 14, date: '03 Jun 2026', url: '/article/iso-9001-certification', secondaryKw: 'QMS documentation, ISO 9001 clauses', summary: 'Overview of ISO 9001:2015 clause requirements and the documentation an organization needs before audit.' },
+  { title: 'ISO 42001 AI Management Explained', kw: 'ISO 42001 requirements', cluster: 'AI Governance', status: 'In Review', author: 'Nadia R.', seo: 81, rank: '#14', traffic: '—', leads: 0, date: '22 Aug 2026', url: '/article/iso-42001-ai-management', secondaryKw: 'AI management system, AI governance Indonesia', summary: 'Explains the AI Management System requirements under ISO 42001 and why it matters for AI governance in Indonesia.' },
+  { title: 'ISO 14001 Renewal Checklist', kw: 'ISO 14001 renewal', cluster: 'Environmental', status: 'Draft', author: 'Nadia R.', seo: '—', rank: '—', traffic: '—', leads: 0, date: '25 Aug 2026', url: '/article/iso-14001-renewal', secondaryKw: 'EMS recertification, environmental audit', summary: 'A step-by-step checklist for organizations preparing to renew their ISO 14001 certification.' },
+  { title: 'ISO 45001 for Manufacturing', kw: 'ISO 45001 manufacturing', cluster: 'Occupational Safety', status: 'Scheduled', author: 'Bagus P.', seo: 86, rank: '#9', traffic: '—', leads: 0, date: '28 Aug 2026', url: '/article/iso-45001-manufacturing', secondaryKw: 'OH&S management system, workplace safety', summary: 'How manufacturing companies can implement ISO 45001 to reduce workplace incidents and pass certification audits.' },
+  { title: 'ISO 37001 Anti Bribery Certification', kw: 'ISO 37001 anti bribery', cluster: 'Governance', status: 'Published', author: 'Dewi A.', seo: 88, rank: '#6', traffic: '3,020', leads: 22, date: '18 May 2026', url: '/article/iso-37001-anti-bribery', secondaryKw: 'anti-bribery management system, SMAP', summary: 'Covers the anti-bribery management system requirements of ISO 37001 and its relevance for public-facing companies.' },
+  { title: 'ISO Certification Cost Breakdown', kw: 'ISO certification cost', cluster: 'Quality Management', status: 'Needs Update', author: 'Bagus P.', seo: 63, rank: '#9', traffic: '3,140', leads: 18, date: '02 Feb 2026', url: '/article/iso-certification-cost', secondaryKw: 'certification body fees, audit mandays', summary: 'Breaks down the cost factors of ISO certification including audit mandays, certification body fees and company size.' },
+  { title: 'ISO 22000 Food Safety Guide', kw: 'ISO 22000 food safety', cluster: 'Food Safety', status: 'Needs Update', author: 'Dewi A.', seo: 58, rank: '#19', traffic: '980', leads: 6, date: '14 Jan 2026', url: '/article/iso-22000-food-safety', secondaryKw: 'FSMS, HACCP Indonesia', summary: 'Introduces the ISO 22000 Food Safety Management System and its relationship with HACCP requirements.' },
+  { title: 'ISO 27001 Implementation Steps', kw: 'ISO 27001 implementation', cluster: 'Information Security', status: 'Published', author: 'Nadia R.', seo: 79, rank: '#12', traffic: '1,860', leads: 11, date: '29 Apr 2026', url: '/article/iso-27001-implementation', secondaryKw: 'risk assessment ISO 27001, ISMS rollout', summary: 'A practical walkthrough of the implementation steps required before an ISO 27001 certification audit.' },
+  { title: 'ISO 9001 vs ISO 14001', kw: 'ISO 9001 vs ISO 14001', cluster: 'Quality Management', status: 'Published', author: 'Bagus P.', seo: 84, rank: '#7', traffic: '3,910', leads: 31, date: '20 Mar 2026', url: '/article/iso-9001-vs-iso-14001', secondaryKw: 'integrated management system, IMS', summary: 'Compares the scope and clause structure of ISO 9001 and ISO 14001 for companies considering an integrated management system.' },
+];
+
+const SOCIAL_SUMMARY = [
+  { label: 'Instagram Followers', value: '18,420', change: '+2.1%' },
+  { label: 'LinkedIn Followers', value: '9,860', change: '+4.6%' },
+  { label: 'Facebook Followers', value: '12,050', change: '+0.8%' },
+  { label: 'Total Engagement', value: '12.4K', change: '+7.8%' },
+  { label: 'Scheduled Posts', value: '14', change: '+3' },
+];
+
+const POSTS = [
+  { platform: 'Instagram', caption: '5 Common Mistakes Before Your ISO 9001 Audit', date: '22 Aug', campaign: 'QMS Awareness', status: 'Scheduled' },
+  { platform: 'LinkedIn', caption: 'Why ISO 42001 Matters for AI Governance in Indonesia', date: '23 Aug', campaign: 'AI Governance', status: 'Scheduled' },
+  { platform: 'Facebook', caption: 'TSI Sertifikasi kini melayani sertifikasi ISO 37001', date: '24 Aug', campaign: 'Anti-Bribery Launch', status: 'Draft' },
+  { platform: 'Instagram', caption: 'Checklist: Dokumen Wajib Sertifikasi ISO 14001', date: '25 Aug', campaign: 'Environmental Series', status: 'Scheduled' },
+  { platform: 'LinkedIn', caption: 'Case Study: ISO 45001 Implementation in Manufacturing', date: '27 Aug', campaign: 'OHS Series', status: 'Scheduled' },
+  { platform: 'Facebook', caption: 'Kenapa Perusahaan Anda Perlu ISO 22000?', date: '29 Aug', campaign: 'Food Safety Series', status: 'Draft' },
+];
+
+const SOCIAL_TRENDS = [
+  { trend: 'Sustainability reporting is rising across LinkedIn B2B posts.', action: 'Create Social Content' },
+  { trend: 'ISO 42001 discussion is increasing among Indonesian tech companies.', action: 'Create Social Content' },
+  { trend: 'Cybersecurity awareness is trending after regional data breach news.', action: 'Create Social Content' },
+];
+
+const SEO_KPIS = [
+  { label: 'Organic Traffic', value: '28,421', change: '+18.4%', dir: 'up' },
+  { label: 'SEO Visibility', value: '64.2%', change: '+5.1%', dir: 'up' },
+  { label: 'Average Position', value: '14.6', change: '-2.3', dir: 'up' },
+  { label: 'Keywords Top 3', value: '24', change: '+3', dir: 'up' },
+  { label: 'Keywords Top 10', value: '142', change: '+12', dir: 'up' },
+  { label: 'Indexed Pages', value: '318', change: '+9', dir: 'up' },
+  { label: 'Organic CTR', value: '4.8%', change: '+0.4%', dir: 'up' },
+  { label: 'SEO Health Score', value: '82/100', change: '+4', dir: 'up' },
+];
+
+const KEYWORD_TRACKER = [
+  { kw: 'ISO 27001 Certification', cur: '5.2', page: 'Page 1', intent: 'Commercial', clicks: '1,240', impr: '18,200', ctr: '6.8%', opp: 88, status: 'Rising' },
+  { kw: 'ISO 42001 Indonesia', cur: '13.8', page: 'Page 2', intent: 'Informational', clicks: '420', impr: '11,400', ctr: '3.7%', opp: 92, status: 'Opportunity' },
+  { kw: 'ISO 9001 Certification', cur: '11.1', page: 'Page 2', intent: 'Commercial', clicks: '980', impr: '15,600', ctr: '6.3%', opp: 54, status: 'Dropping' },
+  { kw: 'ISO 37001 Anti Bribery', cur: '6.4', page: 'Page 1', intent: 'Commercial', clicks: '860', impr: '9,800', ctr: '8.8%', opp: 71, status: 'Rising' },
+  { kw: 'ISO 14001 Certification', cur: '8.9', page: 'Page 1', intent: 'Commercial', clicks: '1,050', impr: '14,100', ctr: '7.4%', opp: 66, status: 'Rising' },
+  { kw: 'ISO 22000 Food Safety', cur: '19.2', page: 'Page 2', intent: 'Informational', clicks: '210', impr: '7,300', ctr: '2.9%', opp: 48, status: 'Stable' },
+  { kw: 'ISO Certification Cost', cur: '9.4', page: 'Page 1', intent: 'Commercial Investigation', clicks: '1,420', impr: '19,800', ctr: '7.2%', opp: 38, status: 'At Risk' },
+  { kw: 'ISO 45001 Manufacturing', cur: '10.6', page: 'Page 1', intent: 'Commercial', clicks: '640', impr: '8,900', ctr: '7.2%', opp: 75, status: 'Rising' },
+];
+
+const KEYWORD_DIST = [
+  { label: 'Top 3', count: 24, color: '#0F2747' },
+  { label: 'Pos 4–10', count: 118, color: '#2D6CDF' },
+  { label: 'Pos 11–20', count: 96, color: '#7BA6ED' },
+  { label: 'Pos 21–50', count: 142, color: '#DCE4EE' },
+  { label: 'Pos 51+', count: 210, color: '#F2F4F7' },
+];
+
+const CANNIBALIZATION = {
+  kw: 'ISO 27001',
+  urls: ['/iso-27001', '/article/what-is-iso-27001', '/article/iso-27001-guide'],
+  rec: 'Define /iso-27001 as the primary landing page and reposition supporting articles as top-of-funnel content.',
+};
+
+const SEO_OPPORTUNITIES = [
+  { title: 'Move ISO 42001 Indonesia to Page 1', pos: '13.8', impr: '4,280', opp: 'High', action: 'Update content, strengthen internal links, add an FAQ section.' },
+  { title: 'Recover ISO 9001 Certification ranking', pos: '11.1', impr: '6,120', opp: 'High', action: 'Refresh statistics and add 2026 regulatory updates.' },
+  { title: 'Improve CTR on ISO Certification Cost', pos: '9.4', impr: '19,800', opp: 'Medium', action: 'Rewrite meta title and description, add a price table schema.' },
+];
+
+const TECH_HEALTH = [
+  { label: 'Index Issues', count: 4, severity: 'Medium' },
+  { label: 'Broken Links', count: 11, severity: 'High' },
+  { label: 'Missing Metadata', count: 6, severity: 'Medium' },
+  { label: 'Duplicate Titles', count: 2, severity: 'Low' },
+  { label: 'Slow Pages', count: 5, severity: 'Medium' },
+  { label: 'Missing Alt Text', count: 18, severity: 'Low' },
+  { label: 'Canonical Issues', count: 1, severity: 'Low' },
+  { label: 'Schema Issues', count: 3, severity: 'Medium' },
+];
+
+const ACTION_CENTER = [
+  { priority: 'P1', issue: 'Ranking Decline', kw: 'ISO 9001', action: 'Refresh content', impact: 'High', status: 'Open' },
+  { priority: 'P1', issue: 'CTR Drop', kw: 'ISO Certification Cost', action: 'Rewrite meta title', impact: 'High', status: 'Open' },
+  { priority: 'P2', issue: 'Keyword Cannibalization', kw: 'ISO 27001', action: 'Consolidate landing pages', impact: 'Medium', status: 'In Progress' },
+  { priority: 'P2', issue: 'Missing Internal Links', kw: 'ISO 42001', action: 'Add 4 internal links from hub page', impact: 'Medium', status: 'Open' },
+  { priority: 'P3', issue: 'Content Outdated', kw: 'ISO 22000', action: 'Update stats and examples', impact: 'Low', status: 'Open' },
+];
+
+const ANALYTICS_TOP = [
+  { label: 'Organic Sessions', value: '42,180', change: '+14.2%' },
+  { label: 'Social Traffic', value: '8,940', change: '+9.1%' },
+  { label: 'Conversions', value: '612', change: '+11.4%' },
+  { label: 'CTA Clicks', value: '2,340', change: '+6.7%' },
+  { label: 'Leads', value: '386', change: '+9.2%' },
+  { label: 'Content Engagement', value: '6.8 min', change: '+3.4%' },
+];
+
+const ACQUISITION = [
+  { label: 'Organic Search', pct: 58, color: '#0F2747' },
+  { label: 'Direct', pct: 19, color: '#2D6CDF' },
+  { label: 'Social', pct: 15, color: '#7BA6ED' },
+  { label: 'Referral', pct: 8, color: '#B7C0CC' },
+];
+
+const CONTENT_PERFORMANCE = [
+  { title: 'ISO 27001 Certification: Complete Guide', traffic: '4,820', engagement: '5.2 min', rank: '#5', conv: '3.4%', leads: 42, trend: 'up' },
+  { title: 'ISO 9001 vs ISO 14001', traffic: '3,910', engagement: '4.6 min', rank: '#7', conv: '2.9%', leads: 31, trend: 'up' },
+  { title: 'ISO Certification Cost Breakdown', traffic: '3,140', engagement: '3.1 min', rank: '#9', conv: '1.8%', leads: 18, trend: 'down' },
+  { title: 'ISO 37001 Anti Bribery Certification', traffic: '3,020', engagement: '4.9 min', rank: '#6', conv: '2.6%', leads: 22, trend: 'up' },
+];
+
+const FUNNEL = [
+  { label: 'Search Impression', value: '210,400' },
+  { label: 'Search Click', value: '12,840' },
+  { label: 'Landing Page', value: '11,920' },
+  { label: 'Engaged Session', value: '7,240' },
+  { label: 'CTA Click', value: '2,340' },
+  { label: 'Form / WhatsApp', value: '890' },
+  { label: 'Lead', value: '386' },
+];
+
+const SOCIAL_PERFORMANCE = [
+  { platform: 'Instagram', reach: '86.4K', impr: '142K', engagement: '9,820', clicks: '2,140', followers: '18,420', ctr: '2.6%' },
+  { platform: 'Facebook', reach: '41.2K', impr: '68K', engagement: '3,110', clicks: '860', followers: '12,050', ctr: '1.4%' },
+  { platform: 'LinkedIn', reach: '52.8K', impr: '79K', engagement: '6,920', clicks: '1,980', followers: '9,860', ctr: '3.1%' },
+];
+
+const CAMPAIGN_PERFORMANCE = [
+  { name: 'AI Governance Launch', created: 8, traffic: '12,400', engagement: '4,210', leads: 64, conv: '3.8%' },
+  { name: 'QMS Awareness', created: 6, traffic: '9,180', engagement: '2,940', leads: 41, conv: '2.9%' },
+  { name: 'Anti-Bribery Launch', created: 5, traffic: '6,820', engagement: '3,110', leads: 38, conv: '3.2%' },
+];
+
+const APPROVAL_QUEUE = [
+  { id: 1, title: 'ISO 42001 AI Management Explained', type: 'Article', author: 'Nadia R.', qa: 94, seo: 81, brand: 96, submitted: '2 hr ago', sources: 14, risks: 'None detected. Statistics traced to two primary sources.', preview: 'ISO/IEC 42001 establishes requirements for an Artificial Intelligence Management System (AIMS), helping organizations govern AI development and use responsibly. This article explains the standard\'s scope, key clauses and why Indonesian organizations building or deploying AI systems should consider certification...' },
+  { id: 2, title: '5 Benefits of ISO 45001 for Manufacturing', type: 'LinkedIn Post', author: 'Bagus P.', qa: 88, seo: '—', brand: 90, submitted: '4 hr ago', sources: 6, risks: 'Claim about incident reduction percentage needs a cited source.', preview: 'Manufacturing floors carry some of the highest occupational risk of any industry. ISO 45001 gives manufacturers a structured way to identify hazards before they become incidents. Here are five concrete benefits certified manufacturers report...' },
+  { id: 3, title: 'ISO 14001 Renewal Checklist', type: 'Article', author: 'Nadia R.', qa: 91, seo: 78, brand: 93, submitted: '6 hr ago', sources: 9, risks: 'None detected.', preview: 'Recertification against ISO 14001 follows the same three-year cycle as most management system standards. This checklist walks through the documentation, internal audit and management review steps needed ahead of the recertification audit...' },
+  { id: 4, title: 'Checklist Dokumen ISO 37001', type: 'Instagram Post', author: 'Dewi A.', qa: 85, seo: '—', brand: 88, submitted: '1 day ago', sources: 4, risks: 'Bahasa Indonesia terminology should be reviewed by a native speaker.', preview: 'Sebelum audit sertifikasi ISO 37001, pastikan dokumen-dokumen berikut telah disiapkan: kebijakan anti penyuapan, penilaian risiko penyuapan, dan prosedur whistleblowing...' },
+];
+
+const APPROVAL_TIMELINE = [
+  { step: 'Draft generated', time: 'Aug 20, 09:14', done: true },
+  { step: 'AI QA completed', time: 'Aug 20, 09:22', done: true },
+  { step: 'SEO review completed', time: 'Aug 20, 10:05', done: true },
+  { step: 'Submitted for approval', time: 'Aug 20, 10:06', done: true },
+  { step: 'Approved / Rejected', time: 'Pending', done: false },
+];
+
+const REPORT_CARDS = {
+  Daily: [{ period: 'Daily — 20 Aug 2026', status: 'Sent', generated: '20 Aug, 07:00', telegram: true, whatsapp: true, email: false }],
+  Weekly: [{ period: 'Weekly — 11–17 Aug 2026', status: 'Sent', generated: '18 Aug, 07:00', telegram: true, whatsapp: true, email: true }],
+  Monthly: [{ period: 'Monthly — July 2026', status: 'Sent', generated: '01 Aug, 07:00', telegram: true, whatsapp: false, email: true }],
+};
+
+const RECOMMENDED_FOCUS = ['ISO 27001 for Financial Services', 'ISO 42001 Requirements', 'ISO 14001 Update'];
+
+const ARTICLE_TABS = ['Overview', 'SEO', 'Social', 'Analytics', 'History'];
+
+const ARTICLE_HISTORY = [
+  { text: 'Draft generated by Content Agent', time: 'Aug 20, 09:14' },
+  { text: 'AI QA and SEO review completed', time: 'Aug 20, 10:05' },
+  { text: 'Submitted for approval', time: 'Aug 20, 10:06' },
+  { text: 'Approved by Marketing Manager', time: 'Aug 20, 15:40' },
+];
+
+function statusColors(status) {
+  const map = {
+    Published: ['#1F9D68', '#E9F7EF'], 'In Review': ['#F2A93B', '#FDF3E2'], Draft: ['#667085', '#F2F4F7'],
+    Scheduled: ['#2D6CDF', '#EAF2FF'], 'Needs Update': ['#D64545', '#FBEAEA'], Review: ['#F2A93B', '#FDF3E2'],
+  };
+  return map[status] || ['#667085', '#F2F4F7'];
+}
+function chipStyle(fg, bg) {
+  return 'font-size:11.5px; font-weight:600; padding:3px 9px; border-radius:0; color:' + fg + '; background:' + bg + ';';
+}
+function platformColors(p) {
+  const map = { Instagram: ['#C2185B', '#FBE7EF'], Facebook: ['#1877F2', '#EAF2FF'], LinkedIn: ['#0A66C2', '#EAF2FF'], Article: ['#0F2747', '#EAF2FF'] };
+  return map[p] || ['#667085', '#F2F4F7'];
+}
+
+class Component extends DCLogic {
+  state = {
+    screen: 'dashboard',
+    quickCreateOpen: false,
+    chartRange: '90D',
+    plannerView: 'kanban',
+    articleDrawerArticleIdx: null,
+    articleTab: 'Overview',
+    socialTab: 'All',
+    reportTab: 'Weekly',
+    selectedApprovalId: 1,
+  };
+
+  goTo = (key) => this.setState({ screen: key, quickCreateOpen: false });
+  toggleQuickCreate = () => this.setState((s) => ({ quickCreateOpen: !s.quickCreateOpen }));
+  stopClick = (e) => e.stopPropagation();
+
+  renderVals() {
+    const s = this.state;
+    const activeMeta = NAV_ITEMS.find((n) => n.key === s.screen) || NAV_ITEMS[0];
+
+    const navItemsFlat = NAV_ITEMS.map((n) => {
+      const active = n.key === s.screen;
+      return {
+        group: n.group,
+        label: n.label,
+        badge: n.badge,
+        hasBadge: !!n.badge,
+        onClick: () => this.goTo(n.key),
+        rowStyle: 'display:flex; align-items:center; gap:8px; padding:8px 10px 8px 12px; border-left:2px solid ' + (active ? '#2D6CDF' : 'transparent') + '; cursor:pointer;',
+        labelStyle: 'flex:1; font-size:13.5px; font-weight:' + (active ? '700' : '500') + '; color:' + (active ? '#fff' : '#8FA6C4') + ';',
+      };
+    });
+    const navGroups = [];
+    navItemsFlat.forEach((ni) => {
+      let g = navGroups.find((x) => x.label === ni.group);
+      if (!g) { g = { label: ni.group, items: [] }; navGroups.push(g); }
+      g.items.push(ni);
+    });
+
+    const dashboardKpis = DASHBOARD_KPIS.map((k) => ({
+      ...k,
+      changeStyle: 'font-size:12.5px; font-weight:700; color:' + (k.dir === 'up' ? '#1F9D68' : k.dir === 'down' ? '#D64545' : '#667085') + ';',
+      changeText: (k.dir === 'up' ? '↑ ' : k.dir === 'down' ? '↓ ' : '') + k.change,
+    }));
+
+    const chartRanges = ['30D', '90D', '6M', '1Y'].map((r) => ({
+      label: r,
+      onClick: () => this.setState({ chartRange: r }),
+      style: 'font-size:12px; font-weight:700; padding:6px 11px; border-radius:0; cursor:pointer; color:' + (s.chartRange === r ? '#fff' : '#98A2B3') + '; background:' + (s.chartRange === r ? '#0F2747' : 'transparent') + ';',
+    }));
+
+    const seedFor = (seed) => {
+      let raw = [];
+      for (let i = 0; i < 13; i++) raw.push(Math.sin(i * 0.7 + seed) * 30 + i * 4.5 + seed * 5);
+      const min = Math.min(...raw), max = Math.max(...raw);
+      const range = max - min || 1;
+      return raw.map((n, i) => [i * 50, 180 - ((n - min) / range) * 150]);
+    };
+    const pts = seedFor(1);
+    const visibilityPoints = pts.map((p) => p[0] + ',' + p[1].toFixed(1)).join(' ');
+    const visibilityArea = visibilityPoints + ' 600,195 0,195';
+    const ptsPrev = seedFor(0.2).map((p) => [p[0], Math.min(190, p[1] + 20)]);
+    const visibilityPointsPrev = ptsPrev.map((p) => p[0] + ',' + p[1].toFixed(1)).join(' ');
+
+    const keywordMovements = KEYWORD_MOVEMENTS.map((r) => ({
+      ...r,
+      moveStyle: 'font-size:12.5px; font-weight:700; color:' + (r.dir === 'up' ? '#1F9D68' : r.dir === 'down' ? '#D64545' : '#98A2B3') + ';',
+      moveText: (r.dir === 'up' ? '↑ ' : r.dir === 'down' ? '↓ ' : '– ') + r.move,
+    }));
+
+    const upcomingContent = UPCOMING_CONTENT.map((u) => {
+      const [fg, bg] = statusColors(u.status);
+      return { ...u, statusStyle: 'color:' + fg + '; font-weight:600;' };
+    });
+
+    const plannerViews = ['Calendar', 'Kanban', 'List'].map((v) => ({
+      label: v,
+      onClick: () => this.setState({ plannerView: v.toLowerCase() }),
+      style: 'font-size:12.5px; font-weight:600; padding:7px 16px; border-radius:0; cursor:pointer; color:' + (s.plannerView === v.toLowerCase() ? '#fff' : '#344054') + '; background:' + (s.plannerView === v.toLowerCase() ? '#0F2747' : 'transparent') + ';',
+    }));
+    const plannerFilters = ['Date', 'Campaign', 'Content Type', 'Platform', 'Status', 'Priority', 'Topic Cluster'];
+
+    const kanbanColumns = KANBAN_DATA.map((col) => ({
+      name: col.name,
+      count: col.cards.length,
+      cards: col.cards.map((c) => {
+        const [fg, bg] = platformColors(c.platform);
+        return { ...c, platformStyle: chipStyle(fg, bg) };
+      }),
+    }));
+
+    const calendarDayNames = ['Mon 18', 'Tue 19', 'Wed 20', 'Thu 21', 'Fri 22', 'Sat 23', 'Sun 24'];
+    const calendarSeed = [
+      [{ title: 'ISO 27001 Fintech brief', platform: 'Article' }],
+      [],
+      [{ title: 'LinkedIn: AI Governance', platform: 'LinkedIn' }],
+      [{ title: 'IG: ISO 9001 mistakes', platform: 'Instagram' }],
+      [{ title: 'ISO 42001 draft due', platform: 'Article' }],
+      [],
+      [{ title: 'FB: ISO 37001 launch', platform: 'Facebook' }],
+    ];
+    const calendarDays = calendarDayNames.map((label, i) => ({
+      label,
+      items: calendarSeed[i].map((it) => {
+        const [fg, bg] = platformColors(it.platform);
+        return { title: it.title, style: 'font-size:11.5px; padding:6px 8px; border-radius:0; margin-bottom:6px; color:' + fg + '; background:' + bg + '; font-weight:600;' };
+      }),
+    }));
+
+    const plannerListRows = [];
+    KANBAN_DATA.forEach((col) => col.cards.forEach((c) => {
+      const [fg, bg] = platformColors(c.platform);
+      plannerListRows.push({ title: c.title, column: col.name, platform: c.platform, platformStyle: chipStyle(fg, bg), owner: 'Nadia R.', due: c.due });
+    }));
+
+    const articles = ARTICLES.map((a, i) => {
+      const [fg, bg] = statusColors(a.status);
+      return { ...a, statusStyle: chipStyle(fg, bg), onClick: () => this.setState({ articleDrawerArticleIdx: i, articleTab: 'Overview' }) };
+    });
+    const selArticleRaw = s.articleDrawerArticleIdx !== null ? ARTICLES[s.articleDrawerArticleIdx] : null;
+    const selectedArticle = selArticleRaw ? (() => {
+      const [fg, bg] = statusColors(selArticleRaw.status);
+      return { ...selArticleRaw, statusStyle: chipStyle(fg, bg) };
+    })() : null;
+
+    const articleTabs = ARTICLE_TABS.map((t) => ({
+      label: t,
+      onClick: () => this.setState({ articleTab: t }),
+      style: 'font-size:13px; font-weight:600; padding:12px 0; cursor:pointer; color:' + (s.articleTab === t ? '#0F2747' : '#98A2B3') + '; border-bottom:2px solid ' + (s.articleTab === t ? '#2D6CDF' : 'transparent') + ';',
+    }));
+
+    const qualityScores = selectedArticle ? [
+      { label: 'SEO Score', value: selectedArticle.seo === '—' ? '—' : selectedArticle.seo, pct: typeof selectedArticle.seo === 'number' ? selectedArticle.seo : 0 },
+      { label: 'Readability', value: 88, pct: 88 },
+      { label: 'Brand Compliance', value: 95, pct: 95 },
+      { label: 'Content Completeness', value: 90, pct: 90 },
+      { label: 'Internal Linking', value: 72, pct: 72 },
+    ].map((q) => ({ ...q, barStyle: 'height:100%; width:' + q.pct + '%; background:#2D6CDF; border-radius:0;' })) : [];
+
+    const socialTabs = ['All', 'Instagram', 'Facebook', 'LinkedIn'].map((t) => ({
+      label: t,
+      onClick: () => this.setState({ socialTab: t }),
+      style: 'font-size:13px; font-weight:600; padding:8px 16px; border-radius:0; cursor:pointer; color:' + (s.socialTab === t ? '#fff' : '#344054') + '; background:' + (s.socialTab === t ? '#0F2747' : '#fff') + '; border:1px solid ' + (s.socialTab === t ? '#0F2747' : '#DCE4EE') + ';',
+    }));
+    const filteredPosts = POSTS.filter((p) => s.socialTab === 'All' || p.platform === s.socialTab).map((p) => {
+      const [fg, bg] = platformColors(p.platform);
+      const [sfg, sbg] = statusColors(p.status);
+      return { ...p, platformStyle: chipStyle(fg, bg), statusStyle: chipStyle(sfg, sbg) };
+    });
+
+    const seoKpis = SEO_KPIS.map((k) => ({
+      ...k,
+      changeStyle: 'font-size:12px; font-weight:700; color:' + (k.dir === 'up' ? '#1F9D68' : '#D64545') + ';',
+      changeText: (k.dir === 'up' ? '↑ ' : '↓ ') + k.change,
+    }));
+
+    const statusChipColors = { Rising: ['#1F9D68', '#E9F7EF'], Dropping: ['#D64545', '#FBEAEA'], Stable: ['#667085', '#F2F4F7'], Opportunity: ['#2D6CDF', '#EAF2FF'], 'At Risk': ['#F2A93B', '#FDF3E2'] };
+    const keywordTracker = KEYWORD_TRACKER.map((r) => {
+      const [fg, bg] = statusChipColors[r.status] || ['#667085', '#F2F4F7'];
+      return { ...r, statusStyle: chipStyle(fg, bg) };
+    });
+
+    const distTotal = KEYWORD_DIST.reduce((a, d) => a + d.count, 0);
+    const keywordDistribution = KEYWORD_DIST.map((d) => ({
+      ...d,
+      barStyle: 'width:' + (d.count / distTotal * 100).toFixed(1) + '%; background:' + d.color + ';',
+      dotStyle: 'width:9px; height:9px; border-radius:0; background:' + d.color + ';',
+    }));
+
+    const oppColors = { High: ['#D64545', '#FBEAEA'], Medium: ['#F2A93B', '#FDF3E2'], Low: ['#667085', '#F2F4F7'] };
+    const seoOpportunities = SEO_OPPORTUNITIES.map((o) => {
+      const [fg, bg] = oppColors[o.opp];
+      return { ...o, oppStyle: chipStyle(fg, bg) };
+    });
+
+    const sevColors = { High: ['#D64545', '#FBEAEA'], Medium: ['#F2A93B', '#FDF3E2'], Low: ['#1F9D68', '#E9F7EF'] };
+    const techHealth = TECH_HEALTH.map((h) => {
+      const [fg, bg] = sevColors[h.severity];
+      return { ...h, sevStyle: chipStyle(fg, bg) };
+    });
+
+    const priorityColors = { P1: ['#D64545', '#FBEAEA'], P2: ['#F2A93B', '#FDF3E2'], P3: ['#667085', '#F2F4F7'] };
+    const actionStatusColors = { Open: ['#2D6CDF', '#EAF2FF'], 'In Progress': ['#F2A93B', '#FDF3E2'] };
+    const actionCenter = ACTION_CENTER.map((r) => {
+      const [pfg, pbg] = priorityColors[r.priority];
+      const [sfg, sbg] = actionStatusColors[r.status];
+      return { ...r, priorityStyle: chipStyle(pfg, pbg), statusStyle: chipStyle(sfg, sbg) };
+    });
+
+    const acquisition = ACQUISITION.map((a) => ({ ...a, barStyle: 'height:100%; width:' + a.pct + '%; background:' + a.color + '; border-radius:0;' }));
+    const funnelMax = parseInt(FUNNEL[0].value.replace(/,/g, ''), 10);
+    const funnel = FUNNEL.map((f) => {
+      const v = parseInt(f.value.replace(/,/g, ''), 10);
+      const pct = Math.max(6, (v / funnelMax) * 100);
+      return { ...f, barStyle: 'height:100%; width:' + pct.toFixed(1) + '%; background:#2D6CDF; border-radius:0;' };
+    });
+
+    const contentPerformance = CONTENT_PERFORMANCE.map((c) => ({
+      ...c,
+      trendStyle: 'font-weight:700; color:' + (c.trend === 'up' ? '#1F9D68' : '#D64545') + ';',
+      trendText: c.trend === 'up' ? '↑' : '↓',
+    }));
+
+    const approvalQueue = APPROVAL_QUEUE.map((item) => ({
+      ...item,
+      onClick: () => this.setState({ selectedApprovalId: item.id }),
+      rowStyle: 'background:#fff; border:1px solid ' + (s.selectedApprovalId === item.id ? '#2D6CDF' : '#DCE4EE') + '; border-radius:0; padding:15px; cursor:pointer;' + (s.selectedApprovalId === item.id ? ' box-shadow:0 0 0 1px #2D6CDF;' : ''),
+    }));
+    const selectedApproval = APPROVAL_QUEUE.find((a) => a.id === s.selectedApprovalId) || APPROVAL_QUEUE[0];
+
+    const approvalTimeline = APPROVAL_TIMELINE.map((t) => ({ ...t, dotStyle: 'width:8px; height:8px; border-radius:50%; margin-top:4px; background:' + (t.done ? '#1F9D68' : '#DCE4EE') + ';' }));
+
+    const reportTabs = ['Daily', 'Weekly', 'Monthly'].map((t) => ({
+      label: t,
+      onClick: () => this.setState({ reportTab: t }),
+      style: 'font-size:12.5px; font-weight:600; padding:8px 16px; border-radius:0; cursor:pointer; color:' + (s.reportTab === t ? '#fff' : '#344054') + '; background:' + (s.reportTab === t ? '#0F2747' : '#fff') + '; border:1px solid ' + (s.reportTab === t ? '#0F2747' : '#DCE4EE') + ';',
+    }));
+    const reportCards = REPORT_CARDS[s.reportTab].map((r) => ({
+      ...r,
+      statusStyle: chipStyle('#1F9D68', '#E9F7EF'),
+      telegramStyle: 'font-size:12px; font-weight:600; color:' + (r.telegram ? '#1F9D68' : '#98A2B3') + ';',
+      telegramMark: r.telegram ? '✓' : '—',
+      whatsappStyle: 'font-size:12px; font-weight:600; color:' + (r.whatsapp ? '#1F9D68' : '#98A2B3') + ';',
+      whatsappMark: r.whatsapp ? '✓' : '—',
+      emailStyle: 'font-size:12px; font-weight:600; color:' + (r.email ? '#1F9D68' : '#98A2B3') + ';',
+      emailMark: r.email ? '✓' : '—',
+    }));
+
+    return {
+      logoUrl: 'assets/tsi-logo.png',
+      navGroups,
+      activeLabel: activeMeta.label,
+      quickCreateOpen: s.quickCreateOpen,
+      toggleQuickCreate: this.toggleQuickCreate,
+      isDashboard: s.screen === 'dashboard',
+      isPlanner: s.screen === 'planner',
+      isArticles: s.screen === 'articles',
+      isSocial: s.screen === 'social',
+      isSeo: s.screen === 'seo',
+      isAnalytics: s.screen === 'analytics',
+      isApproval: s.screen === 'approval',
+      isReports: s.screen === 'reports',
+      isOther: ['media', 'workflow', 'settings'].includes(s.screen),
+      dashboardKpis, chartRanges, visibilityPoints, visibilityArea, visibilityPointsPrev,
+      keywordMovements, topContent: TOP_CONTENT, attentionContent: ATTENTION_CONTENT,
+      upcomingContent, agentActivity: AGENT_ACTIVITY, aiOpportunities: AI_OPPORTUNITIES,
+      plannerViews, plannerFilters, isPlannerKanban: s.plannerView === 'kanban', isPlannerCalendar: s.plannerView === 'calendar', isPlannerList: s.plannerView === 'list',
+      kanbanColumns, calendarDays, plannerListRows, topicRecommendations: TOPIC_RECOMMENDATIONS,
+      articles, articleDrawerOpen: selectedArticle !== null, selectedArticle, closeArticleDrawer: () => this.setState({ articleDrawerArticleIdx: null }), stopClick: this.stopClick,
+      articleTabs, isArticleTabOverview: s.articleTab === 'Overview', isArticleTabSeo: s.articleTab === 'SEO', isArticleTabSocial: s.articleTab === 'Social', isArticleTabAnalytics: s.articleTab === 'Analytics', isArticleTabHistory: s.articleTab === 'History',
+      qualityScores, articleHistory: ARTICLE_HISTORY,
+      socialTabs, socialSummary: SOCIAL_SUMMARY, filteredPosts, socialTrends: SOCIAL_TRENDS,
+      seoKpis, keywordTracker, keywordDistribution, cannibalization: CANNIBALIZATION, seoOpportunities, techHealth, actionCenter,
+      analyticsTop: ANALYTICS_TOP, acquisition, funnel, contentPerformance, socialPerformance: SOCIAL_PERFORMANCE, campaignPerformance: CAMPAIGN_PERFORMANCE,
+      approvalQueue, selectedApproval, approvalTimeline,
+      reportTabs, reportCards, recommendedFocus: RECOMMENDED_FOCUS,
+    };
+  }
+}
+
+</script>
+</body>
+</html>
