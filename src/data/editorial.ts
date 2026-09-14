@@ -2,11 +2,9 @@ import type {
   AgentActivity,
   AiOpportunity,
   Article,
-  AttentionItem,
   CalendarEntry,
   HistoryEntry,
   KanbanColumn,
-  KeywordMovement,
   Kpi,
   NavItem,
   TopContent,
@@ -28,10 +26,14 @@ export const NAV_ITEMS: NavItem[] = [
   { key: 'settings', label: 'Settings', group: 'System' },
 ];
 
+/**
+ * Dashboard KPIs. "SEO Visibility" and "Keywords in Top 10" render live search
+ * data; the rest keep sample values that show only once their source is live.
+ */
 export const DASHBOARD_KPIS: Kpi[] = [
   { label: 'Organic Traffic', capability: 'ga4', value: '28,421', change: '+18.4%', dir: 'up', period: 'vs previous period' },
-  { label: 'SEO Visibility', capability: 'gsc', value: '64.2%', change: '+5.1%', dir: 'up', period: 'vs previous period' },
-  { label: 'Keywords in Top 10', capability: 'gsc', value: '142', change: '+12', dir: 'up', period: 'vs previous period' },
+  { label: 'SEO Visibility', capability: 'gsc', value: '', change: '', dir: 'flat' },
+  { label: 'Keywords in Top 10', capability: 'gsc', value: '', change: '', dir: 'flat' },
   { label: 'Organic Leads', capability: 'ga4', value: '386', change: '+9.2%', dir: 'up', period: 'vs previous period' },
   { label: 'Articles Published', capability: 'articles', value: '58', change: '+4', dir: 'up', period: 'this quarter' },
   { label: 'Scheduled Content', capability: 'content', value: '23', change: '—', dir: 'flat', period: 'next 14 days' },
@@ -74,25 +76,10 @@ export const AI_OPPORTUNITIES: AiOpportunity[] = [
   },
 ];
 
-export const KEYWORD_MOVEMENTS: KeywordMovement[] = [
-  { kw: 'ISO 27001 Certification', cur: 5, prev: 9, move: 4, dir: 'up', intent: 'Commercial', page: '/article/iso-27001-certification' },
-  { kw: 'ISO 14001 Certification', cur: 8, prev: 13, move: 5, dir: 'up', intent: 'Commercial', page: '/article/iso-14001-certification' },
-  { kw: 'ISO 9001 Certification', cur: 11, prev: 7, move: 4, dir: 'down', intent: 'Commercial', page: '/article/iso-9001-certification' },
-  { kw: 'ISO 42001 Indonesia', cur: 14, prev: 14, move: 0, dir: 'flat', intent: 'Informational', page: '/article/iso-42001-indonesia' },
-  { kw: 'ISO 37001 Anti Bribery', cur: 6, prev: 10, move: 4, dir: 'up', intent: 'Commercial', page: '/article/iso-37001-anti-bribery' },
-];
-
 export const TOP_CONTENT: TopContent[] = [
   { title: 'ISO 27001 Certification: Complete Guide', traffic: '4,820', pos: '#5', ctr: '6.2%', leads: 42, trend: 'up' },
   { title: 'ISO 9001 vs ISO 14001: Key Differences', traffic: '3,910', pos: '#7', ctr: '5.4%', leads: 31, trend: 'up' },
   { title: 'How Much Does ISO Certification Cost', traffic: '3,140', pos: '#9', ctr: '3.1%', leads: 18, trend: 'down' },
-];
-
-export const ATTENTION_CONTENT: AttentionItem[] = [
-  { title: 'ISO 9001 Certification Requirements', reason: 'Ranking declining' },
-  { title: 'ISO Certification Cost Breakdown', reason: 'Low CTR' },
-  { title: 'What is ISO 22000', reason: 'Content outdated' },
-  { title: 'ISO 27001 Implementation Steps', reason: 'Keyword cannibalization' },
 ];
 
 export const UPCOMING_CONTENT: UpcomingItem[] = [

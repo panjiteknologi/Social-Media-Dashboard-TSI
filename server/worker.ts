@@ -16,7 +16,7 @@ const { db, pool } = createDb(env.DATABASE_URL);
 await waitForDatabase(pool);
 await runMigrations(db, pool);
 
-const jobs = createJobs(db);
+const jobs = createJobs({ db, env });
 const boss = createBoss(env.DATABASE_URL, 'worker');
 await boss.start();
 await ensureQueues(boss, jobs);

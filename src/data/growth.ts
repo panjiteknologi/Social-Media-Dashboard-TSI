@@ -3,18 +3,13 @@ import type {
   ActionItem,
   AnalyticsKpi,
   CampaignPerformance,
-  Cannibalization,
   ContentPerformanceRow,
-  DistributionBand,
   FunnelStage,
-  Kpi,
   PlatformPerformance,
   Post,
-  SeoOpportunity,
   SocialSummaryItem,
   SocialTrend,
   TechHealthItem,
-  TrackedKeyword,
 } from '../types';
 
 export const SOCIAL_SUMMARY: SocialSummaryItem[] = [
@@ -42,48 +37,6 @@ export const SOCIAL_TRENDS: SocialTrend[] = [
   { trend: 'Sustainability reporting is rising across LinkedIn B2B posts.', action: 'Create Social Content' },
   { trend: 'ISO 42001 discussion is increasing among Indonesian tech companies.', action: 'Create Social Content' },
   { trend: 'Cybersecurity awareness is trending after regional data breach news.', action: 'Create Social Content' },
-];
-
-export const SEO_KPIS: Kpi[] = [
-  { label: 'Organic Traffic', capability: 'gsc', value: '28,421', change: '+18.4%', dir: 'up' },
-  { label: 'SEO Visibility', capability: 'gsc', value: '64.2%', change: '+5.1%', dir: 'up' },
-  { label: 'Average Position', capability: 'gsc', value: '14.6', change: '-2.3', dir: 'up' },
-  { label: 'Keywords Top 3', capability: 'gsc', value: '24', change: '+3', dir: 'up' },
-  { label: 'Keywords Top 10', capability: 'gsc', value: '142', change: '+12', dir: 'up' },
-  { label: 'Indexed Pages', capability: 'technicalSeo', value: '318', change: '+9', dir: 'up' },
-  { label: 'Organic CTR', capability: 'gsc', value: '4.8%', change: '+0.4%', dir: 'up' },
-  { label: 'SEO Health Score', capability: 'seoHealthScore', value: '82/100', change: '+4', dir: 'up' },
-];
-
-export const KEYWORD_TRACKER: TrackedKeyword[] = [
-  { kw: 'ISO 27001 Certification', cur: '5.2', page: 'Page 1', intent: 'Commercial', clicks: '1,240', impr: '18,200', ctr: '6.8%', opp: 88, status: 'Rising' },
-  { kw: 'ISO 42001 Indonesia', cur: '13.8', page: 'Page 2', intent: 'Informational', clicks: '420', impr: '11,400', ctr: '3.7%', opp: 92, status: 'Opportunity' },
-  { kw: 'ISO 9001 Certification', cur: '11.1', page: 'Page 2', intent: 'Commercial', clicks: '980', impr: '15,600', ctr: '6.3%', opp: 54, status: 'Dropping' },
-  { kw: 'ISO 37001 Anti Bribery', cur: '6.4', page: 'Page 1', intent: 'Commercial', clicks: '860', impr: '9,800', ctr: '8.8%', opp: 71, status: 'Rising' },
-  { kw: 'ISO 14001 Certification', cur: '8.9', page: 'Page 1', intent: 'Commercial', clicks: '1,050', impr: '14,100', ctr: '7.4%', opp: 66, status: 'Rising' },
-  { kw: 'ISO 22000 Food Safety', cur: '19.2', page: 'Page 2', intent: 'Informational', clicks: '210', impr: '7,300', ctr: '2.9%', opp: 48, status: 'Stable' },
-  { kw: 'ISO Certification Cost', cur: '9.4', page: 'Page 1', intent: 'Commercial Investigation', clicks: '1,420', impr: '19,800', ctr: '7.2%', opp: 38, status: 'At Risk' },
-  { kw: 'ISO 45001 Manufacturing', cur: '10.6', page: 'Page 1', intent: 'Commercial', clicks: '640', impr: '8,900', ctr: '7.2%', opp: 75, status: 'Rising' },
-];
-
-export const KEYWORD_DIST: DistributionBand[] = [
-  { label: 'Top 3', count: 24, color: '#0F2747' },
-  { label: 'Pos 4–10', count: 118, color: '#2D6CDF' },
-  { label: 'Pos 11–20', count: 96, color: '#7BA6ED' },
-  { label: 'Pos 21–50', count: 142, color: '#DCE4EE' },
-  { label: 'Pos 51+', count: 210, color: '#F2F4F7' },
-];
-
-export const CANNIBALIZATION: Cannibalization = {
-  kw: 'ISO 27001',
-  urls: ['/iso-27001', '/article/what-is-iso-27001', '/article/iso-27001-guide'],
-  rec: 'Define /iso-27001 as the primary landing page and reposition supporting articles as top-of-funnel content.',
-};
-
-export const SEO_OPPORTUNITIES: SeoOpportunity[] = [
-  { title: 'Move ISO 42001 Indonesia to Page 1', pos: '13.8', impr: '4,280', opp: 'High', action: 'Update content, strengthen internal links, add an FAQ section.' },
-  { title: 'Recover ISO 9001 Certification ranking', pos: '11.1', impr: '6,120', opp: 'High', action: 'Refresh statistics and add 2026 regulatory updates.' },
-  { title: 'Improve CTR on ISO Certification Cost', pos: '9.4', impr: '19,800', opp: 'Medium', action: 'Rewrite meta title and description, add a price table schema.' },
 ];
 
 export const TECH_HEALTH: TechHealthItem[] = [

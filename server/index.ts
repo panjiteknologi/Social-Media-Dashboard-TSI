@@ -21,7 +21,7 @@ await runMigrations(db, pool);
 await createInitialAdmin();
 
 console.log('API starting: connecting to the job queue');
-const jobs = createJobs(db);
+const jobs = createJobs({ db, env });
 const boss = createBoss(env.DATABASE_URL, 'api');
 await boss.start();
 await ensureQueues(boss, jobs);

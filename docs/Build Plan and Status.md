@@ -18,7 +18,8 @@ Dokumen ini adalah acuan tunggal untuk urutan pembangunan, status setiap bagian,
 | Konfigurasi env (`.env.example`) | Selesai |
 | **M1 lokal:** backend, database, migrasi, login Google, peran pengguna, kerangka job, peringatan, CLI | **Selesai dan diuji end-to-end di lokal** (13 September 2026) |
 | **M1 deploy:** Docker Compose, VPS, HTTPS, backup harian | Menunggu VPS dan subdomain |
-| Integrasi data dan AI | Belum dimulai |
+| **M2: data SEO dari Search Console** | **Selesai dibangun (15 September 2026):** sync harian, metrik, SEO Intelligence, bagian SEO di Dashboard, Settings SEO, dan peringatan Telegram mingguan. Menunggu tim mengecek tampilan dan mengisi keyword prioritas |
+| Integrasi GA4, CMS, Meta, dan AI | Belum dimulai |
 
 ### Akses dan integrasi
 
@@ -50,6 +51,9 @@ Dicek dari luar pada 13 September 2026, tanpa login.
 | `og:image` memakai path relatif | Gambar pratinjau bisa tidak muncul saat artikel dibagikan ke media sosial | Ubah menjadi URL lengkap |
 | Header respons menunjukkan halaman dirender di server Vercel region Amerika Serikat (`iad1`) tanpa cache | Setiap kunjungan dari Indonesia menunggu server di AS | Diukur dengan PageSpeed di M4 |
 | Halaman `/impartiality-policy` tersedia | Sumber resmi aturan imparsialitas untuk AI | Dipakai di knowledge base M5 |
+| **Situs lama kemungkinan pernah diretas untuk spam SEO** (ditemukan 15 September lewat data GSC). Pada September–Oktober 2025 lebih dari 25.000 URL spam terindeks: `tsicertification.com/products/…` berisi judul produk berbahasa Italia, dan `certificate.tsicertification.com/?_g=…`. Query yang masuk berbahasa Italia dan Jepang. Query judi seperti "cukong88" masih muncul sampai sekarang | Impressions saat itu melonjak hingga 800 ribu per bulan, tapi bukan performa TSI. Nama domain bisa ikut tercemar di mata Google | Di GSC, cek menu **Security issues** dan **Manual actions**. Periksa laporan **Pages** untuk URL `/products/` dan `certificate.tsicertification.com/?_g=`. Kalau masih terindeks, ajukan lewat **Removals** dan pastikan URL tersebut mengembalikan 404 atau 410 |
+| **Tidak ada data GSC sama sekali dari 4 November 2025 sampai 6 Mei 2026** | Tren dan perbandingan yang melewati periode ini menyesatkan | Content Machine menghitung data mulai 7 Mei 2026 (§6) |
+| `demo.tsicertification.com` pernah terindeks Google | Halaman demo bisa bersaing dengan situs utama dan tampil ke publik | Pastikan subdomain demo memakai `noindex` atau dilindungi password |
 
 Perbaikan website di atas dikerjakan di repo website, bukan di Content Machine, dan bisa berjalan paralel.
 
@@ -124,6 +128,21 @@ Peran pengguna:
 - Job uji yang sengaja digagalkan memunculkan peringatan di Telegram.
 
 ### M2 — SEO nyata dari Search Console
+
+**Status 15 September 2026:** inti M2 sudah jalan dengan data asli.
+
+- **Sync GSC:** job `gsc-sync` mengambil data sejak 7 Mei 2026, lalu setiap pagi pukul 07.30 mengambil ulang 5 hari terakhir. Backfill pertama selesai dalam 3,5 detik: 129 hari, 5.979 baris query, 4.754 baris halaman, 11.901 baris query-halaman.
+- **Metrik:** KPI, tren, keyword tracker, pergerakan, distribusi posisi, kanibalisasi, skor peluang, dan halaman yang perlu perhatian.
+- **Layar:** SEO Intelligence (kecuali Technical SEO Health dan Action Center) dan bagian SEO di Dashboard sudah memakai data asli.
+- **Verifikasi:** angka per keyword dan cakupan query (58%) sama persis dengan hasil kueri langsung ke GSC.
+
+- **Settings bagian SEO:** keyword prioritas, ambang impressions, kata brand, tanggal mulai data, dan host website. Hanya admin yang bisa menyimpan, dan angka SEO langsung dihitung ulang setelah disimpan.
+- **Peringatan Telegram mingguan:** job `seo-weekly-digest`, setiap Senin pukul 08.00. Pesan hanya terkirim bila ada keyword prioritas yang posisinya turun (Dropping atau At Risk), supaya grup tidak terbiasa mengabaikannya. Input `{"dryRun": true}` menampilkan isi pesan tanpa mengirimnya.
+
+**Dari tim TSI:**
+- Isi **keyword prioritas** di Settings. Sebelum diisi, peringatan mingguan tidak mengirim apa pun.
+- Cek tampilan Dashboard, SEO Intelligence, dan Settings.
+- Cocokkan angka dengan GSC: rentang 16 Agustus – 12 September 2026 seharusnya 550 klik, 10.048 impressions, dan posisi rata-rata 11,6.
 
 **Pekerjaan**
 
@@ -259,30 +278,47 @@ Bergantung pada CMS kustom (§2).
 
 ## 6. Definisi metrik
 
-Nilai ambang di bawah adalah bawaan. Nilainya dicek ulang dengan data asli di M2 dan bisa diubah di Settings.
+Semua ambang di bawah adalah bawaan hasil kalibrasi dengan data asli pada 15 September 2026, dan bisa diubah di Settings. Aturan lengkapnya ada di `shared/seo.ts`.
+
+**Dasar data**
+
+| Aturan | Nilai bawaan | Alasan |
+|---|---|---|
+| Tanggal mulai data | 7 Mei 2026 | Situs diluncurkan ulang pada tanggal ini. Sebelumnya ada ribuan halaman spam dari situs lama (September–Oktober 2025), lalu enam bulan tanpa data (§2). Data sebelum tanggal ini diabaikan, dan perbandingan yang melewatinya ditampilkan "tidak ada pembanding" |
+| Jendela keyword | 28 hari, dibanding 28 hari sebelumnya | Volume situs kecil. Jendela 7 hari terlalu sering memberi alarm palsu |
+| Ambang impressions | 30 per jendela 28 hari | Pada ambang 50 hanya sekitar 10 keyword yang bisa dibandingkan, pada ambang 30 sekitar 20 |
+| Query brand | Mengandung kata "tsi" atau "tsicertification" | Query brand mendominasi impressions. Brand tidak dihitung sebagai peluang atau kanibalisasi, karena beberapa URL untuk query brand (beranda, subdomain ERP, company profile) memang wajar |
+| Host website | `tsicertification.com` | Properti GSC juga mencakup subdomain seperti ERP dan academy. Peringatan konten hanya untuk halaman website |
+| Grafik tren | Harian untuk 30D dan 90D, mingguan untuk 6M dan 1Y | Angka harian terlalu kecil untuk rentang panjang |
+
+**Metrik**
 
 | Metrik | Definisi |
 |---|---|
-| Organic Traffic | Sessions GA4 dari channel Organic Search |
-| SEO Visibility | Total impressions GSC |
-| Average Position | Posisi rata-rata dari data total situs, berbobot impressions |
-| Keywords Top 3 / Top 10 | Query dengan posisi rata-rata ≤ 3 / ≤ 10 dalam 28 hari terakhir, dengan impressions di atas ambang |
-| Organic Leads | Key event submit form + klik WhatsApp dari sesi Organic Search |
-| Pergerakan keyword | Posisi 28 hari terakhir dibanding 28 hari sebelumnya. Hanya dihitung bila impressions ≥ 50 di kedua periode |
+| Organic Traffic | Sessions GA4 dari channel Organic Search (M3) |
+| Clicks | Total klik GSC dari data total situs |
+| SEO Visibility | Total impressions GSC dari data total situs |
+| Average Position | Posisi rata-rata data total situs, berbobot impressions |
+| Organic CTR | Klik dibagi impressions. Perubahannya ditampilkan dalam poin persentase (pp) |
+| Keywords Top 3 / Top 10 | Query dengan posisi rata-rata ≤ 3 / ≤ 10 dalam 28 hari terakhir dan impressions di atas ambang |
+| Organic Leads | Jumlah kiriman di Contact Messages CMS. GA4 hanya untuk asal leads (M3) |
+| Pergerakan keyword | Posisi 28 hari terakhir dibanding 28 hari sebelumnya. Hanya dihitung bila impressions di atas ambang di kedua periode, dan ditampilkan bila berubah minimal 2 posisi |
 | Status At Risk | Sebelumnya di halaman 1 (posisi ≤ 10), sekarang di luar halaman 1 |
 | Status Dropping / Rising | Posisi memburuk / membaik minimal 2 |
-| Status Opportunity | Posisi 8–20 dengan impressions di atas ambang |
+| Status Opportunity | Query non-brand di posisi 8–50 dengan impressions di atas ambang. Lebih lebar dari halaman 2, karena peluang non-brand situs ini kebanyakan ada di posisi 21–50 |
 | Status Stable | Tidak memenuhi status lain |
-| Kanibalisasi | Satu query dengan 2 URL atau lebih yang masing-masing mendapat ≥ 20% impressions dalam 28 hari |
-| Skor peluang (0–100) | Gabungan besar impressions dan jarak ke posisi atas. Rumus rinci ditetapkan dan diuji dengan data asli di M2 |
+| Skor peluang (0–100) | 60% besar impressions (skala log, relatif terhadap kandidat terbesar) dan 40% kedekatan ke posisi 8 |
+| Kanibalisasi | Query non-brand dengan impressions di atas ambang, di mana 2 URL atau lebih masing-masing mendapat minimal 20% impressions |
+| Perlu perhatian: Low CTR | Halaman website di posisi ≤ 10, impressions minimal 3× ambang, dan CTR di bawah 1% |
+| Perlu perhatian: Ranking declining | Halaman website yang posisinya memburuk minimal 2, dengan impressions di atas ambang di kedua periode |
 
 Kalau satu keyword memenuhi beberapa status, yang dipakai adalah urutan: At Risk, Dropping, Rising, Opportunity, Stable.
 
 **Aturan penting**
 
-- **Angka total diambil dari data total situs**, bukan penjumlahan baris keyword. GSC menyembunyikan sebagian query demi privasi, sehingga jumlah per keyword selalu lebih kecil dari total.
-- **Data GSC tertinggal sekitar 2–3 hari.** Dashboard menampilkan "Data sampai tanggal …", bukan waktu sinkronisasi.
-- **Pergerakan memakai periode 28 hari** karena volume situs masih kecil. Periode 7 hari terlalu sering memberi alarm palsu.
+- **Angka total diambil dari data total situs**, bukan penjumlahan baris keyword. Google menyembunyikan sebagian query demi privasi: saat ini hanya sekitar 58% impressions yang punya query.
+- **Data GSC final tertinggal sekitar 3 hari.** Dashboard menampilkan tanggal data terakhir, dan setiap sync mengambil ulang 5 hari terakhir.
+- **Posisi keyword diambil dari data per query**, bukan per halaman, karena posisi query hanya menghitung halaman dengan peringkat terbaik.
 
 ---
 
@@ -473,7 +509,7 @@ Satu-satunya kanal pesan keluar selama WhatsApp ditunda.
 | Fungsi | Milestone |
 |---|---|
 | Peringatan job gagal dan worker berhenti | M1 |
-| Peringatan mingguan keyword prioritas yang turun (hanya keyword di atas ambang impressions) | M2 |
+| Peringatan mingguan keyword prioritas yang turun (hanya keyword di atas ambang impressions) | M2. **Sudah jalan:** setiap Senin pukul 08.00, dan hanya terkirim bila ada yang turun |
 | Laporan harian, mingguan, bulanan | M4 |
 | Notifikasi konten menunggu approval terlalu lama | M5 |
 | Tombol Approve / Request Revision di pesan, perintah `/status` dan `/laporan` | M8 |

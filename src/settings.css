@@ -1,0 +1,131 @@
+/* Settings screen. */
+
+.settings-form__fields {
+  display: grid;
+  gap: 20px;
+  max-width: 640px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.settings-field {
+  display: grid;
+  gap: 6px;
+}
+
+.settings-field__label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.settings-field__hint {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.settings-field input,
+.settings-field textarea {
+  width: 100%;
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 13.5px;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0;
+}
+
+.settings-field input[type='number'] {
+  max-width: 160px;
+}
+
+.settings-field input[type='date'] {
+  max-width: 200px;
+}
+
+.settings-field textarea {
+  resize: vertical;
+}
+
+.settings-field input:focus-visible,
+.settings-field textarea:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 1px;
+}
+
+.settings-form__fields:disabled input,
+.settings-form__fields:disabled textarea {
+  color: var(--muted);
+  background: var(--surface-alt);
+}
+
+.settings-form__notice {
+  margin-bottom: 16px;
+  padding: 10px 12px;
+  font-size: 13px;
+  color: var(--text);
+  background: var(--blue-bg);
+}
+
+.settings-form__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.settings-form__button {
+  padding: 9px 16px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.settings-form__button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.settings-form__error {
+  font-size: 12.5px;
+  color: var(--red);
+  white-space: pre-line;
+}
+
+.settings-form__saved {
+  font-size: 12.5px;
+  color: var(--green);
+}
+
+.settings-later {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.settings-later__item {
+  padding: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.settings-later__title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.settings-later__detail {
+  margin-top: 4px;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+.settings-later__milestone {
+  margin-top: 8px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--faint);
+}

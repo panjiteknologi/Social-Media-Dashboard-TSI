@@ -1,5 +1,7 @@
 import type { CapabilityKey } from '../shared/capabilities';
 
+export type { KeywordStatus } from '../shared/seo';
+
 export type ScreenKey =
   | 'dashboard'
   | 'planner'
@@ -47,16 +49,6 @@ export interface AiOpportunity {
   cta: string;
 }
 
-export interface KeywordMovement {
-  kw: string;
-  cur: number;
-  prev: number;
-  move: number;
-  dir: Direction;
-  intent: string;
-  page: string;
-}
-
 export interface TopContent {
   title: string;
   traffic: string;
@@ -64,11 +56,6 @@ export interface TopContent {
   ctr: string;
   leads: number;
   trend: 'up' | 'down';
-}
-
-export interface AttentionItem {
-  title: string;
-  reason: string;
 }
 
 export type ContentStatus =
@@ -154,41 +141,7 @@ export interface SocialTrend {
   action: string;
 }
 
-export type KeywordStatus = 'Rising' | 'Dropping' | 'Stable' | 'Opportunity' | 'At Risk';
-
-export interface TrackedKeyword {
-  kw: string;
-  cur: string;
-  page: string;
-  intent: string;
-  clicks: string;
-  impr: string;
-  ctr: string;
-  opp: number;
-  status: KeywordStatus;
-}
-
-export interface DistributionBand {
-  label: string;
-  count: number;
-  color: string;
-}
-
-export interface Cannibalization {
-  kw: string;
-  urls: string[];
-  rec: string;
-}
-
 export type Severity = 'High' | 'Medium' | 'Low';
-
-export interface SeoOpportunity {
-  title: string;
-  pos: string;
-  impr: string;
-  opp: Severity;
-  action: string;
-}
 
 export interface TechHealthItem {
   label: string;

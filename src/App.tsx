@@ -17,6 +17,7 @@ import { Placeholder } from './screens/Placeholder';
 import { PLANNER_VIEW_KEYS, Planner } from './screens/Planner';
 import { Reports } from './screens/Reports';
 import { Seo } from './screens/Seo';
+import { Settings } from './screens/Settings';
 import { Social } from './screens/Social';
 
 /**
@@ -94,9 +95,10 @@ function Shell() {
             <Route path={SCREEN_PATHS.analytics} element={<Analytics />} />
             <Route path={SCREEN_PATHS.approval} element={<ApprovalRoute />} />
             <Route path={SCREEN_PATHS.reports} element={<ReportsRoute />} />
+            <Route path={SCREEN_PATHS.settings} element={<Settings />} />
 
             {NAV_ITEMS.filter((item) =>
-              (['media', 'workflow', 'settings'] as const).some((key) => key === item.key),
+              (['media', 'workflow'] as const).some((key) => key === item.key),
             ).map((item) => (
               <Route
                 key={item.key}

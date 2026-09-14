@@ -11,6 +11,9 @@ const EnvSchema = z.object({
   AUTH_DEV_LOGIN_EMAIL: z.email().optional(),
   GOOGLE_OAUTH_CLIENT_ID: z.string().optional(),
   GOOGLE_OAUTH_CLIENT_SECRET: z.string().optional(),
+  GOOGLE_SERVICE_ACCOUNT_JSON_PATH: z.string().optional(),
+  GSC_SITE_URL: z.string().optional(),
+  CMS_DATABASE_URL: z.string().optional(),
   TELEGRAM_BOT_TOKEN: z.string().optional(),
   TELEGRAM_CHAT_ID: z.string().optional(),
 });

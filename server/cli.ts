@@ -7,9 +7,13 @@
  *   job:run <name> [input-json]      queue a job to run now
  *   telegram:chats                   show the chat IDs the bot can see
  *   telegram:test                    send a test alert to TELEGRAM_CHAT_ID
+ *   cms:grant-sql                    write the SQL that creates the CMS read-only role
+ *   cms:check                        prove CMS_DATABASE_URL is read-only and limited
  */
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { eq } from 'drizzle-orm';
 import { USER_ROLES, type UserRole } from '../shared/api';
+import { checkCmsAccess, generateReaderPassword, readerSetupSql } from './cms/access';
 import { createDb, runMigrations, waitForDatabase } from './db/client';
 import { sessions, users } from './db/schema';
 import { getEnv } from './env';
@@ -24,7 +28,11 @@ const USAGE = `Usage:
   npm run cli -- user:deactivate <email>
   npm run cli -- job:run <name> [input-json]
   npm run cli -- telegram:chats
-  npm run cli -- telegram:test`;
+  npm run cli -- telegram:test
+  npm run cli -- cms:grant-sql
+  npm run cli -- cms:check`;
+
+const CMS_SQL_PATH = 'secrets/cms-reader.sql';
 
 const env = getEnv();
 // The pool connects lazily, so commands that never query do not need Postgres running.
@@ -77,7 +85,7 @@ async function deactivateUser([email]: string[]) {
 }
 
 async function runJob([name, inputJson]: string[]) {
-  const jobs = createJobs(db);
+  const jobs = createJobs({ db, env });
   const job = jobs.find((candidate) => candidate.name === name);
   if (!job) fail(`Unknown job "${name}". Known jobs: ${jobs.map((j) => j.name).join(', ')}`);
 
@@ -125,6 +133,25 @@ async function sendTelegramTest() {
   console.log('Sent. Check the Telegram group.');
 }
 
+function writeCmsGrantSql() {
+  if (existsSync(CMS_SQL_PATH)) {
+    fail(`${CMS_SQL_PATH} already exists. Use it, or delete it first to get a new password.`);
+  }
+  mkdirSync('secrets', { recursive: true });
+  writeFileSync(CMS_SQL_PATH, readerSetupSql(generateReaderPassword()), { mode: 0o600 });
+  console.log(`Wrote ${CMS_SQL_PATH}. Open it and follow the steps at the top; the password exists only there.`);
+}
+
+async function checkCms() {
+  if (!env.CMS_DATABASE_URL) fail('Set CMS_DATABASE_URL in .env first.');
+  const checks = await checkCmsAccess(env.CMS_DATABASE_URL);
+  for (const check of checks) {
+    console.log(`${check.ok ? 'PASS' : 'FAIL'}  ${check.name}${check.detail ? ` (${check.detail})` : ''}`);
+  }
+  if (checks.some((check) => !check.ok)) fail('\nCMS access is not ready: fix the FAIL lines above.');
+  console.log('\nCMS access is read-only and limited to the agreed columns.');
+}
+
 async function runDatabaseCommand(name: string | undefined, args: string[]) {
   await waitForDatabase(pool, { attempts: 5 });
   await runMigrations(db, pool);
@@ -147,6 +174,8 @@ const [command, ...args] = process.argv.slice(2);
 try {
   if (command === 'telegram:chats') await listTelegramChats();
   else if (command === 'telegram:test') await sendTelegramTest();
+  else if (command === 'cms:grant-sql') writeCmsGrantSql();
+  else if (command === 'cms:check') await checkCms();
   else await runDatabaseCommand(command, args);
 } catch (error) {
   fail(error instanceof Error ? error.message : String(error));
