@@ -1,3 +1,5 @@
+import type { CapabilityKey } from '../shared/capabilities';
+
 export type ScreenKey =
   | 'dashboard'
   | 'planner'
@@ -28,6 +30,8 @@ export type Blank = '—';
 
 export interface Kpi {
   label: string;
+  /** The data source the metric comes from; the card shows a dash until it is live. */
+  capability: CapabilityKey;
   value: string;
   change: string;
   dir: Direction;
@@ -130,6 +134,7 @@ export interface Article {
 
 export interface SocialSummaryItem {
   label: string;
+  capability: CapabilityKey;
   value: string;
   change: string;
 }
@@ -202,6 +207,7 @@ export interface ActionItem {
 
 export interface AnalyticsKpi {
   label: string;
+  capability: CapabilityKey;
   value: string;
   change: string;
 }

@@ -18,11 +18,11 @@ import type {
 } from '../types';
 
 export const SOCIAL_SUMMARY: SocialSummaryItem[] = [
-  { label: 'Instagram Followers', value: '18,420', change: '+2.1%' },
-  { label: 'LinkedIn Followers', value: '9,860', change: '+4.6%' },
-  { label: 'Facebook Followers', value: '12,050', change: '+0.8%' },
-  { label: 'Total Engagement', value: '12.4K', change: '+7.8%' },
-  { label: 'Scheduled Posts', value: '14', change: '+3' },
+  { label: 'Instagram Followers', capability: 'meta', value: '18,420', change: '+2.1%' },
+  { label: 'LinkedIn Followers', capability: 'linkedin', value: '9,860', change: '+4.6%' },
+  { label: 'Facebook Followers', capability: 'meta', value: '12,050', change: '+0.8%' },
+  { label: 'Total Engagement', capability: 'meta', value: '12.4K', change: '+7.8%' },
+  { label: 'Scheduled Posts', capability: 'meta', value: '14', change: '+3' },
 ];
 
 export const POSTS: Post[] = [
@@ -45,14 +45,14 @@ export const SOCIAL_TRENDS: SocialTrend[] = [
 ];
 
 export const SEO_KPIS: Kpi[] = [
-  { label: 'Organic Traffic', value: '28,421', change: '+18.4%', dir: 'up' },
-  { label: 'SEO Visibility', value: '64.2%', change: '+5.1%', dir: 'up' },
-  { label: 'Average Position', value: '14.6', change: '-2.3', dir: 'up' },
-  { label: 'Keywords Top 3', value: '24', change: '+3', dir: 'up' },
-  { label: 'Keywords Top 10', value: '142', change: '+12', dir: 'up' },
-  { label: 'Indexed Pages', value: '318', change: '+9', dir: 'up' },
-  { label: 'Organic CTR', value: '4.8%', change: '+0.4%', dir: 'up' },
-  { label: 'SEO Health Score', value: '82/100', change: '+4', dir: 'up' },
+  { label: 'Organic Traffic', capability: 'gsc', value: '28,421', change: '+18.4%', dir: 'up' },
+  { label: 'SEO Visibility', capability: 'gsc', value: '64.2%', change: '+5.1%', dir: 'up' },
+  { label: 'Average Position', capability: 'gsc', value: '14.6', change: '-2.3', dir: 'up' },
+  { label: 'Keywords Top 3', capability: 'gsc', value: '24', change: '+3', dir: 'up' },
+  { label: 'Keywords Top 10', capability: 'gsc', value: '142', change: '+12', dir: 'up' },
+  { label: 'Indexed Pages', capability: 'technicalSeo', value: '318', change: '+9', dir: 'up' },
+  { label: 'Organic CTR', capability: 'gsc', value: '4.8%', change: '+0.4%', dir: 'up' },
+  { label: 'SEO Health Score', capability: 'seoHealthScore', value: '82/100', change: '+4', dir: 'up' },
 ];
 
 export const KEYWORD_TRACKER: TrackedKeyword[] = [
@@ -106,12 +106,12 @@ export const ACTION_CENTER: ActionItem[] = [
 ];
 
 export const ANALYTICS_TOP: AnalyticsKpi[] = [
-  { label: 'Organic Sessions', value: '42,180', change: '+14.2%' },
-  { label: 'Social Traffic', value: '8,940', change: '+9.1%' },
-  { label: 'Conversions', value: '612', change: '+11.4%' },
-  { label: 'CTA Clicks', value: '2,340', change: '+6.7%' },
-  { label: 'Leads', value: '386', change: '+9.2%' },
-  { label: 'Content Engagement', value: '6.8 min', change: '+3.4%' },
+  { label: 'Organic Sessions', capability: 'ga4', value: '42,180', change: '+14.2%' },
+  { label: 'Social Traffic', capability: 'ga4', value: '8,940', change: '+9.1%' },
+  { label: 'Conversions', capability: 'ga4', value: '612', change: '+11.4%' },
+  { label: 'CTA Clicks', capability: 'ga4', value: '2,340', change: '+6.7%' },
+  { label: 'Leads', capability: 'ga4', value: '386', change: '+9.2%' },
+  { label: 'Content Engagement', capability: 'ga4', value: '6.8 min', change: '+3.4%' },
 ];
 
 export const ACQUISITION: AcquisitionChannel[] = [

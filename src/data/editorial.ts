@@ -16,12 +16,12 @@ import type {
 
 export const NAV_ITEMS: NavItem[] = [
   { key: 'dashboard', label: 'Dashboard', group: 'Overview' },
-  { key: 'planner', label: 'Content Planner', group: 'Editorial', badge: 4 },
+  { key: 'planner', label: 'Content Planner', group: 'Editorial' },
   { key: 'articles', label: 'Articles', group: 'Editorial' },
   { key: 'social', label: 'Social Media', group: 'Growth' },
   { key: 'seo', label: 'SEO Intelligence', group: 'Growth' },
   { key: 'analytics', label: 'Analytics', group: 'Growth' },
-  { key: 'approval', label: 'Approval Queue', group: 'Workflow', badge: 9 },
+  { key: 'approval', label: 'Approval Queue', group: 'Workflow' },
   { key: 'reports', label: 'Reports', group: 'Workflow' },
   { key: 'media', label: 'Media Library', group: 'Workflow' },
   { key: 'workflow', label: 'Workflow Logs', group: 'Workflow' },
@@ -29,14 +29,14 @@ export const NAV_ITEMS: NavItem[] = [
 ];
 
 export const DASHBOARD_KPIS: Kpi[] = [
-  { label: 'Organic Traffic', value: '28,421', change: '+18.4%', dir: 'up', period: 'vs previous period' },
-  { label: 'SEO Visibility', value: '64.2%', change: '+5.1%', dir: 'up', period: 'vs previous period' },
-  { label: 'Keywords in Top 10', value: '142', change: '+12', dir: 'up', period: 'vs previous period' },
-  { label: 'Organic Leads', value: '386', change: '+9.2%', dir: 'up', period: 'vs previous period' },
-  { label: 'Articles Published', value: '58', change: '+4', dir: 'up', period: 'this quarter' },
-  { label: 'Scheduled Content', value: '23', change: '—', dir: 'flat', period: 'next 14 days' },
-  { label: 'Social Engagement', value: '12.4K', change: '+7.8%', dir: 'up', period: 'vs previous period' },
-  { label: 'Pending Approvals', value: '9', change: '+3', dir: 'up', period: 'awaiting review' },
+  { label: 'Organic Traffic', capability: 'ga4', value: '28,421', change: '+18.4%', dir: 'up', period: 'vs previous period' },
+  { label: 'SEO Visibility', capability: 'gsc', value: '64.2%', change: '+5.1%', dir: 'up', period: 'vs previous period' },
+  { label: 'Keywords in Top 10', capability: 'gsc', value: '142', change: '+12', dir: 'up', period: 'vs previous period' },
+  { label: 'Organic Leads', capability: 'ga4', value: '386', change: '+9.2%', dir: 'up', period: 'vs previous period' },
+  { label: 'Articles Published', capability: 'articles', value: '58', change: '+4', dir: 'up', period: 'this quarter' },
+  { label: 'Scheduled Content', capability: 'content', value: '23', change: '—', dir: 'flat', period: 'next 14 days' },
+  { label: 'Social Engagement', capability: 'meta', value: '12.4K', change: '+7.8%', dir: 'up', period: 'vs previous period' },
+  { label: 'Pending Approvals', capability: 'content', value: '9', change: '+3', dir: 'up', period: 'awaiting review' },
 ];
 
 export const AI_OPPORTUNITIES: AiOpportunity[] = [

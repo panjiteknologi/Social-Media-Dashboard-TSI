@@ -4,22 +4,49 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
+    "dev": "npm run build:server -- --sourcemap && concurrently -k -n db,build,api,worker,web -c gray,yellow,blue,magenta,green npm:dev:db npm:dev:build npm:dev:api npm:dev:worker npm:dev:web",
+    "dev:db": "tsx server/dev/postgres.ts",
+    "dev:build": "npm run build:server -- --sourcemap --watch=forever",
+    "dev:api": "node --enable-source-maps --watch dist-server/index.js",
+    "dev:worker": "node --enable-source-maps --watch dist-server/worker.js",
+    "dev:web": "vite",
+    "build": "tsc -b && vite build && npm run build:server",
+    "build:server": "esbuild server/index.ts server/worker.ts server/cli.ts --bundle --platform=node --format=esm --packages=external --target=node24 --outdir=dist-server",
+    "start": "node dist-server/index.js",
+    "start:worker": "node dist-server/worker.js",
+    "cli": "tsx server/cli.ts",
+    "db:generate": "drizzle-kit generate",
     "preview": "vite preview",
-    "typecheck": "tsc -b --noEmit"
+    "typecheck": "tsc -b --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
+    "@hono/node-server": "^2.1.1",
+    "@tanstack/react-query": "^5.102.8",
+    "arctic": "^3.7.0",
+    "drizzle-orm": "^0.45.2",
+    "hono": "^4.13.7",
+    "pg": "^8.23.0",
+    "pg-boss": "^12.31.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
-    "react-router-dom": "^7.18.3"
+    "react-router-dom": "^7.18.3",
+    "zod": "^4.6.2"
   },
   "devDependencies": {
+    "@types/node": "^24.13.4",
+    "@types/pg": "^8.23.1",
     "@types/react": "^19.1.10",
     "@types/react-dom": "^19.1.7",
     "@vitejs/plugin-react": "^5.0.0",
+    "concurrently": "^10.0.5",
+    "drizzle-kit": "^0.31.10",
+    "embedded-postgres": "^18.4.0-beta.17",
+    "esbuild": "^0.28.2",
+    "tsx": "^4.23.13",
     "typescript": "^5.9.2",
-    "vite": "^7.1.3"
+    "vite": "^7.1.3",
+    "vitest": "^5.0.0"
   },
   "allowScripts": {
     "esbuild@0.28.2": true

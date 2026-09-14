@@ -1,4 +1,6 @@
 import { useEffect, useRef } from 'react';
+import { initials } from '../lib/initials';
+import { useCurrentUser } from './AuthGate';
 
 const QUICK_CREATE_ITEMS = ['New Article', 'New Social Post', 'New Campaign', 'New Content Idea'];
 
@@ -11,6 +13,7 @@ export function TopBar({
   onToggleQuickCreate: () => void;
   onCloseQuickCreate: () => void;
 }) {
+  const user = useCurrentUser();
   const menuRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
 
@@ -53,13 +56,7 @@ export function TopBar({
       </div>
 
       <div className="topbar__right">
-        <div className="topbar__sync">
-          <div className="dot-live" />
-          <span>Synced 4m ago</span>
-        </div>
-
         <button type="button" className="icon-button" aria-label="Notifications">
-          <span className="icon-button__dot" />
           <span className="icon-button__glyph" />
         </button>
 
@@ -84,7 +81,9 @@ export function TopBar({
           ) : null}
         </div>
 
-        <div className="topbar__avatar">MR</div>
+        <div className="topbar__avatar" title={user.email}>
+          {initials(user)}
+        </div>
       </div>
     </header>
   );

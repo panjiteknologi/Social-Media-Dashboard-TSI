@@ -1,8 +1,11 @@
 import { useMemo } from 'react';
 import { NavLink } from 'react-router-dom';
+import { useSignOut } from '../api/queries';
 import { NAV_ITEMS } from '../data/editorial';
+import { initials } from '../lib/initials';
 import { SCREEN_PATHS } from '../lib/routes';
 import type { NavGroupLabel, NavItem } from '../types';
+import { useCurrentUser } from './AuthGate';
 
 interface NavGroup {
   label: NavGroupLabel;
@@ -25,6 +28,8 @@ function groupNav(items: NavItem[]): NavGroup[] {
 
 export function Sidebar({ onNavigate }: { onNavigate: () => void }) {
   const groups = useMemo(() => groupNav(NAV_ITEMS), []);
+  const user = useCurrentUser();
+  const signOut = useSignOut();
 
   return (
     <nav className="sidebar" aria-label="Primary">
@@ -62,13 +67,20 @@ export function Sidebar({ onNavigate }: { onNavigate: () => void }) {
         <div className="sidebar__link">Help</div>
         <div className="sidebar__link">Documentation</div>
         <div className="sidebar__user">
-          <div className="sidebar__avatar">MR</div>
-          <div className="sidebar__user-name">Marketing Team</div>
+          <div className="sidebar__avatar">{initials(user)}</div>
+          <div className="sidebar__user-info">
+            <div className="sidebar__user-name">{user.name ?? user.email}</div>
+            <div className="sidebar__user-role">{user.role}</div>
+          </div>
         </div>
-        <div className="sidebar__sync">
-          <div className="dot-live" />
-          <span>Synced 4m ago</span>
-        </div>
+        <button
+          type="button"
+          className="sidebar__signout"
+          onClick={() => signOut.mutate()}
+          disabled={signOut.isPending}
+        >
+          Sign out
+        </button>
       </div>
     </nav>
   );

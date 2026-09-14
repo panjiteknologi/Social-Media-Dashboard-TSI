@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { Requires } from '../components/Requires';
 import { Card, Chip, PageHeader } from '../components/primitives';
 import {
   CALENDAR_DAY_NAMES,
@@ -142,28 +143,32 @@ export function Planner({
         ))}
       </div>
 
-      {view === 'kanban' ? <KanbanView /> : null}
-      {view === 'calendar' ? <CalendarView /> : null}
-      {view === 'list' ? <ListView /> : null}
+      <Requires capability="content">
+        {view === 'kanban' ? <KanbanView /> : null}
+        {view === 'calendar' ? <CalendarView /> : null}
+        {view === 'list' ? <ListView /> : null}
+      </Requires>
 
       <div className="mt-32">
         <div className="section-title">AI Topic Recommendations</div>
-        <div className="topic-grid">
-          {TOPIC_RECOMMENDATIONS.map((topic) => (
-            <Card className="card--sm" key={topic.kw}>
-              <div className="topic-card__head">
-                <div className="topic-card__kw">{topic.kw}</div>
-                <div className="topic-card__score">{topic.score}</div>
-              </div>
-              <div className="topic-card__meta">Intent: {topic.intent}</div>
-              <div className="topic-card__meta">Relevance: {topic.relevance}</div>
-              <div className="topic-card__rec">Recommendation: {topic.type}</div>
-              <button type="button" className="link-cta topic-card__cta">
-                {topic.cta} →
-              </button>
-            </Card>
-          ))}
-        </div>
+        <Requires capability="ai">
+          <div className="topic-grid">
+            {TOPIC_RECOMMENDATIONS.map((topic) => (
+              <Card className="card--sm" key={topic.kw}>
+                <div className="topic-card__head">
+                  <div className="topic-card__kw">{topic.kw}</div>
+                  <div className="topic-card__score">{topic.score}</div>
+                </div>
+                <div className="topic-card__meta">Intent: {topic.intent}</div>
+                <div className="topic-card__meta">Relevance: {topic.relevance}</div>
+                <div className="topic-card__rec">Recommendation: {topic.type}</div>
+                <button type="button" className="link-cta topic-card__cta">
+                  {topic.cta} →
+                </button>
+              </Card>
+            ))}
+          </div>
+        </Requires>
       </div>
     </div>
   );

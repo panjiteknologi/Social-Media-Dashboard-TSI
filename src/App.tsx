@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
+import { AuthGate } from './components/AuthGate';
 import { Sidebar } from './components/Sidebar';
 import { TopBar } from './components/TopBar';
 import { ARTICLE_TABS, NAV_ITEMS } from './data/editorial';
@@ -66,7 +67,7 @@ function PlaceholderRoute({ label }: { label: string }) {
   return <Placeholder label={label} />;
 }
 
-export default function App() {
+function Shell() {
   const [quickCreateOpen, setQuickCreateOpen] = useState(false);
   const { pathname } = useLocation();
 
@@ -109,5 +110,13 @@ export default function App() {
         </main>
       </div>
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthGate>
+      <Shell />
+    </AuthGate>
   );
 }

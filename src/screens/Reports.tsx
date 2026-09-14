@@ -1,3 +1,4 @@
+import { Requires } from '../components/Requires';
 import { Card, Chip } from '../components/primitives';
 import {
   EXECUTIVE_SUMMARY,
@@ -8,11 +9,11 @@ import {
 import { statusTone } from '../lib/theme';
 import type { ReportCard, ReportPeriod } from '../types';
 
-const CHANNELS = ['telegram', 'whatsapp', 'email'] as const;
+// WhatsApp delivery is on hold; Telegram is the only messaging channel for now.
+const CHANNELS = ['telegram', 'email'] as const;
 
 const CHANNEL_LABELS: Record<(typeof CHANNELS)[number], string> = {
   telegram: 'Telegram',
-  whatsapp: 'WhatsApp',
   email: 'Email',
 };
 
@@ -62,33 +63,35 @@ export function Reports({
         ))}
       </div>
 
-      <div className="report-layout">
-        <div className="report-list">
-          {REPORT_CARDS[period].map((report) => (
-            <Card className="card--sm" key={report.period}>
-              <div className="report-card__head">
-                <div>
-                  <div className="report-card__period">{report.period}</div>
-                  <div className="report-card__generated">Generated {report.generated}</div>
+      <Requires capability="reports">
+        <div className="report-layout">
+          <div className="report-list">
+            {REPORT_CARDS[period].map((report) => (
+              <Card className="card--sm" key={report.period}>
+                <div className="report-card__head">
+                  <div>
+                    <div className="report-card__period">{report.period}</div>
+                    <div className="report-card__generated">Generated {report.generated}</div>
+                  </div>
+                  <Chip tone={statusTone('Published')}>{report.status}</Chip>
                 </div>
-                <Chip tone={statusTone('Published')}>{report.status}</Chip>
-              </div>
-              <Channels report={report} />
-            </Card>
-          ))}
-        </div>
+                <Channels report={report} />
+              </Card>
+            ))}
+          </div>
 
-        <Card className="card--md">
-          <div className="card-title card-title--sm mb-14">AI Executive Summary</div>
-          <div className="summary-body">{EXECUTIVE_SUMMARY}</div>
-          <div className="summary-label">RECOMMENDED FOCUS NEXT WEEK</div>
-          {RECOMMENDED_FOCUS.map((item) => (
-            <div className="summary-item" key={item}>
-              {item}
-            </div>
-          ))}
-        </Card>
-      </div>
+          <Card className="card--md">
+            <div className="card-title card-title--sm mb-14">AI Executive Summary</div>
+            <div className="summary-body">{EXECUTIVE_SUMMARY}</div>
+            <div className="summary-label">RECOMMENDED FOCUS NEXT WEEK</div>
+            {RECOMMENDED_FOCUS.map((item) => (
+              <div className="summary-item" key={item}>
+                {item}
+              </div>
+            ))}
+          </Card>
+        </div>
+      </Requires>
     </div>
   );
 }
