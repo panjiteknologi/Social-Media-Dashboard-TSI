@@ -1,6 +1,6 @@
 # Build Plan and Status — Content Machine
 
-Terakhir diperbarui: 13 September 2026.
+Terakhir diperbarui: 15 September 2026.
 
 Dokumen ini adalah acuan tunggal untuk urutan pembangunan, status setiap bagian, dan integrasi yang ditunda.
 
@@ -13,24 +13,26 @@ Dokumen ini adalah acuan tunggal untuk urutan pembangunan, status setiap bagian,
 | Bagian | Status |
 |---|---|
 | Tampilan 8 layar: Dashboard, Content Planner, Articles, Social Media, SEO Intelligence, Analytics, Approval Queue, Reports | Selesai. Setiap bagian menampilkan status sumber datanya ("Not connected", "Not available yet", "On hold") sampai data asli masuk |
-| Media Library, Workflow Logs, Settings | Masih placeholder |
+| Media Library, Workflow Logs | Masih placeholder |
+| Settings | Bagian SEO, Reporting, dan Automation berjalan (Reporting dan Automation sejak 15 September). Brand, AI, Approval rules, dan Social accounts menyusul di M5 dan M7 |
 | Routing dan URL per layar | Selesai |
 | Konfigurasi env (`.env.example`) | Selesai |
 | **M1 lokal:** backend, database, migrasi, login Google, peran pengguna, kerangka job, peringatan, CLI | **Selesai dan diuji end-to-end di lokal** (13 September 2026) |
 | **M1 deploy:** Docker Compose, VPS, HTTPS, backup harian | Menunggu VPS dan subdomain |
 | **M2: data SEO dari Search Console** | **Selesai dibangun (15 September 2026):** sync harian, metrik, SEO Intelligence, bagian SEO di Dashboard, Settings SEO, dan peringatan Telegram mingguan. Menunggu tim mengecek tampilan dan mengisi keyword prioritas |
-| Integrasi GA4, CMS, Meta, dan AI | GA4 dan CMS tersinkron otomatis, M3 selesai dibangun (15 September). Meta dan AI belum dimulai |
+| **M4: laporan Telegram dan kesehatan teknis SEO** | **Selesai dibangun (15 September 2026):** AI gateway, laporan harian/mingguan/bulanan, crawler, status indeks, PageSpeed, Technical SEO Health, SEO Action Center, serta Settings Reporting dan Automation. OpenRouter dan PageSpeed aktif. Syarat selesai yang tersisa: laporan pagi terkirim 7 hari berturut-turut |
+| Integrasi GA4, CMS, Meta, dan AI | GA4 dan CMS tersinkron otomatis, M3 selesai dibangun (15 September). AI gateway siap dan menunggu key. Meta belum dimulai |
 
 ### Akses dan integrasi
 
 | Integrasi | Fungsi | Milestone | Status |
 |---|---|---|---|
-| Google Search Console | Keyword, posisi, klik, impressions | M2 | **Terhubung (14 September).** Properti Domain `sc-domain:tsicertification.com`. Service account `content-machine-reader` punya akses Restricted, dan uji API berhasil. Pembatasan pembuatan key sempat dibuka khusus untuk project ini |
+| Google Search Console | Keyword, posisi, klik, impressions | M2 | **Terhubung (14 September).** Properti Domain `sc-domain:tsicertification.com`. Service account `content-machine-reader` punya akses Restricted, dan uji API berhasil. Pembatasan pembuatan key sempat dibuka khusus untuk project ini. **URL Inspection API** juga berfungsi dengan akses ini (diuji 15 September) |
 | Google Analytics 4 | Sessions, konversi, leads | M3 | **Tracking aktif dan API terhubung (14 September).** Property ID `495912713`, service account punya akses Viewer. GTM `GTM-WK2MV5GL` dipublikasikan dengan Google tag `G-T03867G3VG` dan tag GA4 Event untuk `generate_lead`, `form_submit`, `whatsapp_click`, `cta_click`, `share`, `contact_click`. Custom dimension sudah dibuat, dan `generate_lead` sudah menjadi key event (15 September). Form interactions di Enhanced measurement sudah nonaktif. **Sinkronisasi harian aktif (15 September):** job `ga4-sync` pukul 07:00 menyalin sessions per channel dan landing page serta event dari GTM, sampai hari kemarin |
-| OpenRouter | Semua fitur AI | M4 | Akun dan kredit tersedia |
+| OpenRouter | Semua fitur AI | M4 | **Aktif (15 September).** Key "Social Media Dashboard TSI" terisi di `.env`. Uji ringkasan laporan dengan `anthropic/claude-sonnet-5`: sekitar 1.600 token, $0,009 per laporan. Batas kredit key di OpenRouter masih kosong (tanpa batas); rem anggaran di aplikasi tetap `AI_MONTHLY_BUDGET_USD` |
 | Telegram Bot | Peringatan, laporan, approval cepat | M1 | **Terhubung (14 September).** Bot `@DigmarDashboardTSI_bot`, grup "Digital Marketing Dashboard TSI". Pesan uji terkirim |
 | CMS website | Inventaris artikel, publikasi, leads | M3, M6 | CMS kustom (source: `Website TSI/cms-tsicertification`). Punya modul Articles dan **Contact Messages**, yang menyimpan setiap kiriman form beserta statusnya (new, contacted, closed). **Akses baca terhubung (15 September):** role Neon `content_machine_reader` di database `neondb`, hanya baca, terbatas per kolom. Bisa membaca `blog_posts` (tabel artikel yang dipakai CMS dan website) dan `cms_contact_messages` tanpa data pribadi (nama, perusahaan, jabatan, email, telepon, pesan, catatan internal). `npm run cli -- cms:check` lulus 11 dari 11: 122 artikel terbit, 5 leads. **Sinkronisasi tiap jam aktif:** job `cms-sync` pada menit ke-10 menyalin artikel dan leads |
-| PageSpeed Insights API | Kecepatan halaman | M4 | Belum dibuat |
+| PageSpeed Insights API | Kecepatan halaman | M4 | **Aktif (15 September).** Key terisi di `.env`. Uji pertama mengukur 9 halaman (§2) |
 | Meta (Facebook + Instagram) | Followers, insight, posting | M7 | Belum diurus |
 | DataForSEO | Riset keyword baru | M8 | Opsional |
 | LinkedIn | Followers, insight, posting | — | **Ditunda** (§9) |
@@ -49,11 +51,15 @@ Dicek dari luar pada 13 September 2026, tanpa login.
 | ~~Tag GA4 atau Google Tag Manager tidak ditemukan~~ **Beres 14 September.** GTM `GTM-WK2MV5GL` terpasang dan dipublikasikan dengan Google tag `G-T03867G3VG`. Situs mengirim event form, WhatsApp, CTA, share dan kontak | Data GA4 baru terkumpul sejak 14 September; traffic dan leads sebelum tanggal itu tidak ada | Tandai key event dan daftarkan custom dimension di GA4 (§8) |
 | ~~`sitemap.xml` dan `robots.txt` tidak ada~~ **Beres 13 September.** Keduanya sudah tayang | — | Kirim `https://tsicertification.com/sitemap.xml` di menu **Sitemaps** GSC |
 | `og:image` memakai path relatif | Gambar pratinjau bisa tidak muncul saat artikel dibagikan ke media sosial | Ubah menjadi URL lengkap |
-| Header respons menunjukkan halaman dirender di server Vercel region Amerika Serikat (`iad1`) tanpa cache | Setiap kunjungan dari Indonesia menunggu server di AS | Diukur dengan PageSpeed di M4 |
+| Header respons menunjukkan halaman dirender di server Vercel region Amerika Serikat (`iad1`) tanpa cache. **Diukur 15 September:** skor mobile 9 halaman teratas 59–73, konten utama baru tampil setelah 4,7–6,9 detik (batas "baik" Google 2,5 detik), dan data pengunjung asli Chrome menilai semuanya lambat | Setiap kunjungan dari Indonesia menunggu server di AS, sehingga halaman terasa lambat dan peringkat bisa terdampak | Pindahkan region Vercel ke Singapura (`sin1`) atau aktifkan cache halaman, lalu kompres gambar. Hasilnya terlihat di pengecekan PageSpeed hari Minggu berikutnya |
 | Halaman `/impartiality-policy` tersedia | Sumber resmi aturan imparsialitas untuk AI | Dipakai di knowledge base M5 |
 | **Situs lama kemungkinan pernah diretas untuk spam SEO** (ditemukan 15 September lewat data GSC). Pada September–Oktober 2025 lebih dari 25.000 URL spam terindeks: `tsicertification.com/products/…` berisi judul produk berbahasa Italia, dan `certificate.tsicertification.com/?_g=…`. Query yang masuk berbahasa Italia dan Jepang. Query judi seperti "cukong88" masih muncul sampai sekarang | Impressions saat itu melonjak hingga 800 ribu per bulan, tapi bukan performa TSI. Nama domain bisa ikut tercemar di mata Google | Di GSC, cek menu **Security issues** dan **Manual actions**. Periksa laporan **Pages** untuk URL `/products/` dan `certificate.tsicertification.com/?_g=`. Kalau masih terindeks, ajukan lewat **Removals** dan pastikan URL tersebut mengembalikan 404 atau 410 |
 | **Tidak ada data GSC sama sekali dari 4 November 2025 sampai 6 Mei 2026** | Tren dan perbandingan yang melewati periode ini menyesatkan | Content Machine menghitung data mulai 7 Mei 2026 (§6) |
 | `demo.tsicertification.com` pernah terindeks Google | Halaman demo bisa bersaing dengan situs utama dan tampil ke publik | Pastikan subdomain demo memakai `noindex` atau dilindungi password |
+| **140 dari 210 halaman di sitemap belum terindeks Google** (URL Inspection, 15 September). Kebanyakan halaman versi Indonesia (`/id/`), dengan status "Discovered – currently not indexed" atau "Crawled – currently not indexed" | Halaman tersebut tidak bisa muncul di hasil pencarian | Buka halaman penting di GSC URL Inspection. Beri versi `/id/` judul dan isi yang berbeda, tambah link internal ke halaman tersebut, lalu minta pengindeksan |
+| **Dua link rusak** (crawl 15 September): `/download/privacy-policy/` yang dirujuk halaman privacy policy, dan link WhatsApp tanpa `https://` di artikel ISO 45001, sehingga browser membukanya sebagai `/blog/…/wa.me/685283237418` | Pengunjung mendapat halaman 404 | Perbaiki link di website dan di artikel CMS |
+| **URL lama `/artikel-iso/{slug}` mengembalikan 404** tanpa redirect ke `/blog/{slug}/` (dicek 15 September). Google masih menyimpan 23 URL lama ini dari periode Mei–Agustus | Klik dari hasil pencarian lama berakhir di halaman 404 | Tambahkan redirect 301 dari `/artikel-iso/*` ke `/blog/*` |
+| **42 halaman memakai judul yang sama dengan halaman lain** (crawl 15 September), misalnya beranda dan company profile beserta versi `/id/`-nya. Artikel `/id/blog/…` memakai canonical ke versi bahasa Inggris | Google sulit membedakan halaman, dan versi Indonesia kecil peluangnya tampil | Beri judul unik per halaman dan terjemahkan judul versi `/id/`. Putuskan apakah canonical ke versi Inggris memang disengaja |
 
 Perbaikan website di atas dikerjakan di repo website, bukan di Content Machine, dan bisa berjalan paralel.
 
@@ -211,6 +217,44 @@ Peran pengguna:
 
 ### M4 — Laporan Telegram dan kesehatan teknis SEO
 
+**Status: selesai dibangun (15 September)**
+
+- **AI gateway**
+  - Model dipilih per fitur lewat `AI_MODEL_*`.
+  - Token dan biaya setiap panggilan dicatat di tabel `ai_usage`.
+  - Panggilan ditolak bila biaya bulan berjalan sudah mencapai `AI_MONTHLY_BUDGET_USD`.
+  - Aktif sejak 15 September. Ringkasan laporan harian diuji dengan data asli: sekitar $0,009 per laporan.
+- **Laporan Telegram**
+  - Jadwal:
+    - harian pukul 08:00, untuk hari kemarin;
+    - mingguan setiap Senin pukul 08:15, untuk Senin–Minggu lalu;
+    - bulanan setiap tanggal 1 pukul 08:30, untuk bulan lalu.
+  - Angka dihitung sistem. Ringkasan AI ditambahkan bila key tersedia, dan laporan tetap terkirim tanpa ringkasan bila AI gagal.
+  - Satu periode hanya dikirim sekali. Riwayat tampil di layar Reports.
+  - Uji dry run dengan data asli sudah benar. Untuk periode sebelum lead pertama (13 September), laporan menulis "belum ada leads tersimpan", bukan nol.
+- **Crawler mingguan** (Minggu 02:00): memeriksa halaman dari sitemap, dari hasil pencarian Google, dan dari CMS, beserta semua link internalnya. Uji pertama: 247 URL, 2 link rusak, 22 redirect.
+- **Status indeks** (Minggu 03:00) lewat URL Inspection API. Hasil pertama: 70 dari 210 halaman sitemap terindeks.
+- **PageSpeed** (Minggu 04:00) untuk beranda dan 9 halaman dengan klik terbanyak; file seperti PDF dilewati. Uji ulang 15 September: 10 halaman terukur tanpa kegagalan, semuanya lambat menurut pengunjung asli (§2).
+- **Worker** menutup catatan run yang terputus saat restart, supaya Workflow Logs tidak menampilkannya "running" selamanya. Antrean mencoba ulang job itu sendiri.
+- **Technical SEO Health** di SEO Intelligence sudah memakai data nyata, termasuk KPI Indexed Pages dan daftar halaman yang perlu diperbaiki.
+- **SEO Action Center** (harian 07:45)
+  - Hasil pertama: 16 tugas dari data asli.
+  - Tugas yang masalahnya sudah hilang ditutup otomatis.
+  - Editor ke atas bisa mengubah status Open / In Progress / Done.
+  - Tugas yang ditandai Done dibuka lagi bila masalahnya masih terdeteksi setelah 14 hari.
+- **Settings bagian Reporting dan Automation**
+  - Setiap job otomatis bisa dinyalakan atau dimatikan, jam dan harinya bisa diubah, dan batas percobaan ulangnya bisa diatur. Perubahan langsung berlaku tanpa restart server.
+  - Pola jadwal mengikuti bawaan setiap job (per jam, harian, mingguan, atau bulanan). Salah isi tidak bisa mengubah jadwal mingguan menjadi per jam.
+  - Bagian Reporting berisi ketiga laporan, peringatan keyword prioritas, dan tombol kirim pesan uji ke grup Telegram.
+  - Setiap job menampilkan status run terakhir dan tombol "Run now". Hanya admin yang bisa mengubah; peran lain hanya melihat.
+  - Diuji lewat API asli: ubah jadwal dan retry, tolak jadwal yang tidak valid, matikan job, lalu kembalikan. Tabel jadwal dan antrean ikut berubah setiap kali.
+- **Batas waktu dan heartbeat job**
+  - Masalah yang ditemukan: pemeriksaan indeks (26 menit) sempat berjalan dobel karena melewati batas bawaan antrean 15 menit.
+  - Batas waktu sekarang: pemeriksaan indeks 60 menit; crawl, PageSpeed, dan sync Search Console masing-masing 30 menit.
+  - Semua job mengirim heartbeat setiap 60 detik. Kalau worker mati atau restart, job dicoba ulang dalam sekitar satu menit.
+  - Diuji: pemeriksaan PageSpeed selama 3,5 menit selesai dalam satu percobaan.
+- **Syarat selesai yang tersisa:** laporan pagi terkirim 7 hari berturut-turut. Syarat ini butuh server yang menyala terus, jadi baru bisa dipenuhi penuh setelah deploy (M1).
+
 **Pekerjaan**
 
 - Modul AI gateway: model per fitur, pencatatan token dan biaya, rem anggaran bulanan.
@@ -325,6 +369,8 @@ Semua ambang di bawah adalah bawaan hasil kalibrasi dengan data asli pada 15 Sep
 | Skor SEO artikel | Persentase dari 11 poin checklist SEO editor CMS yang lolos, dihitung ulang setiap sinkronisasi CMS (M3) |
 | Cluster artikel | Standar yang disebut di focus keyword. Kalau focus keyword kosong atau tidak menyebut standar, diambil dari judul (M3) |
 | Articles Published | Jumlah artikel berstatus publish di CMS. Dashboard menampilkan totalnya. Di layar Articles bisa dibatasi ke 30, 60, atau 90 hari terakhir berdasarkan tanggal terbit (termasuk hari ini), dibanding jumlah hari yang sama sebelumnya (M3) |
+| Halaman lambat | Skor performa mobile PageSpeed di bawah 50, **atau** pengunjung asli Chrome menilai halaman lambat (Chrome UX Report). Data pengunjung asli ikut dihitung meski skor lab cukup, karena itulah yang benar-benar dirasakan pengunjung (M4) |
+| Indexed Pages | Halaman sitemap yang lolos URL Inspection Google (verdict PASS), dari semua halaman sitemap yang sudah dicek (M4) |
 | Conversion Funnel | Khusus organic search: impressions dan klik GSC, sessions dan engaged sessions Organic Search, lalu event CTA, form atau WhatsApp, dan `generate_lead` dari sessions tersebut. Hanya dihitung untuk hari yang tercakup oleh GSC dan GA4 sekaligus (M3) |
 | Pergerakan keyword | Posisi 28 hari terakhir dibanding 28 hari sebelumnya. Hanya dihitung bila impressions di atas ambang di kedua periode, dan ditampilkan bila berubah minimal 2 posisi |
 | Status At Risk | Sebelumnya di halaman 1 (posisi ≤ 10), sekarang di luar halaman 1 |
@@ -394,7 +440,7 @@ Riwayat disimpan 90 hari secara bawaan, bisa diubah di Settings.
 
 ### Yang bisa diubah tanpa developer
 
-Di Settings bagian Automation:
+**Sudah tersedia sejak 15 September.** Di Settings bagian Reporting dan Automation:
 
 - jam dan hari setiap jadwal;
 - menyalakan atau mematikan setiap alur;
@@ -418,7 +464,7 @@ Kalau tim ingin membuat otomasi kecil sendiri, misalnya mengirim data ke Google 
 | ~~Tandai `generate_lead` sebagai key event di GA4~~ | M3 | **Beres 15 September.** Hanya `generate_lead` yang diberi bintang. `whatsapp_click` sengaja tidak, karena form kontak juga memicunya |
 | ~~Daftarkan custom dimension event di GA4~~ | M3 | **Beres 14 September:** `cta_name`, `form_name`, `service_inquiry`, `wa_location`, `wa_target`. Opsional: `language` |
 | ~~Matikan **Form interactions** di Enhanced measurement GA4~~ | M3 | **Sudah nonaktif** (dicek 15 September). `form_start` yang terlihat di daftar event berasal dari sebelum fitur ini dimatikan, karena daftar itu mencakup 28 hari terakhir |
-| Kirim sitemap di GSC | M2 | **Sitemaps** → `https://tsicertification.com/sitemap.xml` |
+| ~~Kirim sitemap di GSC~~ | M2 | **Sudah terbaca Google.** URL Inspection (15 September) menunjukkan halaman ditemukan lewat `https://tsicertification.com/sitemap.xml` |
 | Sewa VPS (2 vCPU / 4 GB RAM, lokasi Jakarta atau Singapura) dan siapkan subdomain | M1 | Contoh subdomain: `cm.tsicertification.com` |
 | ~~Buka akses Google API untuk GSC dan GA4~~ | M2, M3 | **Beres 14 September.** Key service account dibuat setelah kebijakan organisasi dibuka untuk project ini |
 | ~~Tambahkan service account ke GSC dan GA4~~ | M2, M3 | **Beres 14 September.** GSC Restricted, GA4 Viewer. Terverifikasi lewat API |
@@ -433,7 +479,7 @@ Kalau tim ingin membuat otomasi kecil sendiri, misalnya mengirim data ke Google 
 
 | Sebelum | Tugas |
 |---|---|
-| M4 | Isi `OPENROUTER_API_KEY`, buat PageSpeed API key, tentukan penerima laporan |
+| M4 | ~~Isi `OPENROUTER_API_KEY` dan `PAGESPEED_API_KEY` di `.env`~~ **Beres 15 September.** Penerima laporan: grup Telegram yang sudah ada. Disarankan memberi batas kredit pada key OpenRouter |
 | M5 | Brand guideline, aturan CTA, aturan imparsialitas dari compliance, contoh artikel, daftar Approver |
 | M6 | Akses API CMS website |
 | M7 | Instagram Business terhubung ke Facebook Page, System User token, bucket R2, template flyer |
@@ -444,6 +490,9 @@ Kalau tim ingin membuat otomasi kecil sendiri, misalnya mengirim data ke Google 
 - ~~Pasang tag GA4 kalau memang belum ada.~~ Beres 14 September lewat GTM.
 - ~~Tambahkan `sitemap.xml` dan `robots.txt`.~~ Beres 13 September.
 - Ubah `og:image` menjadi URL lengkap. Belum dicek ulang.
+- Redirect 301 dari `/artikel-iso/*` ke `/blog/*` (§2).
+- Perbaiki dua link rusak: `/download/privacy-policy/` dan link WhatsApp tanpa `https://` di artikel ISO 45001 (§2).
+- Judul unik untuk setiap halaman, termasuk versi `/id/` (§2).
 
 ---
 
@@ -534,7 +583,7 @@ Satu-satunya kanal pesan keluar selama WhatsApp ditunda.
 |---|---|
 | Peringatan job gagal dan worker berhenti | M1 |
 | Peringatan mingguan keyword prioritas yang turun (hanya keyword di atas ambang impressions) | M2. **Sudah jalan:** setiap Senin pukul 08.00, dan hanya terkirim bila ada yang turun |
-| Laporan harian, mingguan, bulanan | M4 |
+| Laporan harian, mingguan, bulanan | M4. **Sudah dibangun (15 September):** harian 08:00, mingguan Senin 08:15, bulanan tanggal 1 pukul 08:30. Ringkasan AI aktif (diuji 15 September) |
 | Notifikasi konten menunggu approval terlalu lama | M5 |
 | Tombol Approve / Request Revision di pesan, perintah `/status` dan `/laporan` | M8 |
 

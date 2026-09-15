@@ -1,0 +1,48 @@
+/* Reports screen. */
+
+.report-card {
+  display: block;
+  width: 100%;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.report-card:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+
+.report-card--selected {
+  border-color: var(--blue);
+}
+
+.report-card__error {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--red);
+}
+
+.report-numbers {
+  display: grid;
+  gap: 6px;
+  margin: 0 0 12px;
+}
+
+.report-numbers__row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+}
+
+.report-numbers__row dt {
+  color: var(--muted);
+}
+
+.report-numbers__row dd {
+  margin: 0;
+  font-weight: 600;
+  color: var(--ink);
+}

@@ -22,6 +22,27 @@
       "when": 1789442547449,
       "tag": "0002_cooing_mephisto",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1789446666270,
+      "tag": "0003_dry_mac_gargan",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1789447862974,
+      "tag": "0004_boring_mandroid",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1789456059615,
+      "tag": "0005_absent_moondragon",
+      "breakpoints": true
     }
   ]
 }

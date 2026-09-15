@@ -1,11 +1,13 @@
 import { hostname } from 'node:os';
+import { eq } from 'drizzle-orm';
 import { createDb, runMigrations, waitForDatabase } from './db/client';
-import { workerHeartbeats } from './db/schema';
+import { jobRuns, workerHeartbeats } from './db/schema';
 import { getEnv } from './env';
 import type { JobEnvelope } from './jobs/job';
 import { createBoss, ensureQueues } from './jobs/queue';
 import { createDbRecorder } from './jobs/recorder';
 import { createJobs } from './jobs/registry';
+import { applyOverrides, getJobOverrides, syncSchedule } from './jobs/settings';
 import { executeJob } from './jobs/runner';
 import { HEARTBEAT_INTERVAL_MS } from './monitor';
 import { createAlerter } from './notify/telegram';
@@ -16,7 +18,25 @@ const { db, pool } = createDb(env.DATABASE_URL);
 await waitForDatabase(pool);
 await runMigrations(db, pool);
 
-const jobs = createJobs({ db, env });
+// A single worker runs every job, so a run still marked running was cut off
+// when the previous worker process stopped. The queue retries the job on its
+// own; this closes the orphaned attempt so Workflow Logs does not show it
+// running forever.
+const interrupted = await db
+  .update(jobRuns)
+  .set({
+    status: 'failed',
+    error: 'Interrupted: the worker stopped before this attempt finished.',
+    finishedAt: new Date(),
+  })
+  .where(eq(jobRuns.status, 'running'))
+  .returning({ id: jobRuns.id });
+if (interrupted.length > 0) {
+  console.warn(`[worker] Closed ${interrupted.length} run(s) cut off by the last restart.`);
+}
+
+// Schedules, switches and retry limits saved in Settings win over the defaults in code.
+const jobs = applyOverrides(createJobs({ db, env }), await getJobOverrides(db));
 const boss = createBoss(env.DATABASE_URL, 'worker');
 await boss.start();
 await ensureQueues(boss, jobs);
@@ -31,12 +51,7 @@ for (const job of jobs) {
     for (const queued of batch) await executeJob(job, queued, deps);
   });
 
-  if (job.schedule) {
-    const envelope: JobEnvelope = { trigger: 'schedule' };
-    // `missed: 'once'` runs a schedule that came due while the server was down
-    // a single time on start, instead of skipping it or piling up every miss.
-    await boss.schedule(job.name, job.schedule, envelope, { tz: env.TIMEZONE, missed: 'once' });
-  }
+  await syncSchedule(boss, job, env.TIMEZONE);
 }
 
 const workerId = hostname();

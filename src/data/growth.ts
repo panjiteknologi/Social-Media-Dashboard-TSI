@@ -1,11 +1,9 @@
 import type {
-  ActionItem,
   CampaignPerformance,
   PlatformPerformance,
   Post,
   SocialSummaryItem,
   SocialTrend,
-  TechHealthItem,
 } from '../types';
 
 export const SOCIAL_SUMMARY: SocialSummaryItem[] = [
@@ -33,25 +31,6 @@ export const SOCIAL_TRENDS: SocialTrend[] = [
   { trend: 'Sustainability reporting is rising across LinkedIn B2B posts.', action: 'Create Social Content' },
   { trend: 'ISO 42001 discussion is increasing among Indonesian tech companies.', action: 'Create Social Content' },
   { trend: 'Cybersecurity awareness is trending after regional data breach news.', action: 'Create Social Content' },
-];
-
-export const TECH_HEALTH: TechHealthItem[] = [
-  { label: 'Index Issues', count: 4, severity: 'Medium' },
-  { label: 'Broken Links', count: 11, severity: 'High' },
-  { label: 'Missing Metadata', count: 6, severity: 'Medium' },
-  { label: 'Duplicate Titles', count: 2, severity: 'Low' },
-  { label: 'Slow Pages', count: 5, severity: 'Medium' },
-  { label: 'Missing Alt Text', count: 18, severity: 'Low' },
-  { label: 'Canonical Issues', count: 1, severity: 'Low' },
-  { label: 'Schema Issues', count: 3, severity: 'Medium' },
-];
-
-export const ACTION_CENTER: ActionItem[] = [
-  { priority: 'P1', issue: 'Ranking Decline', kw: 'ISO 9001', action: 'Refresh content', impact: 'High', status: 'Open' },
-  { priority: 'P1', issue: 'CTR Drop', kw: 'ISO Certification Cost', action: 'Rewrite meta title', impact: 'High', status: 'Open' },
-  { priority: 'P2', issue: 'Keyword Cannibalization', kw: 'ISO 27001', action: 'Consolidate landing pages', impact: 'Medium', status: 'In Progress' },
-  { priority: 'P2', issue: 'Missing Internal Links', kw: 'ISO 42001', action: 'Add 4 internal links from hub page', impact: 'Medium', status: 'Open' },
-  { priority: 'P3', issue: 'Content Outdated', kw: 'ISO 22000', action: 'Update stats and examples', impact: 'Low', status: 'Open' },
 ];
 
 export const SOCIAL_PERFORMANCE: PlatformPerformance[] = [

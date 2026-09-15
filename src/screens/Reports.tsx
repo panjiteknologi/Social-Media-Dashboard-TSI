@@ -1,36 +1,118 @@
+import { useState } from 'react';
+import type { ReportKind, ReportRecord } from '../../shared/reports';
+import { useReports } from '../api/reports';
+import { QueryState } from '../components/QueryState';
 import { Requires } from '../components/Requires';
 import { Card, Chip } from '../components/primitives';
-import {
-  EXECUTIVE_SUMMARY,
-  RECOMMENDED_FOCUS,
-  REPORT_CARDS,
-  REPORT_PERIODS,
-} from '../data/workflow';
-import { statusTone } from '../lib/theme';
-import type { ReportCard, ReportPeriod } from '../types';
+import { REPORT_PERIODS } from '../data/workflow';
+import { formatDateTime, formatNumber, formatPosition } from '../lib/format';
+import { severityTone, statusTone } from '../lib/theme';
+import type { ReportPeriod } from '../types';
 
-// WhatsApp delivery is on hold; Telegram is the only messaging channel for now.
-const CHANNELS = ['telegram', 'email'] as const;
+const KINDS: Record<ReportPeriod, ReportKind> = { Daily: 'daily', Weekly: 'weekly', Monthly: 'monthly' };
 
-const CHANNEL_LABELS: Record<(typeof CHANNELS)[number], string> = {
-  telegram: 'Telegram',
-  email: 'Email',
+const SCHEDULES: Record<ReportKind, string> = {
+  daily: 'every morning at 08:00',
+  weekly: 'every Monday at 08:15',
+  monthly: 'on the first of each month at 08:30',
 };
 
-function Channels({ report }: { report: ReportCard }) {
+function Delivery({ report }: { report: ReportRecord }) {
+  if (report.telegramSentAt) return <Chip tone={statusTone('Published')}>Sent</Chip>;
+  if (report.telegramError) return <Chip tone={severityTone('High')}>Not sent</Chip>;
+  return <Chip tone={severityTone('Low')}>Sending</Chip>;
+}
+
+function ReportDetail({ report }: { report: ReportRecord }) {
+  const { traffic, search, leads, articlesPublished } = report.data;
+  const numbers: Array<[string, string]> = [
+    ['Sessions', traffic ? formatNumber(traffic.sessions.current) : '—'],
+    ['From Google search', traffic ? formatNumber(traffic.organicSessions.current) : '—'],
+    [
+      'Leads from the contact form',
+      leads.since && report.data.period.end >= leads.since ? formatNumber(leads.count.current) : '—',
+    ],
+    ['Lead events in GA4', traffic ? formatNumber(traffic.leadEvents.current) : '—'],
+    ['Search clicks', search ? formatNumber(search.clicks.current) : '—'],
+    ['Average position', search ? formatPosition(search.position.current) : '—'],
+    ['Articles published', formatNumber(articlesPublished.length)],
+  ];
+
   return (
-    <div className="report-card__channels">
-      {CHANNELS.map((channel) => {
-        const sent = report[channel];
-        return (
-          <div
-            key={channel}
-            className={sent ? 'report-card__channel report-card__channel--on' : 'report-card__channel'}
-          >
-            {CHANNEL_LABELS[channel]} {sent ? '✓' : '—'}
+    <Card className="card--md">
+      <div className="card-title card-title--sm mb-14">AI Executive Summary</div>
+      {report.summary ? (
+        <div className="summary-body">{report.summary}</div>
+      ) : (
+        <div className="empty-note">{report.aiNote ?? 'This report has no AI summary.'}</div>
+      )}
+
+      {report.focus.length > 0 ? (
+        <>
+          <div className="summary-label">RECOMMENDED FOCUS</div>
+          {report.focus.map((item) => (
+            <div className="summary-item" key={item}>
+              {item}
+            </div>
+          ))}
+        </>
+      ) : null}
+
+      <div className="summary-label">KEY NUMBERS</div>
+      <dl className="report-numbers">
+        {numbers.map(([label, value]) => (
+          <div className="report-numbers__row" key={label}>
+            <dt>{label}</dt>
+            <dd>{value}</dd>
           </div>
-        );
-      })}
+        ))}
+      </dl>
+      {report.aiModel ? <div className="report-card__generated">Summary written by {report.aiModel}</div> : null}
+    </Card>
+  );
+}
+
+function ReportList({ reports, kind }: { reports: ReportRecord[]; kind: ReportKind }) {
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  if (reports.length === 0) {
+    return (
+      <div className="empty-note">
+        No {kind} report yet. It is sent to Telegram {SCHEDULES[kind]}.
+      </div>
+    );
+  }
+  const selected = reports.find((report) => report.id === selectedId) ?? reports[0];
+
+  return (
+    <div className="report-layout">
+      <div className="report-list">
+        {reports.map((report) => (
+          <button
+            type="button"
+            key={report.id}
+            className={`card card--sm report-card${report.id === selected.id ? ' report-card--selected' : ''}`}
+            aria-pressed={report.id === selected.id}
+            onClick={() => setSelectedId(report.id)}
+          >
+            <div className="report-card__head">
+              <div>
+                <div className="report-card__period">{report.title}</div>
+                <div className="report-card__generated">Generated {formatDateTime(report.createdAt)}</div>
+              </div>
+              <Delivery report={report} />
+            </div>
+            <div className="report-card__channels">
+              <div className={report.telegramSentAt ? 'report-card__channel report-card__channel--on' : 'report-card__channel'}>
+                Telegram {report.telegramSentAt ? '✓' : '—'}
+              </div>
+            </div>
+            {report.telegramError ? <div className="report-card__error">{report.telegramError}</div> : null}
+          </button>
+        ))}
+      </div>
+
+      <ReportDetail report={selected} />
     </div>
   );
 }
@@ -42,6 +124,9 @@ export function Reports({
   period: ReportPeriod;
   onPeriodChange: (period: ReportPeriod) => void;
 }) {
+  const kind = KINDS[period];
+  const reports = useReports(kind);
+
   return (
     <div>
       <div className="mb-20">
@@ -64,33 +149,7 @@ export function Reports({
       </div>
 
       <Requires capability="reports">
-        <div className="report-layout">
-          <div className="report-list">
-            {REPORT_CARDS[period].map((report) => (
-              <Card className="card--sm" key={report.period}>
-                <div className="report-card__head">
-                  <div>
-                    <div className="report-card__period">{report.period}</div>
-                    <div className="report-card__generated">Generated {report.generated}</div>
-                  </div>
-                  <Chip tone={statusTone('Published')}>{report.status}</Chip>
-                </div>
-                <Channels report={report} />
-              </Card>
-            ))}
-          </div>
-
-          <Card className="card--md">
-            <div className="card-title card-title--sm mb-14">AI Executive Summary</div>
-            <div className="summary-body">{EXECUTIVE_SUMMARY}</div>
-            <div className="summary-label">RECOMMENDED FOCUS NEXT WEEK</div>
-            {RECOMMENDED_FOCUS.map((item) => (
-              <div className="summary-item" key={item}>
-                {item}
-              </div>
-            ))}
-          </Card>
-        </div>
+        <QueryState query={reports}>{(data) => <ReportList key={kind} reports={data} kind={kind} />}</QueryState>
       </Requires>
     </div>
   );

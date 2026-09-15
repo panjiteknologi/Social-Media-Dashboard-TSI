@@ -8,6 +8,7 @@ import './states.css';
 import './charts.css';
 import './settings.css';
 import './content.css';
+import './reports.css';
 
 const container = document.getElementById('root');
 if (!container) throw new Error('Root container #root not found');

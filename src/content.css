@@ -128,6 +128,35 @@
   color: var(--faint);
 }
 
+/* Technical SEO health */
+
+.health-card__note {
+  margin-top: 6px;
+  font-size: 11.5px;
+  color: var(--faint);
+}
+
+.tech-issues {
+  margin-top: 16px;
+}
+
+/* SEO Action Center */
+
+.action-row__detail {
+  margin-top: 3px;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.action-row--done td {
+  opacity: 0.55;
+}
+
+.action-center__error {
+  padding: 10px 20px;
+}
+
 .sr-only {
   position: absolute;
   width: 1px;

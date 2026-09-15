@@ -20,6 +20,7 @@ import { getEnv } from './env';
 import type { JobEnvelope } from './jobs/job';
 import { createBoss, ensureQueues } from './jobs/queue';
 import { createJobs } from './jobs/registry';
+import { applyOverrides, getJobOverrides } from './jobs/settings';
 import { findTelegramChats, sendTelegramMessage } from './notify/telegram';
 
 const USAGE = `Usage:
@@ -101,7 +102,7 @@ async function runJob([name, inputJson]: string[]) {
   const boss = createBoss(env.DATABASE_URL, 'cli');
   await boss.start();
   try {
-    await ensureQueues(boss, [job]);
+    await ensureQueues(boss, applyOverrides([job], await getJobOverrides(db)));
     const envelope: JobEnvelope = { trigger: 'manual', input };
     const queueJobId = await boss.send(job.name, envelope);
     console.log(`Queued ${job.name} (${queueJobId}). The worker picks it up within seconds.`);

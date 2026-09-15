@@ -2,13 +2,12 @@ import { useId, useState, type ChangeEvent, type FormEvent, type ReactNode } fro
 import type { SeoSettings } from '../../shared/seo';
 import { useSaveSeoSettings, useSeoSettings } from '../api/settings';
 import { useCurrentUser } from '../components/AuthGate';
+import { AutomationCard, ReportingCard } from '../components/AutomationSettings';
 import { QueryState } from '../components/QueryState';
 import { Card, PageHeader } from '../components/primitives';
 
 /** Settings areas from the design that arrive with later milestones. */
 const LATER_SECTIONS = [
-  { title: 'Automation', detail: 'Job schedules, on/off switches and retries', milestone: 'M4' },
-  { title: 'Reporting', detail: 'Telegram report schedule and recipients', milestone: 'M4' },
   { title: 'Brand', detail: 'Tone, company information, visual guidelines and CTA rules', milestone: 'M5' },
   { title: 'AI', detail: 'Models, knowledge base and prompt templates', milestone: 'M5' },
   { title: 'Approval rules', detail: 'Who approves what, and publishing restrictions', milestone: 'M5' },
@@ -213,6 +212,9 @@ export function Settings() {
           {(data) => <SeoSettingsForm initial={data} canEdit={user.role === 'admin'} />}
         </QueryState>
       </Card>
+
+      <ReportingCard canEdit={user.role === 'admin'} />
+      <AutomationCard canEdit={user.role === 'admin'} />
 
       <div className="section-title">Arriving in later milestones</div>
       <div className="settings-later">

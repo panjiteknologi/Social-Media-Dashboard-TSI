@@ -2,6 +2,7 @@ import type { Env } from '../env';
 import { ANALYTICS_SCOPE, createAnalyticsClient, type AnalyticsClient } from './analytics';
 import { createSearchConsoleClient, SEARCH_CONSOLE_SCOPE, type SearchConsoleClient } from './searchConsole';
 import { createTokenProvider, readServiceAccountKey } from './serviceAccount';
+import { createUrlInspectionClient, type UrlInspectionClient } from './urlInspection';
 
 export const isSearchConsoleConfigured = (env: Env): boolean =>
   Boolean(env.GSC_SITE_URL && env.GOOGLE_SERVICE_ACCOUNT_JSON_PATH);
@@ -12,6 +13,17 @@ export function searchConsoleFromEnv(env: Env): SearchConsoleClient {
   }
   const key = readServiceAccountKey(env.GOOGLE_SERVICE_ACCOUNT_JSON_PATH);
   return createSearchConsoleClient({
+    siteUrl: env.GSC_SITE_URL,
+    getToken: createTokenProvider(key, [SEARCH_CONSOLE_SCOPE]),
+  });
+}
+
+export function urlInspectionFromEnv(env: Env): UrlInspectionClient {
+  if (!env.GSC_SITE_URL || !env.GOOGLE_SERVICE_ACCOUNT_JSON_PATH) {
+    throw new Error('Search Console is not configured: set GSC_SITE_URL and GOOGLE_SERVICE_ACCOUNT_JSON_PATH in .env.');
+  }
+  const key = readServiceAccountKey(env.GOOGLE_SERVICE_ACCOUNT_JSON_PATH);
+  return createUrlInspectionClient({
     siteUrl: env.GSC_SITE_URL,
     getToken: createTokenProvider(key, [SEARCH_CONSOLE_SCOPE]),
   });

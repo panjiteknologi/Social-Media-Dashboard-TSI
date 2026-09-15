@@ -1,5 +1,6 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import type { ChartRange, SeoKeywords, SeoOverview } from '../../shared/seo';
+import type { TechnicalHealth } from '../../shared/technical';
 import { apiGet } from './client';
 
 /** Search data changes once a day, so a few minutes of caching costs nothing. */
@@ -12,6 +13,14 @@ export function useSeoOverview(range: ChartRange) {
     staleTime: STALE_MS,
     // Switching range keeps the current chart on screen, dimmed, instead of flashing empty.
     placeholderData: keepPreviousData,
+  });
+}
+
+export function useTechnicalHealth() {
+  return useQuery({
+    queryKey: ['seo', 'technical'],
+    queryFn: () => apiGet<TechnicalHealth>('/seo/technical'),
+    staleTime: STALE_MS,
   });
 }
 

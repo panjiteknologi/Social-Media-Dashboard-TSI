@@ -99,6 +99,139 @@
   color: var(--green);
 }
 
+/* Reporting and Automation */
+
+.settings-intro {
+  max-width: 760px;
+  margin-bottom: 14px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.settings-intro__actions {
+  margin: 0 0 18px;
+}
+
+.job-group-title {
+  margin: 22px 0 2px;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.job-row {
+  display: grid;
+  grid-template-columns: minmax(200px, 1fr) minmax(280px, 1.4fr) auto;
+  gap: 12px 20px;
+  align-items: start;
+  padding: 14px 0;
+  border-top: 1px solid var(--line);
+}
+
+.job-row__name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.job-row__summary {
+  margin-top: 2px;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+.job-row__last {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--faint);
+}
+
+.job-row__last--failed {
+  color: var(--red);
+}
+
+.job-row__controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.job-row__hint {
+  font-size: 12px;
+  color: var(--faint);
+}
+
+.job-row__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+}
+
+.job-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  color: var(--text);
+}
+
+.job-field input,
+.job-field select {
+  padding: 5px 8px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0;
+}
+
+.job-field input[type='number'] {
+  width: 64px;
+}
+
+.job-field input:focus-visible,
+.job-field select:focus-visible,
+.job-toggle input:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 1px;
+}
+
+.job-field input:disabled,
+.job-field select:disabled {
+  color: var(--muted);
+  background: var(--surface-alt);
+}
+
+.job-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 48px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+@media (max-width: 900px) {
+  .job-row {
+    grid-template-columns: 1fr;
+  }
+
+  .job-row__actions {
+    justify-content: flex-start;
+  }
+}
+
 .settings-later {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));

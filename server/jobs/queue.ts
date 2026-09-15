@@ -17,14 +17,29 @@ export function createBoss(connectionString: string, role: 'api' | 'worker' | 'c
   return boss;
 }
 
-/** Creates each job's queue, or brings its retry settings up to date after a deploy. */
+/** Longest a job may run when it does not set its own timeout. */
+export const DEFAULT_TIMEOUT_SECONDS = 15 * 60;
+
+/**
+ * A running job's worker checks in this often. When a worker stops checking in
+ * (a crash or a restart), its job is retried within about this long instead of
+ * after the whole timeout.
+ */
+export const HEARTBEAT_SECONDS = 60;
+
+/** Retry, timeout and heartbeat settings for a job's queue. */
+export const queueOptions = (job: Pick<JobDefinition, 'retryLimit' | 'retryDelaySeconds' | 'timeoutSeconds'>) => ({
+  retryLimit: job.retryLimit,
+  retryDelay: job.retryDelaySeconds,
+  retryBackoff: true,
+  expireInSeconds: job.timeoutSeconds ?? DEFAULT_TIMEOUT_SECONDS,
+  heartbeatSeconds: HEARTBEAT_SECONDS,
+});
+
+/** Creates each job's queue, or brings its settings up to date after a deploy. */
 export async function ensureQueues(boss: PgBoss, jobs: JobDefinition[]): Promise<void> {
   for (const job of jobs) {
-    const options = {
-      retryLimit: job.retryLimit,
-      retryDelay: job.retryDelaySeconds,
-      retryBackoff: true,
-    };
+    const options = queueOptions(job);
     if (await boss.getQueue(job.name)) {
       await boss.updateQueue(job.name, options);
       continue;

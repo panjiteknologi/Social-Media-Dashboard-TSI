@@ -285,7 +285,7 @@ interface TrafficSlice {
   organicEvents: Map<string, number>;
 }
 
-async function trafficBetween(db: Db, from: string, to: string): Promise<TrafficSlice> {
+export async function trafficBetween(db: Db, from: string, to: string): Promise<TrafficSlice> {
   const [channelRows, eventRows] = await Promise.all([
     db
       .select({

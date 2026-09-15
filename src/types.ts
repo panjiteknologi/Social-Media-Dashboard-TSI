@@ -118,21 +118,6 @@ export interface SocialTrend {
 
 export type Severity = 'High' | 'Medium' | 'Low';
 
-export interface TechHealthItem {
-  label: string;
-  count: number;
-  severity: Severity;
-}
-
-export interface ActionItem {
-  priority: 'P1' | 'P2' | 'P3';
-  issue: string;
-  kw: string;
-  action: string;
-  impact: string;
-  status: 'Open' | 'In Progress';
-}
-
 export interface PlatformPerformance {
   platform: SocialPlatform;
   reach: string;
@@ -173,15 +158,6 @@ export interface TimelineStep {
 }
 
 export type ReportPeriod = 'Daily' | 'Weekly' | 'Monthly';
-
-export interface ReportCard {
-  period: string;
-  status: string;
-  generated: string;
-  telegram: boolean;
-  whatsapp: boolean;
-  email: boolean;
-}
 
 export interface CalendarEntry {
   title: string;

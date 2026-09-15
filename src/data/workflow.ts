@@ -1,4 +1,4 @@
-import type { ApprovalItem, ReportCard, ReportPeriod, TimelineStep } from '../types';
+import type { ApprovalItem, ReportPeriod, TimelineStep } from '../types';
 
 export const APPROVAL_QUEUE: ApprovalItem[] = [
   {
@@ -68,24 +68,3 @@ export const APPROVAL_TIMELINE: TimelineStep[] = [
 ];
 
 export const REPORT_PERIODS: ReportPeriod[] = ['Daily', 'Weekly', 'Monthly'];
-
-export const REPORT_CARDS: Record<ReportPeriod, ReportCard[]> = {
-  Daily: [
-    { period: 'Daily — 20 Aug 2026', status: 'Sent', generated: '20 Aug, 07:00', telegram: true, whatsapp: true, email: false },
-  ],
-  Weekly: [
-    { period: 'Weekly — 11–17 Aug 2026', status: 'Sent', generated: '18 Aug, 07:00', telegram: true, whatsapp: true, email: true },
-  ],
-  Monthly: [
-    { period: 'Monthly — July 2026', status: 'Sent', generated: '01 Aug, 07:00', telegram: true, whatsapp: false, email: true },
-  ],
-};
-
-export const EXECUTIVE_SUMMARY =
-  "Organic traffic increased 18% this week. 7 keywords entered Google's first page. ISO 42001 content generated the highest organic growth. ISO 9001 cluster requires attention due to declining rankings.";
-
-export const RECOMMENDED_FOCUS = [
-  'ISO 27001 for Financial Services',
-  'ISO 42001 Requirements',
-  'ISO 14001 Update',
-];

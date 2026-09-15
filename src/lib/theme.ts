@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react';
+import type { ActionPriority, ActionStatus } from '../../shared/actions';
 import type {
-  ActionItem,
   ContentStatus,
   Direction,
   KeywordStatus,
@@ -50,15 +50,16 @@ const HEALTH_TONES: Record<Severity, ChipTone> = {
   Low: ['#1F9D68', '#E9F7EF'],
 };
 
-const PRIORITY_TONES: Record<ActionItem['priority'], ChipTone> = {
+const PRIORITY_TONES: Record<ActionPriority, ChipTone> = {
   P1: ['#D64545', '#FBEAEA'],
   P2: ['#F2A93B', '#FDF3E2'],
   P3: ['#667085', '#F2F4F7'],
 };
 
-const ACTION_STATUS_TONES: Record<ActionItem['status'], ChipTone> = {
-  Open: ['#2D6CDF', '#EAF2FF'],
-  'In Progress': ['#F2A93B', '#FDF3E2'],
+const ACTION_STATUS_TONES: Record<ActionStatus, ChipTone> = {
+  open: ['#2D6CDF', '#EAF2FF'],
+  in_progress: ['#F2A93B', '#FDF3E2'],
+  done: ['#1F9D68', '#E9F7EF'],
 };
 
 export const statusTone = (status: ContentStatus): ChipTone => STATUS_TONES[status] ?? NEUTRAL;
@@ -67,9 +68,8 @@ export const keywordStatusTone = (status: KeywordStatus): ChipTone =>
   KEYWORD_STATUS_TONES[status] ?? NEUTRAL;
 export const severityTone = (severity: Severity): ChipTone => SEVERITY_TONES[severity];
 export const healthTone = (severity: Severity): ChipTone => HEALTH_TONES[severity];
-export const priorityTone = (priority: ActionItem['priority']): ChipTone => PRIORITY_TONES[priority];
-export const actionStatusTone = (status: ActionItem['status']): ChipTone =>
-  ACTION_STATUS_TONES[status];
+export const priorityTone = (priority: ActionPriority): ChipTone => PRIORITY_TONES[priority];
+export const actionStatusTone = (status: ActionStatus): ChipTone => ACTION_STATUS_TONES[status];
 
 export function toneStyle([fg, bg]: ChipTone): CSSProperties {
   return { color: fg, background: bg };

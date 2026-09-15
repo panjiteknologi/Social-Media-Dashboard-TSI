@@ -15,6 +15,11 @@ export interface JobDefinition {
   retryLimit: number;
   /** Seconds before the first retry; later retries back off exponentially. */
   retryDelaySeconds: number;
+  /**
+   * Longest one attempt may run before the queue gives up on it and retries.
+   * Defaults to 15 minutes; long crawls set more, or they would run twice.
+   */
+  timeoutSeconds?: number;
   /** Cron expression in the app timezone, for jobs that run on their own. */
   schedule?: string;
   /** Whether an admin may start the job by hand. */

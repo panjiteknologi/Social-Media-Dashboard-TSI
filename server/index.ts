@@ -7,6 +7,7 @@ import { users } from './db/schema';
 import { getEnv } from './env';
 import { createBoss, ensureQueues } from './jobs/queue';
 import { createJobs } from './jobs/registry';
+import { applyOverrides, getJobOverrides } from './jobs/settings';
 import { startWorkerMonitor } from './monitor';
 import { createAlerter } from './notify/telegram';
 
@@ -24,7 +25,8 @@ console.log('API starting: connecting to the job queue');
 const jobs = createJobs({ db, env });
 const boss = createBoss(env.DATABASE_URL, 'api');
 await boss.start();
-await ensureQueues(boss, jobs);
+// Retry limits saved in Settings win over the defaults in code.
+await ensureQueues(boss, applyOverrides(jobs, await getJobOverrides(db)));
 
 console.log(`API starting: opening port ${env.API_PORT}`);
 

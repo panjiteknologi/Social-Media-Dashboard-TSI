@@ -17,7 +17,14 @@ const EnvSchema = z.object({
     .string()
     .regex(/^\d+$/, 'GA4_PROPERTY_ID is the numeric property id, not the G-XXXX measurement id')
     .optional(),
+  PAGESPEED_API_KEY: z.string().optional(),
   CMS_DATABASE_URL: z.string().optional(),
+  OPENROUTER_API_KEY: z.string().optional(),
+  OPENROUTER_BASE_URL: z.url().default('https://openrouter.ai/api/v1'),
+  OPENROUTER_APP_NAME: z.string().default('Content Machine'),
+  OPENROUTER_APP_URL: z.url().optional(),
+  AI_MONTHLY_BUDGET_USD: z.coerce.number().nonnegative().default(50),
+  AI_MODEL_REPORT: z.string().default('anthropic/claude-sonnet-5'),
   TELEGRAM_BOT_TOKEN: z.string().optional(),
   TELEGRAM_CHAT_ID: z.string().optional(),
 });

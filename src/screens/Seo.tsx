@@ -1,18 +1,28 @@
+import {
+  ACTION_STATUS_LABELS,
+  ACTION_STATUSES,
+  PRIORITY_IMPACT,
+  type ActionStatus,
+  type SeoActionsResponse,
+} from '../../shared/actions';
 import type { CapabilityKey } from '../../shared/capabilities';
 import { serpPage, type PositionBand, type SeoKeywords, type SeoOverview } from '../../shared/seo';
-import { useSeoKeywords, useSeoOverview } from '../api/seo';
+import type { HealthCheck, TechnicalHealth } from '../../shared/technical';
+import { useSeoActions, useUpdateActionStatus } from '../api/actions';
+import { useSeoKeywords, useSeoOverview, useTechnicalHealth } from '../api/seo';
+import { useCurrentUser } from '../components/AuthGate';
 import { QueryState } from '../components/QueryState';
 import { RangeToggle } from '../components/RangeToggle';
 import { KpiBody, Requires } from '../components/Requires';
 import { ChangeFoot, DataThrough } from '../components/SeoParts';
 import { SeoTrendChart } from '../components/TrendChart';
 import { Card, Chip } from '../components/primitives';
-import { ACTION_CENTER, TECH_HEALTH } from '../data/growth';
 import { overviewPeriod, type ChartRange } from '../lib/chart';
 import {
   countChange,
   displayPage,
   formatDate,
+  formatDateTime,
   formatNumber,
   formatPercent,
   formatPosition,
@@ -21,7 +31,7 @@ import {
   positionChange,
   type Change,
 } from '../lib/format';
-import { actionStatusTone, healthTone, keywordStatusTone, priorityTone } from '../lib/theme';
+import { actionStatusTone, healthTone, keywordStatusTone, priorityTone, severityTone } from '../lib/theme';
 
 /** An ordered light-to-dark ramp: the bands have a natural order, from best positions to worst. */
 const BAND_COLORS: Record<PositionBand, string> = {
@@ -31,6 +41,9 @@ const BAND_COLORS: Record<PositionBand, string> = {
   'Pos 21–50': '#B7C9E8',
   'Pos 51+': '#DCE4EE',
 };
+
+/** Affected pages listed per check under the health cards. */
+const ISSUES_SHOWN_PER_CHECK = 8;
 
 /** What to do with an opportunity keyword, by how far it is from the top. */
 function opportunityAdvice(position: number): string {
@@ -51,15 +64,29 @@ function SeoKpis({
   range,
   overview,
   keywords,
+  technical,
 }: {
   range: ChartRange;
   overview: SeoOverview | undefined;
   keywords: SeoKeywords | undefined;
+  technical: TechnicalHealth | undefined;
 }) {
   const current = overview?.totals.current;
   const previous = overview?.totals.previous ?? null;
   const period = overview ? overviewPeriod(overview, range) : '';
   const loading = '…';
+
+  const indexedTile: Tile = {
+    label: 'Indexed Pages',
+    capability: 'technicalSeo',
+    value: technical ? (technical.indexed ? formatNumber(technical.indexed.indexed) : '—') : loading,
+    change: null,
+    period: technical?.indexed
+      ? `of ${formatNumber(technical.indexed.inspected)} sitemap pages checked`
+      : technical
+        ? 'index check has not run yet'
+        : '',
+  };
 
   const tiles: Tile[] = [
     {
@@ -97,7 +124,7 @@ function SeoKpis({
       change: keywords ? countChange(keywords.counts.top10.current, keywords.counts.top10.previous) : null,
       period: 'last 28 days',
     },
-    { label: 'Indexed Pages', capability: 'technicalSeo', value: '', change: null, period: '' },
+    indexedTile,
     {
       label: 'Organic CTR',
       capability: 'gsc',
@@ -270,6 +297,151 @@ function Opportunities({ data }: { data: SeoKeywords }) {
   );
 }
 
+function HealthChip({ check }: { check: HealthCheck }) {
+  if (check.state === 'ok') return <Chip tone={healthTone('Low')}>OK</Chip>;
+  if (check.state === 'not_checked') return <Chip tone={severityTone('Low')}>Not checked</Chip>;
+  return <Chip tone={severityTone(check.severity)}>{check.severity}</Chip>;
+}
+
+function TechnicalHealthSection({ data }: { data: TechnicalHealth }) {
+  const caption = [
+    data.crawledAt
+      ? `Crawled ${formatDateTime(data.crawledAt)}: ${formatNumber(data.pagesCrawled)} URLs${data.truncated ? ', stopped at the page limit' : ''}.`
+      : 'The website has not been crawled yet.',
+    data.inspectedAt ? `Index status from Google ${formatDateTime(data.inspectedAt)}.` : '',
+    data.pagespeedAt ? `Page speed tested ${formatDateTime(data.pagespeedAt)}.` : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  const issues = data.checks
+    .filter((check) => check.state === 'issues')
+    .flatMap((check) => check.issues.slice(0, ISSUES_SHOWN_PER_CHECK).map((issue) => ({ check, issue })));
+
+  return (
+    <>
+      <div className="seo-caption">{caption}</div>
+      <div className="health-grid">
+        {data.checks.map((check) => (
+          <div className="health-card" key={check.key}>
+            <div className="health-card__label">{check.label}</div>
+            <div className="health-card__row">
+              <div className="health-card__count">{check.state === 'not_checked' ? '—' : formatNumber(check.count)}</div>
+              <HealthChip check={check} />
+            </div>
+            {check.state === 'not_checked' ? <div className="health-card__note">{check.note}</div> : null}
+          </div>
+        ))}
+      </div>
+
+      {issues.length > 0 ? (
+        <div className="card card--table tech-issues">
+          <div className="table-scroll">
+            <table className="data-table data-table--compact data-table--pad">
+              <thead>
+                <tr>
+                  <th>CHECK</th>
+                  <th>PAGE</th>
+                  <th>DETAIL</th>
+                </tr>
+              </thead>
+              <tbody>
+                {issues.map(({ check, issue }) => (
+                  <tr key={`${check.key}-${issue.url}-${issue.note}`}>
+                    <td className="cell-strong">{check.label}</td>
+                    <td className="cell-link">
+                      <a className="table-link" href={issue.url} target="_blank" rel="noreferrer">
+                        {displayPage(issue.url, data.contentHost)}
+                      </a>
+                    </td>
+                    <td className="cell-text">{issue.note}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ) : null}
+    </>
+  );
+}
+
+function ActionCenter({ data }: { data: SeoActionsResponse }) {
+  const user = useCurrentUser();
+  const update = useUpdateActionStatus();
+  const canEdit = user.role !== 'viewer';
+
+  if (data.actions.length === 0) {
+    return (
+      <div className="empty-note">
+        No SEO tasks right now. Tasks appear when a keyword drops, a page has a low CTR, keywords compete, or the
+        weekly crawl finds a problem.
+      </div>
+    );
+  }
+
+  return (
+    <div className="card card--table">
+      <div className="table-scroll">
+        <table className="data-table data-table--compact data-table--pad">
+          <thead>
+            <tr>
+              <th>PRIORITY</th>
+              <th>ISSUE</th>
+              <th>TARGET</th>
+              <th>RECOMMENDED ACTION</th>
+              <th>IMPACT</th>
+              <th>STATUS</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.actions.map((task) => (
+              <tr key={task.id} className={task.status === 'done' ? 'action-row--done' : undefined}>
+                <td>
+                  <Chip tone={priorityTone(task.priority)}>{task.priority}</Chip>
+                </td>
+                <td className="cell-strong">
+                  {task.issue}
+                  <div className="action-row__detail">{task.detail}</div>
+                </td>
+                <td className="cell-text">
+                  {task.target.startsWith('http') ? displayPage(task.target, data.contentHost) : task.target}
+                </td>
+                <td className="cell-text">{task.action}</td>
+                <td className="cell-text">{PRIORITY_IMPACT[task.priority]}</td>
+                <td>
+                  {canEdit ? (
+                    <select
+                      className="select-pill"
+                      aria-label={`Status: ${task.issue}, ${task.target}`}
+                      value={task.status}
+                      disabled={update.isPending}
+                      onChange={(event) => update.mutate({ id: task.id, status: event.target.value as ActionStatus })}
+                    >
+                      {ACTION_STATUSES.map((status) => (
+                        <option key={status} value={status}>
+                          {ACTION_STATUS_LABELS[status]}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <Chip tone={actionStatusTone(task.status)}>{ACTION_STATUS_LABELS[task.status]}</Chip>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {update.isError ? (
+        <div className="settings-form__error action-center__error" role="alert">
+          {update.error.message}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 export function Seo({
   chartRange,
   onChartRangeChange,
@@ -279,6 +451,8 @@ export function Seo({
 }) {
   const overview = useSeoOverview(chartRange);
   const keywords = useSeoKeywords();
+  const technical = useTechnicalHealth();
+  const actions = useSeoActions();
 
   return (
     <div>
@@ -290,7 +464,7 @@ export function Seo({
         <DataThrough date={overview.data?.dataThrough ?? null} />
       </div>
 
-      <SeoKpis range={chartRange} overview={overview.data} keywords={keywords.data} />
+      <SeoKpis range={chartRange} overview={overview.data} keywords={keywords.data} technical={technical.data} />
 
       <Card className="mb-24">
         <div className="card-head">
@@ -339,55 +513,14 @@ export function Seo({
       <div className="mb-24">
         <div className="section-title">Technical SEO Health</div>
         <Requires capability="technicalSeo">
-          <div className="health-grid">
-            {TECH_HEALTH.map((item) => (
-              <div className="health-card" key={item.label}>
-                <div className="health-card__label">{item.label}</div>
-                <div className="health-card__row">
-                  <div className="health-card__count">{item.count}</div>
-                  <Chip tone={healthTone(item.severity)}>{item.severity}</Chip>
-                </div>
-              </div>
-            ))}
-          </div>
+          <QueryState query={technical}>{(data) => <TechnicalHealthSection data={data} />}</QueryState>
         </Requires>
       </div>
 
       <div>
         <div className="section-title">SEO Action Center</div>
         <Requires capability="seoActions">
-          <div className="card card--table">
-            <div className="table-scroll">
-              <table className="data-table data-table--compact data-table--pad">
-                <thead>
-                  <tr>
-                    <th>PRIORITY</th>
-                    <th>ISSUE</th>
-                    <th>KEYWORD</th>
-                    <th>RECOMMENDED ACTION</th>
-                    <th>IMPACT</th>
-                    <th>STATUS</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {ACTION_CENTER.map((row) => (
-                    <tr key={`${row.priority}-${row.issue}`}>
-                      <td>
-                        <Chip tone={priorityTone(row.priority)}>{row.priority}</Chip>
-                      </td>
-                      <td className="cell-strong">{row.issue}</td>
-                      <td className="cell-text">{row.kw}</td>
-                      <td className="cell-text">{row.action}</td>
-                      <td className="cell-text">{row.impact}</td>
-                      <td>
-                        <Chip tone={actionStatusTone(row.status)}>{row.status}</Chip>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+          <QueryState query={actions}>{(data) => <ActionCenter data={data} />}</QueryState>
         </Requires>
       </div>
     </div>

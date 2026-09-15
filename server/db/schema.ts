@@ -10,10 +10,13 @@ import {
   primaryKey,
   text,
   timestamp,
+  uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core';
 import { JOB_RUN_STATUSES, JOB_TRIGGERS, USER_ROLES } from '../../shared/api';
 import type { SeoCheck } from '../../shared/content';
+import type { ActionPriority, ActionStatus } from '../../shared/actions';
+import type { ReportData, ReportKind } from '../../shared/reports';
 
 const instant = () => timestamp({ withTimezone: true });
 
@@ -237,3 +240,137 @@ export const ga4EventDaily = pgTable(
   },
   (table) => [primaryKey({ columns: [table.date, table.eventName, table.channel, table.landingPage] })],
 );
+
+// ---------------------------------------------------------------------------
+// AI usage and reports
+
+/** Every AI call's tokens and cost, summed each month against AI_MONTHLY_BUDGET_USD. */
+export const aiUsage = pgTable(
+  'ai_usage',
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    feature: text().notNull(),
+    model: text().notNull(),
+    promptTokens: integer().notNull(),
+    completionTokens: integer().notNull(),
+    /** As OpenRouter reports it; its credits are US dollars. */
+    costUsd: doublePrecision().notNull(),
+    createdAt: instant().notNull().defaultNow(),
+  },
+  (table) => [index('ai_usage_created_at_idx').on(table.createdAt)],
+);
+
+/** Generated reports, one per kind and period, with how Telegram delivery went. */
+export const reports = pgTable(
+  'reports',
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    kind: text().$type<ReportKind>().notNull(),
+    periodStart: date({ mode: 'string' }).notNull(),
+    periodEnd: date({ mode: 'string' }).notNull(),
+    title: text().notNull(),
+    data: jsonb().$type<ReportData>().notNull(),
+    summary: text(),
+    focus: jsonb().$type<string[]>().notNull(),
+    aiModel: text(),
+    /** Why there is no AI summary, when there is none. */
+    aiNote: text(),
+    /** The Telegram message as sent. */
+    message: text().notNull(),
+    telegramSentAt: instant(),
+    telegramError: text(),
+    createdAt: instant().notNull().defaultNow(),
+  },
+  (table) => [uniqueIndex('reports_kind_period_start_idx').on(table.kind, table.periodStart)],
+);
+
+// ---------------------------------------------------------------------------
+// Technical SEO: the weekly crawl, Google's index status and page speed
+
+/** One crawl of the website. The latest finished one feeds Technical SEO Health. */
+export const siteCrawls = pgTable(
+  'site_crawls',
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    startedAt: instant().notNull().defaultNow(),
+    finishedAt: instant(),
+    pagesChecked: integer().notNull().default(0),
+    /** True when the crawl stopped at its page limit. */
+    truncated: boolean().notNull().default(false),
+  },
+  (table) => [index('site_crawls_started_at_idx').on(table.startedAt)],
+);
+
+/** Every URL a crawl checked, with the signals read from its HTML. */
+export const sitePages = pgTable(
+  'site_pages',
+  {
+    crawlId: uuid()
+      .notNull()
+      .references(() => siteCrawls.id, { onDelete: 'cascade' }),
+    url: text().notNull(),
+    /** Where the crawler learned of the page: home, sitemap, cms, search or link. */
+    sources: text().array().notNull(),
+    /** HTTP status; 0 when the request failed. */
+    status: integer().notNull(),
+    redirectTo: text(),
+    contentType: text(),
+    responseMs: integer().notNull(),
+    title: text(),
+    description: text(),
+    canonical: text(),
+    noindex: boolean().notNull(),
+    h1Count: integer().notNull(),
+    imagesMissingAlt: integer().notNull(),
+    jsonLd: text().array().notNull(),
+    linkedFrom: text().array().notNull(),
+    error: text(),
+  },
+  (table) => [primaryKey({ columns: [table.crawlId, table.url] })],
+);
+
+/** Google's index status per URL, from the URL Inspection API; the latest result replaces the one before. */
+export const indexInspections = pgTable('index_inspections', {
+  url: text().primaryKey(),
+  verdict: text().notNull(),
+  coverageState: text(),
+  indexingState: text(),
+  pageFetchState: text(),
+  robotsTxtState: text(),
+  googleCanonical: text(),
+  userCanonical: text(),
+  lastCrawlTime: instant(),
+  inspectedAt: instant().notNull(),
+});
+
+/** The latest mobile PageSpeed test per URL. */
+export const pagespeedResults = pgTable('pagespeed_results', {
+  url: text().primaryKey(),
+  score: doublePrecision(),
+  lcpMs: doublePrecision(),
+  cls: doublePrecision(),
+  tbtMs: doublePrecision(),
+  fieldCategory: text(),
+  checkedAt: instant().notNull(),
+});
+
+/** SEO Action Center tasks, generated from rules and kept up to date by the seo-actions job. */
+export const seoActions = pgTable('seo_actions', {
+  id: uuid().primaryKey().defaultRandom(),
+  /** Identifies the same task across runs, e.g. "keyword-drop:sertifikasi iso". */
+  key: text().notNull().unique(),
+  kind: text().notNull(),
+  priority: text().$type<ActionPriority>().notNull(),
+  issue: text().notNull(),
+  target: text().notNull(),
+  action: text().notNull(),
+  detail: text().notNull(),
+  status: text().$type<ActionStatus>().notNull(),
+  firstSeenAt: instant().notNull(),
+  /** The last run that still found the issue. */
+  lastSeenAt: instant().notNull(),
+  resolvedAt: instant(),
+  resolvedBy: text().$type<'user' | 'system'>(),
+  updatedBy: uuid().references(() => users.id, { onDelete: 'set null' }),
+  updatedAt: instant().notNull().defaultNow(),
+});
