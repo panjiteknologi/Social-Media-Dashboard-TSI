@@ -16,6 +16,7 @@ import {
 import { JOB_RUN_STATUSES, JOB_TRIGGERS, USER_ROLES } from '../../shared/api';
 import type { SeoCheck } from '../../shared/content';
 import type { ActionPriority, ActionStatus } from '../../shared/actions';
+import type { ContentEvent, ContentPriority, ContentStage, ContentType } from '../../shared/planner';
 import type { ReportData, ReportKind } from '../../shared/reports';
 
 const instant = () => timestamp({ withTimezone: true });
@@ -374,3 +375,45 @@ export const seoActions = pgTable('seo_actions', {
   updatedBy: uuid().references(() => users.id, { onDelete: 'set null' }),
   updatedAt: instant().notNull().defaultNow(),
 });
+
+// ---------------------------------------------------------------------------
+// Content Planner
+
+/** Ideas and content moving through the editorial stages, from idea to published. */
+export const contentItems = pgTable(
+  'content_items',
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    title: text().notNull(),
+    type: text().$type<ContentType>().notNull(),
+    stage: text().$type<ContentStage>().notNull(),
+    keyword: text(),
+    campaign: text(),
+    priority: text().$type<ContentPriority>().notNull(),
+    dueDate: date({ mode: 'string' }),
+    ownerId: uuid().references(() => users.id, { onDelete: 'set null' }),
+    notes: text(),
+    createdBy: uuid().references(() => users.id, { onDelete: 'set null' }),
+    createdAt: instant().notNull().defaultNow(),
+    updatedAt: instant().notNull().defaultNow(),
+  },
+  (table) => [index('content_items_stage_idx').on(table.stage), index('content_items_due_date_idx').on(table.dueDate)],
+);
+
+/** Each content item's history: created, moved between stages, edited. */
+export const contentEvents = pgTable(
+  'content_events',
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    itemId: uuid()
+      .notNull()
+      .references(() => contentItems.id, { onDelete: 'cascade' }),
+    kind: text().$type<ContentEvent['kind']>().notNull(),
+    fromStage: text().$type<ContentStage>(),
+    toStage: text().$type<ContentStage>(),
+    note: text(),
+    userId: uuid().references(() => users.id, { onDelete: 'set null' }),
+    createdAt: instant().notNull().defaultNow(),
+  },
+  (table) => [index('content_events_item_id_idx').on(table.itemId)],
+);

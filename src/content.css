@@ -157,6 +157,104 @@
   padding: 10px 20px;
 }
 
+.section-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.section-head .section-title {
+  margin-bottom: 0;
+}
+
+/* The shared table style has no horizontal padding, which runs narrow column headers together. */
+.action-table th,
+.action-table td {
+  padding-right: 16px;
+}
+
+.action-table th:last-child,
+.action-table td:last-child {
+  padding-right: 0;
+}
+
+/* Fixing prompt dialog */
+
+.prompt-scrim {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.prompt-modal {
+  display: flex;
+  flex-direction: column;
+  width: min(880px, 100%);
+  max-height: calc(100vh - 48px);
+  background: var(--surface);
+  box-shadow: 0 16px 48px rgba(15, 39, 71, 0.24);
+}
+
+.prompt-modal__head {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 22px 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.prompt-modal__title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.prompt-modal__subtitle {
+  margin-top: 3px;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+.prompt-modal__text {
+  flex: 1;
+  min-height: 320px;
+  margin: 0;
+  padding: 14px 22px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--text);
+  background: var(--surface-alt);
+  border: 0;
+  resize: none;
+  white-space: pre-wrap;
+}
+
+.prompt-modal__text:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: -2px;
+}
+
+.prompt-modal__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 12px 22px;
+  border-top: 1px solid var(--line);
+}
+
+.prompt-modal__meta {
+  margin-right: auto;
+  font-size: 12px;
+  color: var(--faint);
+}
+
 .sr-only {
   position: absolute;
   width: 1px;

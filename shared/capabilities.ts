@@ -27,6 +27,7 @@ const DEFINITIONS = {
   seoActions: { label: 'SEO Action Center', kind: 'feature', milestone: 'M4' },
   reports: { label: 'Automated reports', kind: 'feature', milestone: 'M4' },
   content: { label: 'Content workflow', kind: 'feature', milestone: 'M5' },
+  approvals: { label: 'Approval Queue', kind: 'feature', milestone: 'M5' },
   ai: { label: 'AI recommendations', kind: 'feature', milestone: 'M5' },
   meta: { label: 'Facebook & Instagram', kind: 'integration', milestone: 'M7' },
   campaigns: { label: 'Campaign tracking', kind: 'feature', milestone: 'M8' },

@@ -31,3 +31,18 @@ export interface JobRun {
   startedAt: string;
   finishedAt: string | null;
 }
+
+/** One run with everything Workflow Logs shows when it is opened. */
+export interface JobRunDetail extends JobRun {
+  input: unknown;
+  output: unknown;
+  triggeredByName: string | null;
+}
+
+export interface AiUsageSummary {
+  configured: boolean;
+  budgetUsd: number;
+  spentUsd: number;
+  calls: number;
+  byFeature: Array<{ feature: string; calls: number; costUsd: number; tokens: number }>;
+}

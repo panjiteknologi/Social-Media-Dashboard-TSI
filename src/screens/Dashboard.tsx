@@ -1,7 +1,9 @@
 import { Link } from 'react-router-dom';
 import { countPublished, type AnalyticsOverview, type ArticlesResponse } from '../../shared/content';
+import { contentSummary, CONTENT_TYPE_LABELS, STAGE_LABELS, type ContentItem } from '../../shared/planner';
 import type { SeoKeywords, SeoOverview } from '../../shared/seo';
 import { useAnalyticsOverview, useArticles } from '../api/content';
+import { useContentItems } from '../api/planner';
 import { useSeoKeywords, useSeoOverview } from '../api/seo';
 import { QueryState } from '../components/QueryState';
 import { RangeToggle } from '../components/RangeToggle';
@@ -9,26 +11,21 @@ import { KpiBody, Requires } from '../components/Requires';
 import { ChangeFoot, DataThrough } from '../components/SeoParts';
 import { SeoTrendChart } from '../components/TrendChart';
 import { Card } from '../components/primitives';
-import { AGENT_ACTIVITY, AI_OPPORTUNITIES, DASHBOARD_KPIS, UPCOMING_CONTENT } from '../data/editorial';
+import { AGENT_ACTIVITY, AI_OPPORTUNITIES, DASHBOARD_KPIS } from '../data/editorial';
 import { leadsPeriod, overviewPeriod, trafficPeriod, type ChartRange } from '../lib/chart';
 import { articleHref, periodText } from '../lib/content';
 import {
   countChange,
   displayPage,
+  formatDate,
   formatNumber,
   formatPercent,
   formatPosition,
   percentChange,
   type Change,
 } from '../lib/format';
-import {
-  changeText,
-  directionClass,
-  movementText,
-  severityTone,
-  statusTextStyle,
-  toneStyle,
-} from '../lib/theme';
+import { SCREEN_PATHS } from '../lib/routes';
+import { changeText, directionClass, movementText, severityTone, toneStyle } from '../lib/theme';
 import type { Kpi } from '../types';
 
 interface LiveSources {
@@ -36,6 +33,8 @@ interface LiveSources {
   keywords: SeoKeywords | undefined;
   traffic: AnalyticsOverview | undefined;
   articles: ArticlesResponse | undefined;
+  content: ContentItem[] | undefined;
+  today: string;
 }
 
 interface LiveKpi {
@@ -49,7 +48,11 @@ const LOADING: LiveKpi = { value: '…', change: null, period: '' };
 const withPeriod = (what: string, period: string): string => [what, period].filter(Boolean).join(', ');
 
 /** The dashboard KPIs real data answers; the rest wait for their own sources. */
-function liveKpi(kpi: Kpi, range: ChartRange, { overview, keywords, traffic, articles }: LiveSources): LiveKpi | null {
+function liveKpi(
+  kpi: Kpi,
+  range: ChartRange,
+  { overview, keywords, traffic, articles, content, today }: LiveSources,
+): LiveKpi | null {
   switch (kpi.label) {
     case 'Organic Traffic': {
       if (!traffic) return LOADING;
@@ -92,6 +95,14 @@ function liveKpi(kpi: Kpi, range: ChartRange, { overview, keywords, traffic, art
         change: null,
         period: 'all articles on the website',
       };
+    }
+    case 'Scheduled Content': {
+      if (!content) return LOADING;
+      return { value: formatNumber(contentSummary(content, today).scheduledSoon), change: null, period: 'next 14 days' };
+    }
+    case 'Pending Approvals': {
+      if (!content) return LOADING;
+      return { value: formatNumber(contentSummary(content, today).inReview), change: null, period: 'in review' };
     }
     default:
       return null;
@@ -198,6 +209,36 @@ function TopContent({ data }: { data: ArticlesResponse }) {
   );
 }
 
+function UpcomingContent({ items, today }: { items: ContentItem[]; today: string }) {
+  const upcoming = contentSummary(items, today).upcoming;
+  if (upcoming.length === 0) {
+    return (
+      <div className="empty-note">
+        Nothing is due. Give content a due date in the <Link to={SCREEN_PATHS.planner}>Content Planner</Link>.
+      </div>
+    );
+  }
+  return (
+    <>
+      {upcoming.map((item) => (
+        <div className="upcoming" key={item.id}>
+          <div className="upcoming__head">
+            <div className="upcoming__title">{item.title}</div>
+            <div className="upcoming__date">{item.dueDate ? formatDate(item.dueDate, false) : ''}</div>
+          </div>
+          <div className="upcoming__meta">
+            <span>{CONTENT_TYPE_LABELS[item.type]}</span>
+            <span>·</span>
+            <span>{item.ownerName ?? 'Unassigned'}</span>
+            <span>·</span>
+            <span className="upcoming__stage">{STAGE_LABELS[item.stage]}</span>
+          </div>
+        </div>
+      ))}
+    </>
+  );
+}
+
 export function Dashboard({
   chartRange,
   onChartRangeChange,
@@ -209,12 +250,16 @@ export function Dashboard({
   const keywords = useSeoKeywords();
   const traffic = useAnalyticsOverview(chartRange);
   const articles = useArticles();
+  const content = useContentItems();
+  const today = new Date().toLocaleDateString('en-CA');
 
   const sources: LiveSources = {
     overview: overview.data,
     keywords: keywords.data,
     traffic: traffic.data,
     articles: articles.data,
+    content: content.data,
+    today,
   };
 
   return (
@@ -314,21 +359,7 @@ export function Dashboard({
           <Card className="card--md">
             <div className="card-title card-title--sm mb-14">Upcoming Content</div>
             <Requires capability="content">
-              {UPCOMING_CONTENT.map((item) => (
-                <div className="upcoming" key={item.title}>
-                  <div className="upcoming__head">
-                    <div className="upcoming__title">{item.title}</div>
-                    <div className="upcoming__date">{item.date}</div>
-                  </div>
-                  <div className="upcoming__meta">
-                    <span>{item.channel}</span>
-                    <span>·</span>
-                    <span>{item.owner}</span>
-                    <span>·</span>
-                    <span style={statusTextStyle(item.status)}>{item.status}</span>
-                  </div>
-                </div>
-              ))}
+              <QueryState query={content}>{(items) => <UpcomingContent items={items} today={today} />}</QueryState>
             </Requires>
           </Card>
 

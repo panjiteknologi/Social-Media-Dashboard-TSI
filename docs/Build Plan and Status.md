@@ -13,7 +13,8 @@ Dokumen ini adalah acuan tunggal untuk urutan pembangunan, status setiap bagian,
 | Bagian | Status |
 |---|---|
 | Tampilan 8 layar: Dashboard, Content Planner, Articles, Social Media, SEO Intelligence, Analytics, Approval Queue, Reports | Selesai. Setiap bagian menampilkan status sumber datanya ("Not connected", "Not available yet", "On hold") sampai data asli masuk |
-| Media Library, Workflow Logs | Masih placeholder |
+| Media Library | Masih placeholder (M7) |
+| Content Planner dan Workflow Logs | **Berjalan dengan data asli (M5 tahap 1, 15 September):** kanban drag & drop, kalender mingguan, list, Quick Create, dan riwayat konten; daftar run job dengan detail, Retry, dan biaya AI bulan ini |
 | Settings | Bagian SEO, Reporting, dan Automation berjalan (Reporting dan Automation sejak 15 September). Brand, AI, Approval rules, dan Social accounts menyusul di M5 dan M7 |
 | Routing dan URL per layar | Selesai |
 | Konfigurasi env (`.env.example`) | Selesai |
@@ -242,6 +243,7 @@ Peran pengguna:
   - Tugas yang masalahnya sudah hilang ditutup otomatis.
   - Editor ke atas bisa mengubah status Open / In Progress / Done.
   - Tugas yang ditandai Done dibuka lagi bila masalahnya masih terdeteksi setelah 14 hari.
+  - Tombol **Export Prompt to Fixing** menyusun semua tugas yang belum Done menjadi satu prompt siap tempel untuk Claude Code di repo website. Isinya: bukti dan tindakan yang disarankan untuk setiap masalah, tempat perbaikannya (kode, CMS, atau Search Console), daftar URL lengkap untuk tugas gabungan, dan aturan kerja: verifikasi dulu, minta persetujuan untuk teks baru, dan jangan push tanpa izin.
 - **Settings bagian Reporting dan Automation**
   - Setiap job otomatis bisa dinyalakan atau dimatikan, jam dan harinya bisa diubah, dan batas percobaan ulangnya bisa diatur. Perubahan langsung berlaku tanpa restart server.
   - Pola jadwal mengikuti bawaan setiap job (per jam, harian, mingguan, atau bulanan). Salah isi tidak bisa mengubah jadwal mingguan menjadi per jam.
@@ -275,6 +277,37 @@ Peran pengguna:
 - Technical SEO Health dan Action Center memakai data nyata.
 
 ### M5 — Produksi konten dengan AI dan Approval Queue
+
+**Status: tahap 1 dari 4 selesai dibangun (15 September)**
+
+Tahapan M5:
+1. Content Planner dan Workflow Logs.
+2. Knowledge base di Settings bagian Brand dan AI.
+3. Rantai AI: rekomendasi topik, brief, draft, lalu QA.
+4. Approval Queue.
+
+Hasil tahap 1:
+
+- **Content Planner** memakai data asli.
+  - Kanban 8 tahap dengan drag & drop, kalender mingguan (bisa maju-mundur dan menambah konten per hari), dan list.
+  - Filter jenis, tahap, prioritas, owner, cluster, dan campaign, serta pencarian judul atau keyword.
+  - Editor di drawer: judul, jenis, tahap, keyword, campaign, prioritas, tanggal, owner, catatan, dan riwayat (dibuat, dipindah tahap, diubah).
+  - Menu **+ Create** membuka editor dengan isian awal. New Campaign menyusul di M8.
+  - Hak: Editor ke atas bisa membuat, mengubah, memindah, dan menghapus. Hanya Approver dan Admin yang bisa memindahkan konten ke Approved.
+- **Dashboard:** Scheduled Content (terjadwal dalam 14 hari ke depan), Pending Approvals (konten di tahap Review), dan Upcoming Content kini memakai data Planner.
+- **Workflow Logs**
+  - Daftar 100 run terakhir dengan filter alur dan status, diperbarui setiap 15 detik.
+  - Detail input, output, dan error setiap run, dengan tombol Retry atau Run again untuk admin.
+  - Biaya dan jumlah panggilan AI bulan ini.
+- **Approval Queue** tetap disembunyikan sampai tahap 4, supaya data contoh dari desain tidak tampil.
+- Diuji lewat API asli:
+  - konten: buat, pindah tahap, ubah, riwayat, validasi, dan hapus
+  - Workflow Logs: filter dan detail run, serta ringkasan biaya AI
+
+**Tugas tim**
+
+- Cek tampilan Content Planner dan Workflow Logs.
+- Mulai siapkan bahan tahap 2: brand guideline, aturan CTA, aturan imparsialitas dari compliance, 5–10 contoh artikel terbaik, dan daftar Approver.
 
 **Pekerjaan**
 

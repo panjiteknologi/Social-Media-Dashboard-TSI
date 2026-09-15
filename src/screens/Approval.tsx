@@ -18,7 +18,7 @@ export function Approval({
         <div className="page-subtitle">Human-in-the-loop review before publishing</div>
       </div>
 
-      <Requires capability="content">
+      <Requires capability="approvals">
         <div className="approval-layout">
           <div className="approval-queue">
             {APPROVAL_QUEUE.map((item) => (

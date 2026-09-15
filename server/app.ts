@@ -5,7 +5,7 @@ import { HTTPException } from 'hono/http-exception';
 import type { PgBoss } from 'pg-boss';
 import { z } from 'zod';
 import { ACTION_STATUSES } from '../shared/actions';
-import type { JobRun } from '../shared/api';
+import { JOB_RUN_STATUSES, type JobRun, type JobRunDetail } from '../shared/api';
 import { resolveCapabilityStates, type CapabilityKey } from '../shared/capabilities';
 import { REPORT_KINDS, type ReportRecord } from '../shared/reports';
 import { CHART_RANGES, type ChartRange } from '../shared/seo';
@@ -13,7 +13,18 @@ import { authRoutes } from './auth/routes';
 import { CMS_SYNC_STATE_KEY } from './cms/sync';
 import { getAnalyticsOverview, getArticles } from './content/metrics';
 import type { Db } from './db/client';
-import { appSettings, ga4ChannelDaily, gscDaily, jobRuns, reports, siteCrawls } from './db/schema';
+import { aiUsageThisMonth } from './ai/usage';
+import { appSettings, ga4ChannelDaily, gscDaily, jobRuns, reports, siteCrawls, users } from './db/schema';
+import {
+  ContentError,
+  ContentInputSchema,
+  createContent,
+  deleteContent,
+  listContent,
+  listContentEvents,
+  listTeam,
+  updateContent,
+} from './planner/service';
 import type { Env } from './env';
 import { loadSession, requireRole, type AppEnv } from './http';
 import type { JobDefinition, JobEnvelope } from './jobs/job';
@@ -33,6 +44,23 @@ export interface AppDeps {
 
 const rangeParam = (value: string | undefined, fallback: ChartRange): ChartRange =>
   CHART_RANGES.find((candidate) => candidate === value) ?? fallback;
+
+const toJobRun = (
+  row: Pick<
+    typeof jobRuns.$inferSelect,
+    'id' | 'jobName' | 'trigger' | 'status' | 'attempt' | 'maxAttempts' | 'error' | 'startedAt' | 'finishedAt'
+  >,
+): JobRun => ({
+  id: row.id,
+  jobName: row.jobName,
+  trigger: row.trigger,
+  status: row.status,
+  attempt: row.attempt,
+  maxAttempts: row.maxAttempts,
+  error: row.error,
+  startedAt: row.startedAt.toISOString(),
+  finishedAt: row.finishedAt?.toISOString() ?? null,
+});
 
 export function createApp({ db, env, boss, jobs }: AppDeps) {
   const secure = env.NODE_ENV === 'production';
@@ -65,6 +93,8 @@ export function createApp({ db, env, boss, jobs }: AppDeps) {
     if (report) live.add('reports');
     if (crawl) live.add('technicalSeo');
     if (actionsLive) live.add('seoActions');
+    // The Content Planner holds real data from its first item; an empty planner is a real state too.
+    live.add('content');
     // A finished CMS sync makes both live, even with no leads yet: zero is a real count.
     if (cmsSync) {
       live.add('articles');
@@ -177,6 +207,8 @@ export function createApp({ db, env, boss, jobs }: AppDeps) {
     })
     .get('/jobs/runs', requireRole(), async (c) => {
       const limit = Math.min(Number(c.req.query('limit')) || 50, 200);
+      const job = c.req.query('job');
+      const status = JOB_RUN_STATUSES.find((candidate) => candidate === c.req.query('status'));
       const rows = await db
         .select({
           id: jobRuns.id,
@@ -190,17 +222,69 @@ export function createApp({ db, env, boss, jobs }: AppDeps) {
           finishedAt: jobRuns.finishedAt,
         })
         .from(jobRuns)
+        .where(and(job ? eq(jobRuns.jobName, job) : undefined, status ? eq(jobRuns.status, status) : undefined))
         .orderBy(desc(jobRuns.startedAt))
         .limit(limit);
-      return c.json(
-        rows.map(
-          (row): JobRun => ({
-            ...row,
-            startedAt: row.startedAt.toISOString(),
-            finishedAt: row.finishedAt?.toISOString() ?? null,
-          }),
-        ),
-      );
+      return c.json(rows.map(toJobRun));
+    })
+    .get('/jobs/runs/:id', requireRole(), async (c) => {
+      const id = z.uuid().safeParse(c.req.param('id'));
+      if (!id.success) return c.json({ error: 'Not found' }, 404);
+      const [row] = await db
+        .select({ run: jobRuns, userName: users.name, userEmail: users.email })
+        .from(jobRuns)
+        .leftJoin(users, eq(users.id, jobRuns.triggeredBy))
+        .where(eq(jobRuns.id, id.data))
+        .limit(1);
+      if (!row) return c.json({ error: 'Not found' }, 404);
+      const detail: JobRunDetail = {
+        ...toJobRun(row.run),
+        input: row.run.input,
+        output: row.run.output,
+        triggeredByName: row.userName ?? row.userEmail ?? null,
+      };
+      return c.json(detail as object);
+    })
+    .get('/ai/usage', requireRole(), async (c) => c.json(await aiUsageThisMonth(db, env)))
+    .get('/users', requireRole(), async (c) => c.json(await listTeam(db)))
+    .get('/content', requireRole(), async (c) => c.json(await listContent(db)))
+    .get('/content/:id/events', requireRole(), async (c) => {
+      const id = z.uuid().safeParse(c.req.param('id'));
+      if (!id.success) return c.json({ error: 'Content not found' }, 404);
+      return c.json(await listContentEvents(db, id.data));
+    })
+    .post('/content', requireRole('editor'), async (c) => {
+      const parsed = ContentInputSchema.safeParse(await c.req.json().catch(() => null));
+      if (!parsed.success) return c.json({ error: z.prettifyError(parsed.error) }, 400);
+      try {
+        return c.json(await createContent(db, parsed.data, c.get('user')!), 201);
+      } catch (error) {
+        if (error instanceof ContentError) return c.json({ error: error.message }, error.status);
+        throw error;
+      }
+    })
+    .put('/content/:id', requireRole('editor'), async (c) => {
+      const id = z.uuid().safeParse(c.req.param('id'));
+      if (!id.success) return c.json({ error: 'Content not found' }, 404);
+      const parsed = ContentInputSchema.safeParse(await c.req.json().catch(() => null));
+      if (!parsed.success) return c.json({ error: z.prettifyError(parsed.error) }, 400);
+      try {
+        return c.json(await updateContent(db, id.data, parsed.data, c.get('user')!));
+      } catch (error) {
+        if (error instanceof ContentError) return c.json({ error: error.message }, error.status);
+        throw error;
+      }
+    })
+    .delete('/content/:id', requireRole('editor'), async (c) => {
+      const id = z.uuid().safeParse(c.req.param('id'));
+      if (!id.success) return c.json({ error: 'Content not found' }, 404);
+      try {
+        await deleteContent(db, id.data);
+        return c.json({ deleted: true });
+      } catch (error) {
+        if (error instanceof ContentError) return c.json({ error: error.message }, error.status);
+        throw error;
+      }
     })
     .post('/jobs/:name/run', requireRole('admin'), async (c) => {
       const job = jobs.find((candidate) => candidate.manual && candidate.name === c.req.param('name'));

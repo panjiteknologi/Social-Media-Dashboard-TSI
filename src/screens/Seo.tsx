@@ -1,3 +1,4 @@
+import { useCallback, useState } from 'react';
 import {
   ACTION_STATUS_LABELS,
   ACTION_STATUSES,
@@ -6,11 +7,13 @@ import {
   type SeoActionsResponse,
 } from '../../shared/actions';
 import type { CapabilityKey } from '../../shared/capabilities';
+import { buildFixPrompt } from '../../shared/fixPrompt';
 import { serpPage, type PositionBand, type SeoKeywords, type SeoOverview } from '../../shared/seo';
 import type { HealthCheck, TechnicalHealth } from '../../shared/technical';
 import { useSeoActions, useUpdateActionStatus } from '../api/actions';
 import { useSeoKeywords, useSeoOverview, useTechnicalHealth } from '../api/seo';
 import { useCurrentUser } from '../components/AuthGate';
+import { FixPromptModal } from '../components/FixPromptModal';
 import { QueryState } from '../components/QueryState';
 import { RangeToggle } from '../components/RangeToggle';
 import { KpiBody, Requires } from '../components/Requires';
@@ -383,7 +386,7 @@ function ActionCenter({ data }: { data: SeoActionsResponse }) {
   return (
     <div className="card card--table">
       <div className="table-scroll">
-        <table className="data-table data-table--compact data-table--pad">
+        <table className="data-table data-table--compact data-table--pad action-table">
           <thead>
             <tr>
               <th>PRIORITY</th>
@@ -453,6 +456,32 @@ export function Seo({
   const keywords = useSeoKeywords();
   const technical = useTechnicalHealth();
   const actions = useSeoActions();
+  const [promptOpen, setPromptOpen] = useState(false);
+  const [preparingPrompt, setPreparingPrompt] = useState(false);
+  const closePrompt = useCallback(() => setPromptOpen(false), []);
+
+  // The prompt must match the Action Center as it is now, not as it was when
+  // the page loaded: jobs may have opened or closed tasks in the meantime.
+  const openPrompt = async () => {
+    setPreparingPrompt(true);
+    try {
+      await Promise.all([actions.refetch(), technical.refetch()]);
+    } finally {
+      setPreparingPrompt(false);
+    }
+    setPromptOpen(true);
+  };
+
+  const openTaskCount = actions.data?.actions.filter((task) => task.status !== 'done').length ?? 0;
+  // Built only while the dialog is open, from the tasks and crawl results on screen.
+  const fixPrompt =
+    promptOpen && actions.data
+      ? buildFixPrompt({
+          actions: actions.data,
+          technical: technical.data ?? null,
+          generatedOn: new Date().toLocaleDateString('en-CA'),
+        })
+      : null;
 
   return (
     <div>
@@ -518,10 +547,23 @@ export function Seo({
       </div>
 
       <div>
-        <div className="section-title">SEO Action Center</div>
+        <div className="section-head">
+          <div className="section-title">SEO Action Center</div>
+          {openTaskCount > 0 ? (
+            <button
+              type="button"
+              className="btn btn--primary"
+              disabled={preparingPrompt}
+              onClick={() => void openPrompt()}
+            >
+              {preparingPrompt ? 'Preparing…' : 'Export Prompt to Fixing'}
+            </button>
+          ) : null}
+        </div>
         <Requires capability="seoActions">
           <QueryState query={actions}>{(data) => <ActionCenter data={data} />}</QueryState>
         </Requires>
+        {fixPrompt ? <FixPromptModal prompt={fixPrompt} taskCount={openTaskCount} onClose={closePrompt} /> : null}
       </div>
     </div>
   );

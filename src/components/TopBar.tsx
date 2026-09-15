@@ -1,8 +1,16 @@
 import { useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { initials } from '../lib/initials';
+import { SCREEN_PATHS } from '../lib/routes';
 import { useCurrentUser } from './AuthGate';
 
-const QUICK_CREATE_ITEMS = ['New Article', 'New Social Post', 'New Campaign', 'New Content Idea'];
+/** Each entry opens the Content Planner editor with suitable defaults; campaigns come later. */
+const QUICK_CREATE_ITEMS: Array<{ label: string; kind: string | null; unavailable?: string }> = [
+  { label: 'New Article', kind: 'article' },
+  { label: 'New Social Post', kind: 'social' },
+  { label: 'New Content Idea', kind: 'idea' },
+  { label: 'New Campaign', kind: null, unavailable: 'Campaigns arrive in M8' },
+];
 
 export function TopBar({
   quickCreateOpen,
@@ -14,6 +22,7 @@ export function TopBar({
   onCloseQuickCreate: () => void;
 }) {
   const user = useCurrentUser();
+  const navigate = useNavigate();
   const menuRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
 
@@ -60,26 +69,41 @@ export function TopBar({
           <span className="icon-button__glyph" />
         </button>
 
-        <div className="quick-create" ref={menuRef}>
-          <button
-            type="button"
-            className="btn btn--primary"
-            aria-expanded={quickCreateOpen}
-            aria-haspopup="menu"
-            onClick={onToggleQuickCreate}
-          >
-            + Create
-          </button>
-          {quickCreateOpen ? (
-            <div className="quick-create__menu" role="menu">
-              {QUICK_CREATE_ITEMS.map((item) => (
-                <button key={item} type="button" className="quick-create__item" role="menuitem">
-                  {item}
-                </button>
-              ))}
-            </div>
-          ) : null}
-        </div>
+        {user.role !== 'viewer' ? (
+          <div className="quick-create" ref={menuRef}>
+            <button
+              type="button"
+              className="btn btn--primary"
+              aria-expanded={quickCreateOpen}
+              aria-haspopup="menu"
+              onClick={onToggleQuickCreate}
+            >
+              + Create
+            </button>
+            {quickCreateOpen ? (
+              <div className="quick-create__menu" role="menu">
+                {QUICK_CREATE_ITEMS.map((item) => (
+                  <button
+                    key={item.label}
+                    type="button"
+                    className="quick-create__item"
+                    role="menuitem"
+                    disabled={!item.kind}
+                    title={item.unavailable}
+                    onClick={() => {
+                      if (!item.kind) return;
+                      onCloseQuickCreate();
+                      navigate(`${SCREEN_PATHS.planner}?new=${item.kind}`);
+                    }}
+                  >
+                    {item.label}
+                    {item.unavailable ? <span className="quick-create__hint">{item.unavailable}</span> : null}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        ) : null}
 
         <div className="topbar__avatar" title={user.email}>
           {initials(user)}

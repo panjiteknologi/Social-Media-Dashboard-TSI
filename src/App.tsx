@@ -20,6 +20,7 @@ import { Reports } from './screens/Reports';
 import { Seo } from './screens/Seo';
 import { Settings } from './screens/Settings';
 import { Social } from './screens/Social';
+import { Workflow } from './screens/Workflow';
 
 /**
  * Each route owns the URL state its screen needs, so a link carries the whole
@@ -33,7 +34,10 @@ function DashboardRoute() {
 
 function PlannerRoute() {
   const [view, setView] = useUrlEnum('view', PLANNER_VIEW_KEYS, 'kanban');
-  return <Planner view={view} onViewChange={setView} />;
+  // The + Create menu opens the planner with ?new=article|social|idea.
+  const [createKind, setCreateKind] = useUrlKey('new', 'replace');
+  const clearCreate = useCallback(() => setCreateKind(null), [setCreateKind]);
+  return <Planner view={view} onViewChange={setView} createKind={createKind} onCreateHandled={clearCreate} />;
 }
 
 function ArticlesRoute() {
@@ -107,10 +111,9 @@ function Shell() {
             <Route path={SCREEN_PATHS.approval} element={<ApprovalRoute />} />
             <Route path={SCREEN_PATHS.reports} element={<ReportsRoute />} />
             <Route path={SCREEN_PATHS.settings} element={<Settings />} />
+            <Route path={SCREEN_PATHS.workflow} element={<Workflow />} />
 
-            {NAV_ITEMS.filter((item) =>
-              (['media', 'workflow'] as const).some((key) => key === item.key),
-            ).map((item) => (
+            {NAV_ITEMS.filter((item) => (['media'] as const).some((key) => key === item.key)).map((item) => (
               <Route
                 key={item.key}
                 path={SCREEN_PATHS[item.key]}

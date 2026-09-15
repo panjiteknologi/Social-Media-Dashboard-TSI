@@ -57,14 +57,6 @@ export type ContentStatus =
   | 'Needs Update'
   | 'Review';
 
-export interface UpcomingItem {
-  date: string;
-  title: string;
-  channel: string;
-  owner: string;
-  status: ContentStatus;
-}
-
 export interface AgentActivity {
   agent: string;
   text: string;
@@ -72,18 +64,6 @@ export interface AgentActivity {
 }
 
 export type Platform = 'Instagram' | 'Facebook' | 'LinkedIn' | 'Article';
-
-export interface KanbanCard {
-  title: string;
-  keyword: string;
-  platform: Platform;
-  due: string;
-}
-
-export interface KanbanColumn {
-  name: string;
-  cards: KanbanCard[];
-}
 
 export interface TopicRecommendation {
   kw: string;
@@ -158,8 +138,3 @@ export interface TimelineStep {
 }
 
 export type ReportPeriod = 'Daily' | 'Weekly' | 'Monthly';
-
-export interface CalendarEntry {
-  title: string;
-  platform: Platform;
-}
