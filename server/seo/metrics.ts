@@ -67,7 +67,7 @@ async function totalsByQuery(db: Db, from: string, to: string): Promise<Map<stri
   return new Map(rows.map(({ key, ...totals }) => [key, totals]));
 }
 
-async function totalsByPage(db: Db, from: string, to: string): Promise<Map<string, Aggregate>> {
+export async function totalsByPage(db: Db, from: string, to: string): Promise<Map<string, Aggregate>> {
   const rows = await db
     .select({
       key: gscPageDaily.page,

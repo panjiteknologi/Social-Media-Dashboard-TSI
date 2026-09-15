@@ -13,6 +13,7 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core';
 import { JOB_RUN_STATUSES, JOB_TRIGGERS, USER_ROLES } from '../../shared/api';
+import type { SeoCheck } from '../../shared/content';
 
 const instant = () => timestamp({ withTimezone: true });
 
@@ -141,4 +142,98 @@ export const gscQueryPageDaily = pgTable(
     ...searchMetrics(),
   },
   (table) => [index('gsc_query_page_daily_date_idx').on(table.date)],
+);
+
+// ---------------------------------------------------------------------------
+// Website content from the CMS database, replaced in full by every CMS sync.
+
+/** The CMS's articles (its blog_posts table), with the CMS's SEO checklist worked out at sync time. */
+export const articles = pgTable('articles', {
+  /** The CMS's id. */
+  id: integer().primaryKey(),
+  slug: text().notNull().unique(),
+  title: text().notNull(),
+  excerpt: text(),
+  /** As the CMS stores it: publish, scheduling or draft. */
+  status: text().notNull(),
+  publishedAt: date({ mode: 'string' }),
+  modifiedAt: date({ mode: 'string' }),
+  authorName: text(),
+  categories: text().array().notNull(),
+  tags: text().array().notNull(),
+  readingTimeMinutes: integer(),
+  seoTitle: text(),
+  seoDescription: text(),
+  seoFocusKeyword: text(),
+  featuredImageUrl: text(),
+  wordCount: integer().notNull(),
+  seoScore: integer().notNull(),
+  seoChecks: jsonb().$type<SeoCheck[]>().notNull(),
+  cmsUpdatedAt: instant().notNull(),
+});
+
+/**
+ * Contact form submissions, without anything that identifies the sender: the
+ * CMS role Content Machine reads with cannot see those columns.
+ */
+export const leads = pgTable(
+  'leads',
+  {
+    /** The CMS's id. */
+    id: integer().primaryKey(),
+    serviceInquiry: text().notNull(),
+    language: text().notNull(),
+    sourcePage: text(),
+    status: text().notNull(),
+    createdAt: instant().notNull(),
+    updatedAt: instant().notNull(),
+  },
+  (table) => [index('leads_created_at_idx').on(table.createdAt)],
+);
+
+// ---------------------------------------------------------------------------
+// Google Analytics 4, per day. Everything is stored per channel so organic
+// search can be told apart from other traffic.
+
+const sessionMetrics = () => ({
+  sessions: integer().notNull(),
+  engagedSessions: integer().notNull(),
+  /** Total engagement time in seconds; divide by sessions for the average. */
+  engagementSeconds: doublePrecision().notNull(),
+});
+
+/** Sessions per day and channel. Traffic totals come from here. */
+export const ga4ChannelDaily = pgTable(
+  'ga4_channel_daily',
+  {
+    date: date({ mode: 'string' }).notNull(),
+    channel: text().notNull(),
+    ...sessionMetrics(),
+  },
+  (table) => [primaryKey({ columns: [table.date, table.channel] })],
+);
+
+/** Sessions per day, landing page and channel: visits that started on each page. */
+export const ga4LandingDaily = pgTable(
+  'ga4_landing_daily',
+  {
+    date: date({ mode: 'string' }).notNull(),
+    landingPage: text().notNull(),
+    channel: text().notNull(),
+    ...sessionMetrics(),
+  },
+  (table) => [primaryKey({ columns: [table.date, table.landingPage, table.channel] })],
+);
+
+/** The website's tracked events (TRACKED_EVENTS) per day, channel and landing page. */
+export const ga4EventDaily = pgTable(
+  'ga4_event_daily',
+  {
+    date: date({ mode: 'string' }).notNull(),
+    eventName: text().notNull(),
+    channel: text().notNull(),
+    landingPage: text().notNull(),
+    eventCount: integer().notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.date, table.eventName, table.channel, table.landingPage] })],
 );

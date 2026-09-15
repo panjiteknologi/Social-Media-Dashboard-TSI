@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
+import { PUBLISHED_WINDOWS } from '../shared/content';
 import { AuthGate } from './components/AuthGate';
 import { Sidebar } from './components/Sidebar';
 import { TopBar } from './components/TopBar';
@@ -40,7 +41,17 @@ function ArticlesRoute() {
   // survives the list being re-sorted or re-filtered.
   const [slug, setSlug] = useUrlKey('article');
   const [tab, setTab] = useUrlEnum('tab', ARTICLE_TABS, 'Overview');
-  return <Articles selectedSlug={slug} onSelect={setSlug} tab={tab} onTabChange={setTab} />;
+  const [published, setPublished] = useUrlEnum('published', PUBLISHED_WINDOWS, 'All');
+  return (
+    <Articles
+      selectedSlug={slug}
+      onSelect={setSlug}
+      tab={tab}
+      onTabChange={setTab}
+      publishedWindow={published}
+      onPublishedWindowChange={setPublished}
+    />
+  );
 }
 
 function SocialRoute() {

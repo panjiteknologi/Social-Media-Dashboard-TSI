@@ -1,10 +1,12 @@
 import { lt } from 'drizzle-orm';
 import { z } from 'zod';
+import { syncAnalytics } from '../analytics/sync';
 import { deleteExpiredSessions } from '../auth/session';
+import { syncCms } from '../cms/sync';
 import type { Db } from '../db/client';
 import { jobRuns, workerHeartbeats } from '../db/schema';
 import type { Env } from '../env';
-import { searchConsoleFromEnv } from '../google/fromEnv';
+import { analyticsFromEnv, searchConsoleFromEnv } from '../google/fromEnv';
 import { createAlerter } from '../notify/telegram';
 import { buildPriorityDigest } from '../seo/digest';
 import { getKeywords } from '../seo/metrics';
@@ -88,6 +90,39 @@ export function createJobs({ db, env }: { db: Db; env: Env }): JobDefinition[] {
           today: todayIn(env.TIMEZONE),
           dataStartDate: settings.dataStartDate,
         });
+      },
+    },
+    {
+      name: 'ga4-sync',
+      description:
+        'Copies Google Analytics 4 sessions by channel and landing page, and the events the website tracks, through yesterday. The last three days are fetched again each morning.',
+      retryLimit: 3,
+      retryDelaySeconds: 600,
+      // 07:00 Jakarta: yesterday is complete by then.
+      schedule: '0 7 * * *',
+      manual: true,
+      async run() {
+        const settings = await getSeoSettings(db);
+        return syncAnalytics({
+          db,
+          client: analyticsFromEnv(env),
+          today: todayIn(env.TIMEZONE),
+          dataStartDate: settings.dataStartDate,
+        });
+      },
+    },
+    {
+      name: 'cms-sync',
+      description:
+        'Copies articles and leads from the CMS database with the read-only role, without any contact details, replacing the previous copy.',
+      retryLimit: 2,
+      retryDelaySeconds: 300,
+      // Hourly, so a lead that arrives in the morning shows up the same morning.
+      schedule: '10 * * * *',
+      manual: true,
+      async run() {
+        if (!env.CMS_DATABASE_URL) throw new Error('CMS_DATABASE_URL is not set in .env.');
+        return syncCms({ db, connectionString: env.CMS_DATABASE_URL });
       },
     },
     {

@@ -1,4 +1,7 @@
+import { Link } from 'react-router-dom';
+import { countPublished, type AnalyticsOverview, type ArticlesResponse } from '../../shared/content';
 import type { SeoKeywords, SeoOverview } from '../../shared/seo';
+import { useAnalyticsOverview, useArticles } from '../api/content';
 import { useSeoKeywords, useSeoOverview } from '../api/seo';
 import { QueryState } from '../components/QueryState';
 import { RangeToggle } from '../components/RangeToggle';
@@ -6,18 +9,14 @@ import { KpiBody, Requires } from '../components/Requires';
 import { ChangeFoot, DataThrough } from '../components/SeoParts';
 import { SeoTrendChart } from '../components/TrendChart';
 import { Card } from '../components/primitives';
-import {
-  AGENT_ACTIVITY,
-  AI_OPPORTUNITIES,
-  DASHBOARD_KPIS,
-  TOP_CONTENT,
-  UPCOMING_CONTENT,
-} from '../data/editorial';
-import { overviewPeriod, type ChartRange } from '../lib/chart';
+import { AGENT_ACTIVITY, AI_OPPORTUNITIES, DASHBOARD_KPIS, UPCOMING_CONTENT } from '../data/editorial';
+import { leadsPeriod, overviewPeriod, trafficPeriod, type ChartRange } from '../lib/chart';
+import { articleHref, periodText } from '../lib/content';
 import {
   countChange,
   displayPage,
   formatNumber,
+  formatPercent,
   formatPosition,
   percentChange,
   type Change,
@@ -32,31 +31,71 @@ import {
 } from '../lib/theme';
 import type { Kpi } from '../types';
 
-/** The two dashboard KPIs Search Console answers; the rest wait for their own sources. */
-function searchKpi(
-  kpi: Kpi,
-  range: ChartRange,
-  overview: SeoOverview | undefined,
-  keywords: SeoKeywords | undefined,
-): { value: string; change: Change | null; period: string } | null {
-  if (kpi.label === 'SEO Visibility') {
-    if (!overview) return { value: '…', change: null, period: '' };
-    const { current, previous } = overview.totals;
-    return {
-      value: formatNumber(current.impressions),
-      change: percentChange(current.impressions, previous?.impressions ?? null),
-      period: `impressions, ${overviewPeriod(overview, range)}`,
-    };
+interface LiveSources {
+  overview: SeoOverview | undefined;
+  keywords: SeoKeywords | undefined;
+  traffic: AnalyticsOverview | undefined;
+  articles: ArticlesResponse | undefined;
+}
+
+interface LiveKpi {
+  value: string;
+  change: Change | null;
+  period: string;
+}
+
+const LOADING: LiveKpi = { value: '…', change: null, period: '' };
+
+const withPeriod = (what: string, period: string): string => [what, period].filter(Boolean).join(', ');
+
+/** The dashboard KPIs real data answers; the rest wait for their own sources. */
+function liveKpi(kpi: Kpi, range: ChartRange, { overview, keywords, traffic, articles }: LiveSources): LiveKpi | null {
+  switch (kpi.label) {
+    case 'Organic Traffic': {
+      if (!traffic) return LOADING;
+      const { current, previous } = traffic.totals;
+      return {
+        value: formatNumber(current.organicSessions),
+        change: percentChange(current.organicSessions, previous?.organicSessions ?? null),
+        period: withPeriod('sessions', trafficPeriod(traffic)),
+      };
+    }
+    case 'SEO Visibility': {
+      if (!overview) return LOADING;
+      const { current, previous } = overview.totals;
+      return {
+        value: formatNumber(current.impressions),
+        change: percentChange(current.impressions, previous?.impressions ?? null),
+        period: `impressions, ${overviewPeriod(overview, range)}`,
+      };
+    }
+    case 'Keywords in Top 10': {
+      if (!keywords) return LOADING;
+      return {
+        value: String(keywords.counts.top10.current),
+        change: countChange(keywords.counts.top10.current, keywords.counts.top10.previous),
+        period: 'last 28 days',
+      };
+    }
+    case 'Website Leads': {
+      if (!traffic) return LOADING;
+      return {
+        value: formatNumber(traffic.leads.current),
+        change: countChange(traffic.leads.current, traffic.leads.previous),
+        period: withPeriod('contact form', leadsPeriod(traffic)),
+      };
+    }
+    case 'Articles Published': {
+      if (!articles) return LOADING;
+      return {
+        value: formatNumber(countPublished(articles.articles, articles.today, 'All').current),
+        change: null,
+        period: 'all articles on the website',
+      };
+    }
+    default:
+      return null;
   }
-  if (kpi.label === 'Keywords in Top 10') {
-    if (!keywords) return { value: '…', change: null, period: '' };
-    return {
-      value: String(keywords.counts.top10.current),
-      change: countChange(keywords.counts.top10.current, keywords.counts.top10.previous),
-      period: 'last 28 days',
-    };
-  }
-  return null;
 }
 
 function KeywordMovements({ data }: { data: SeoKeywords }) {
@@ -125,6 +164,40 @@ function Attention({ data }: { data: SeoKeywords }) {
   );
 }
 
+function TopContent({ data }: { data: ArticlesResponse }) {
+  const top = data.articles
+    .filter((article) => article.search.clicks > 0 || article.traffic.sessions > 0)
+    .sort((a, b) => b.search.clicks - a.search.clicks || b.traffic.sessions - a.traffic.sessions)
+    .slice(0, 3);
+
+  if (top.length === 0) {
+    return <div className="empty-note">No article had search clicks or visits in the last 28 days.</div>;
+  }
+  return (
+    <>
+      {top.map((article) => (
+        <div className="list-row" key={article.slug}>
+          <Link className="list-row__title table-link" to={articleHref(article.slug)}>
+            {article.title}
+          </Link>
+          <div className="list-row__meta">
+            <span>Clicks {formatNumber(article.search.clicks)}</span>
+            <span>Position {formatPosition(article.search.position)}</span>
+            <span>CTR {formatPercent(article.search.ctr)}</span>
+            <span>Sessions {formatNumber(article.traffic.sessions)}</span>
+            <span>Leads {formatNumber(article.traffic.leadEvents)}</span>
+          </div>
+        </div>
+      ))}
+      <div className="seo-caption seo-caption--below">
+        Ranked by search clicks.
+        {data.searchPeriod ? ` Search: ${periodText(data.searchPeriod)}.` : ''}
+        {data.trafficPeriod ? ` Visits: ${periodText(data.trafficPeriod)}.` : ''}
+      </div>
+    </>
+  );
+}
+
 export function Dashboard({
   chartRange,
   onChartRangeChange,
@@ -134,6 +207,15 @@ export function Dashboard({
 }) {
   const overview = useSeoOverview(chartRange);
   const keywords = useSeoKeywords();
+  const traffic = useAnalyticsOverview(chartRange);
+  const articles = useArticles();
+
+  const sources: LiveSources = {
+    overview: overview.data,
+    keywords: keywords.data,
+    traffic: traffic.data,
+    articles: articles.data,
+  };
 
   return (
     <div>
@@ -145,16 +227,16 @@ export function Dashboard({
 
       <div className="kpi-strip kpi-strip--4 mb-32">
         {DASHBOARD_KPIS.map((kpi) => {
-          const search = searchKpi(kpi, chartRange, overview.data, keywords.data);
+          const live = liveKpi(kpi, chartRange, sources);
           return (
             <div className="kpi" key={kpi.label}>
               <div className="kpi__label">{kpi.label}</div>
               <KpiBody
                 capability={kpi.capability}
-                value={search ? search.value : kpi.value}
+                value={live ? live.value : kpi.value}
                 foot={
-                  search ? (
-                    <ChangeFoot change={search.change} period={search.period} />
+                  live ? (
+                    <ChangeFoot change={live.change} period={live.period} />
                   ) : (
                     <div className="kpi__foot">
                       <span className={`kpi__change ${directionClass(kpi.dir)}`}>{changeText(kpi.dir, kpi.change)}</span>
@@ -192,18 +274,8 @@ export function Dashboard({
           <div className="split-2">
             <Card>
               <div className="card-title mb-14">Top Performing Content</div>
-              <Requires capability="ga4">
-                {TOP_CONTENT.map((item) => (
-                  <div className="list-row" key={item.title}>
-                    <div className="list-row__title">{item.title}</div>
-                    <div className="list-row__meta">
-                      <span>Traffic {item.traffic}</span>
-                      <span>Rank {item.pos}</span>
-                      <span>CTR {item.ctr}</span>
-                      <span>Leads {item.leads}</span>
-                    </div>
-                  </div>
-                ))}
+              <Requires capability="articles">
+                <QueryState query={articles}>{(data) => <TopContent data={data} />}</QueryState>
               </Requires>
             </Card>
 

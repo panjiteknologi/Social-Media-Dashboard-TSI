@@ -1,10 +1,6 @@
 import type {
-  AcquisitionChannel,
   ActionItem,
-  AnalyticsKpi,
   CampaignPerformance,
-  ContentPerformanceRow,
-  FunnelStage,
   PlatformPerformance,
   Post,
   SocialSummaryItem,
@@ -56,39 +52,6 @@ export const ACTION_CENTER: ActionItem[] = [
   { priority: 'P2', issue: 'Keyword Cannibalization', kw: 'ISO 27001', action: 'Consolidate landing pages', impact: 'Medium', status: 'In Progress' },
   { priority: 'P2', issue: 'Missing Internal Links', kw: 'ISO 42001', action: 'Add 4 internal links from hub page', impact: 'Medium', status: 'Open' },
   { priority: 'P3', issue: 'Content Outdated', kw: 'ISO 22000', action: 'Update stats and examples', impact: 'Low', status: 'Open' },
-];
-
-export const ANALYTICS_TOP: AnalyticsKpi[] = [
-  { label: 'Organic Sessions', capability: 'ga4', value: '42,180', change: '+14.2%' },
-  { label: 'Social Traffic', capability: 'ga4', value: '8,940', change: '+9.1%' },
-  { label: 'Conversions', capability: 'ga4', value: '612', change: '+11.4%' },
-  { label: 'CTA Clicks', capability: 'ga4', value: '2,340', change: '+6.7%' },
-  { label: 'Leads', capability: 'ga4', value: '386', change: '+9.2%' },
-  { label: 'Content Engagement', capability: 'ga4', value: '6.8 min', change: '+3.4%' },
-];
-
-export const ACQUISITION: AcquisitionChannel[] = [
-  { label: 'Organic Search', pct: 58, color: '#0F2747' },
-  { label: 'Direct', pct: 19, color: '#2D6CDF' },
-  { label: 'Social', pct: 15, color: '#7BA6ED' },
-  { label: 'Referral', pct: 8, color: '#B7C0CC' },
-];
-
-export const CONTENT_PERFORMANCE: ContentPerformanceRow[] = [
-  { title: 'ISO 27001 Certification: Complete Guide', traffic: '4,820', engagement: '5.2 min', rank: '#5', conv: '3.4%', leads: 42, trend: 'up' },
-  { title: 'ISO 9001 vs ISO 14001', traffic: '3,910', engagement: '4.6 min', rank: '#7', conv: '2.9%', leads: 31, trend: 'up' },
-  { title: 'ISO Certification Cost Breakdown', traffic: '3,140', engagement: '3.1 min', rank: '#9', conv: '1.8%', leads: 18, trend: 'down' },
-  { title: 'ISO 37001 Anti Bribery Certification', traffic: '3,020', engagement: '4.9 min', rank: '#6', conv: '2.6%', leads: 22, trend: 'up' },
-];
-
-export const FUNNEL: FunnelStage[] = [
-  { label: 'Search Impression', value: '210,400' },
-  { label: 'Search Click', value: '12,840' },
-  { label: 'Landing Page', value: '11,920' },
-  { label: 'Engaged Session', value: '7,240' },
-  { label: 'CTA Click', value: '2,340' },
-  { label: 'Form / WhatsApp', value: '890' },
-  { label: 'Lead', value: '386' },
 ];
 
 export const SOCIAL_PERFORMANCE: PlatformPerformance[] = [

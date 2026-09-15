@@ -11,7 +11,25 @@ export const formatPercent = (ratio: number | null, digits = 1): string =>
 export const formatPosition = (position: number | null): string =>
   position === null ? '—' : position.toFixed(1);
 
-export { formatDate } from '../../shared/seo';
+import { formatDate } from '../../shared/seo';
+
+export { formatDate };
+
+/** Seconds as "3m 05s", or "42s" under a minute; a dash when there is nothing to show. */
+export function formatDuration(seconds: number | null): string {
+  if (seconds === null || !Number.isFinite(seconds)) return '—';
+  const whole = Math.round(seconds);
+  if (whole < 60) return `${whole}s`;
+  return `${Math.floor(whole / 60)}m ${String(whole % 60).padStart(2, '0')}s`;
+}
+
+/** A timestamp in the viewer's local time: "15 Sep, 14:10". */
+export function formatDateTime(iso: string): string {
+  const date = new Date(iso);
+  const pad = (value: number) => String(value).padStart(2, '0');
+  const day = `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+  return `${formatDate(day, false)}, ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
 
 export interface Change {
   text: string;

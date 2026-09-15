@@ -1,0 +1,141 @@
+/* Articles and Analytics screens. */
+
+.content-caption {
+  padding: 0 20px 14px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.card--table-wide .content-caption {
+  padding: 0 0 12px;
+}
+
+.seo-score {
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.seo-score--good {
+  color: var(--green);
+}
+
+.seo-score--poor {
+  color: var(--red);
+}
+
+.published-toggle {
+  display: inline-flex;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.btn--page:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.articles-table tbody tr:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: -2px;
+}
+
+.table-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.table-link:hover,
+.table-link:focus-visible {
+  text-decoration: underline;
+}
+
+.list-row .table-link {
+  display: block;
+}
+
+/* Article drawer */
+
+.drawer-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.drawer-note {
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.drawer-section-title {
+  margin: 26px 0 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.drawer-section-title:first-child {
+  margin-top: 0;
+}
+
+.metric-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.drawer-table {
+  margin-top: 14px;
+}
+
+.drawer__link {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.check-list {
+  display: grid;
+  gap: 10px;
+  margin: 18px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.check-row {
+  display: grid;
+  grid-template-columns: 18px 1fr;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.check-row__mark {
+  font-weight: 700;
+}
+
+.check-row__mark--pass {
+  color: var(--green);
+}
+
+.check-row__mark--fail {
+  color: var(--red);
+}
+
+.check-row__note {
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--faint);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}

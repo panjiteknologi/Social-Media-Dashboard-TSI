@@ -43,15 +43,20 @@ export interface SyncPlan {
 export function planSync(input: {
   lastSyncedDate: string | null;
   coveredFrom: string | null;
+  /** Last day to fetch. */
   today: string;
   dataStartDate: string;
+  historyDays?: number;
+  refetchDays?: number;
 }): SyncPlan {
-  const earliest = laterOf(input.dataStartDate, addDays(input.today, -SEARCH_CONSOLE_HISTORY_DAYS));
+  const historyDays = input.historyDays ?? SEARCH_CONSOLE_HISTORY_DAYS;
+  const refetchDays = input.refetchDays ?? REFETCH_DAYS;
+  const earliest = laterOf(input.dataStartDate, addDays(input.today, -historyDays));
   if (!input.lastSyncedDate || !input.coveredFrom || input.coveredFrom > earliest) {
     return { startDate: earliest, endDate: input.today, full: true };
   }
   return {
-    startDate: laterOf(earliest, addDays(input.lastSyncedDate, -(REFETCH_DAYS - 1))),
+    startDate: laterOf(earliest, addDays(input.lastSyncedDate, -(refetchDays - 1))),
     endDate: input.today,
     full: false,
   };
@@ -66,13 +71,15 @@ export function chunkDates(start: string, end: string, size: number): Array<{ st
   return chunks;
 }
 
-function batches<T>(rows: T[]): T[][] {
+/** Rows split into groups small enough for one insert statement. */
+export function batches<T>(rows: T[]): T[][] {
   const result: T[][] = [];
   for (let i = 0; i < rows.length; i += INSERT_BATCH) result.push(rows.slice(i, i + INSERT_BATCH));
   return result;
 }
 
-const cut = (value: string): string => (value.length > MAX_KEY_LENGTH ? value.slice(0, MAX_KEY_LENGTH) : value);
+/** A key cut to a length Postgres can index. */
+export const cut = (value: string): string => (value.length > MAX_KEY_LENGTH ? value.slice(0, MAX_KEY_LENGTH) : value);
 
 const metrics = (row: SearchAnalyticsRow) => ({
   clicks: row.clicks,

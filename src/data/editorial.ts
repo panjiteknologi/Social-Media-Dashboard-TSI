@@ -1,13 +1,10 @@
 import type {
   AgentActivity,
   AiOpportunity,
-  Article,
   CalendarEntry,
-  HistoryEntry,
   KanbanColumn,
   Kpi,
   NavItem,
-  TopContent,
   TopicRecommendation,
   UpcomingItem,
 } from '../types';
@@ -27,15 +24,15 @@ export const NAV_ITEMS: NavItem[] = [
 ];
 
 /**
- * Dashboard KPIs. "SEO Visibility" and "Keywords in Top 10" render live search
+ * Dashboard KPIs. Traffic, search, leads and published articles render live
  * data; the rest keep sample values that show only once their source is live.
  */
 export const DASHBOARD_KPIS: Kpi[] = [
-  { label: 'Organic Traffic', capability: 'ga4', value: '28,421', change: '+18.4%', dir: 'up', period: 'vs previous period' },
+  { label: 'Organic Traffic', capability: 'ga4', value: '', change: '', dir: 'flat' },
   { label: 'SEO Visibility', capability: 'gsc', value: '', change: '', dir: 'flat' },
   { label: 'Keywords in Top 10', capability: 'gsc', value: '', change: '', dir: 'flat' },
-  { label: 'Organic Leads', capability: 'ga4', value: '386', change: '+9.2%', dir: 'up', period: 'vs previous period' },
-  { label: 'Articles Published', capability: 'articles', value: '58', change: '+4', dir: 'up', period: 'this quarter' },
+  { label: 'Website Leads', capability: 'leads', value: '', change: '', dir: 'flat' },
+  { label: 'Articles Published', capability: 'articles', value: '', change: '', dir: 'flat' },
   { label: 'Scheduled Content', capability: 'content', value: '23', change: '—', dir: 'flat', period: 'next 14 days' },
   { label: 'Social Engagement', capability: 'meta', value: '12.4K', change: '+7.8%', dir: 'up', period: 'vs previous period' },
   { label: 'Pending Approvals', capability: 'content', value: '9', change: '+3', dir: 'up', period: 'awaiting review' },
@@ -74,12 +71,6 @@ export const AI_OPPORTUNITIES: AiOpportunity[] = [
     action: 'Rewrite meta title and description.',
     cta: 'Review Opportunity',
   },
-];
-
-export const TOP_CONTENT: TopContent[] = [
-  { title: 'ISO 27001 Certification: Complete Guide', traffic: '4,820', pos: '#5', ctr: '6.2%', leads: 42, trend: 'up' },
-  { title: 'ISO 9001 vs ISO 14001: Key Differences', traffic: '3,910', pos: '#7', ctr: '5.4%', leads: 31, trend: 'up' },
-  { title: 'How Much Does ISO Certification Cost', traffic: '3,140', pos: '#9', ctr: '3.1%', leads: 18, trend: 'down' },
 ];
 
 export const UPCOMING_CONTENT: UpcomingItem[] = [
@@ -141,175 +132,6 @@ export const TOPIC_RECOMMENDATIONS: TopicRecommendation[] = [
   { kw: 'ISO 45001 Manufacturing', score: 81, intent: 'Commercial', relevance: 'Medium', type: 'Case study article.', cta: 'Create Content Brief' },
 ];
 
-export const ARTICLES: Article[] = [
-  {
-    title: 'ISO 27001 Certification: Complete Guide',
-    kw: 'ISO 27001 certification',
-    cluster: 'Information Security',
-    status: 'Published',
-    author: 'Nadia R.',
-    seo: 92,
-    rank: '#5',
-    traffic: '4,820',
-    leads: 42,
-    date: '12 Jul 2026',
-    url: '/article/iso-27001-certification',
-    secondaryKw: 'ISO 27001 requirements, ISMS implementation',
-    summary:
-      'A comprehensive guide covering ISO 27001 requirements, implementation steps and certification timeline for Indonesian organizations.',
-  },
-  {
-    title: 'ISO 9001 Certification Requirements',
-    kw: 'ISO 9001 requirements',
-    cluster: 'Quality Management',
-    status: 'Published',
-    author: 'Bagus P.',
-    seo: 74,
-    rank: '#11',
-    traffic: '2,140',
-    leads: 14,
-    date: '03 Jun 2026',
-    url: '/article/iso-9001-certification',
-    secondaryKw: 'QMS documentation, ISO 9001 clauses',
-    summary:
-      'Overview of ISO 9001:2015 clause requirements and the documentation an organization needs before audit.',
-  },
-  {
-    title: 'ISO 42001 AI Management Explained',
-    kw: 'ISO 42001 requirements',
-    cluster: 'AI Governance',
-    status: 'In Review',
-    author: 'Nadia R.',
-    seo: 81,
-    rank: '#14',
-    traffic: '—',
-    leads: 0,
-    date: '22 Aug 2026',
-    url: '/article/iso-42001-ai-management',
-    secondaryKw: 'AI management system, AI governance Indonesia',
-    summary:
-      'Explains the AI Management System requirements under ISO 42001 and why it matters for AI governance in Indonesia.',
-  },
-  {
-    title: 'ISO 14001 Renewal Checklist',
-    kw: 'ISO 14001 renewal',
-    cluster: 'Environmental',
-    status: 'Draft',
-    author: 'Nadia R.',
-    seo: '—',
-    rank: '—',
-    traffic: '—',
-    leads: 0,
-    date: '25 Aug 2026',
-    url: '/article/iso-14001-renewal',
-    secondaryKw: 'EMS recertification, environmental audit',
-    summary: 'A step-by-step checklist for organizations preparing to renew their ISO 14001 certification.',
-  },
-  {
-    title: 'ISO 45001 for Manufacturing',
-    kw: 'ISO 45001 manufacturing',
-    cluster: 'Occupational Safety',
-    status: 'Scheduled',
-    author: 'Bagus P.',
-    seo: 86,
-    rank: '#9',
-    traffic: '—',
-    leads: 0,
-    date: '28 Aug 2026',
-    url: '/article/iso-45001-manufacturing',
-    secondaryKw: 'OH&S management system, workplace safety',
-    summary:
-      'How manufacturing companies can implement ISO 45001 to reduce workplace incidents and pass certification audits.',
-  },
-  {
-    title: 'ISO 37001 Anti Bribery Certification',
-    kw: 'ISO 37001 anti bribery',
-    cluster: 'Governance',
-    status: 'Published',
-    author: 'Dewi A.',
-    seo: 88,
-    rank: '#6',
-    traffic: '3,020',
-    leads: 22,
-    date: '18 May 2026',
-    url: '/article/iso-37001-anti-bribery',
-    secondaryKw: 'anti-bribery management system, SMAP',
-    summary:
-      'Covers the anti-bribery management system requirements of ISO 37001 and its relevance for public-facing companies.',
-  },
-  {
-    title: 'ISO Certification Cost Breakdown',
-    kw: 'ISO certification cost',
-    cluster: 'Quality Management',
-    status: 'Needs Update',
-    author: 'Bagus P.',
-    seo: 63,
-    rank: '#9',
-    traffic: '3,140',
-    leads: 18,
-    date: '02 Feb 2026',
-    url: '/article/iso-certification-cost',
-    secondaryKw: 'certification body fees, audit mandays',
-    summary:
-      'Breaks down the cost factors of ISO certification including audit mandays, certification body fees and company size.',
-  },
-  {
-    title: 'ISO 22000 Food Safety Guide',
-    kw: 'ISO 22000 food safety',
-    cluster: 'Food Safety',
-    status: 'Needs Update',
-    author: 'Dewi A.',
-    seo: 58,
-    rank: '#19',
-    traffic: '980',
-    leads: 6,
-    date: '14 Jan 2026',
-    url: '/article/iso-22000-food-safety',
-    secondaryKw: 'FSMS, HACCP Indonesia',
-    summary:
-      'Introduces the ISO 22000 Food Safety Management System and its relationship with HACCP requirements.',
-  },
-  {
-    title: 'ISO 27001 Implementation Steps',
-    kw: 'ISO 27001 implementation',
-    cluster: 'Information Security',
-    status: 'Published',
-    author: 'Nadia R.',
-    seo: 79,
-    rank: '#12',
-    traffic: '1,860',
-    leads: 11,
-    date: '29 Apr 2026',
-    url: '/article/iso-27001-implementation',
-    secondaryKw: 'risk assessment ISO 27001, ISMS rollout',
-    summary:
-      'A practical walkthrough of the implementation steps required before an ISO 27001 certification audit.',
-  },
-  {
-    title: 'ISO 9001 vs ISO 14001',
-    kw: 'ISO 9001 vs ISO 14001',
-    cluster: 'Quality Management',
-    status: 'Published',
-    author: 'Bagus P.',
-    seo: 84,
-    rank: '#7',
-    traffic: '3,910',
-    leads: 31,
-    date: '20 Mar 2026',
-    url: '/article/iso-9001-vs-iso-14001',
-    secondaryKw: 'integrated management system, IMS',
-    summary:
-      'Compares the scope and clause structure of ISO 9001 and ISO 14001 for companies considering an integrated management system.',
-  },
-];
-
 export const ARTICLE_TABS = ['Overview', 'SEO', 'Social', 'Analytics', 'History'] as const;
 
 export type ArticleTab = (typeof ARTICLE_TABS)[number];
-
-export const ARTICLE_HISTORY: HistoryEntry[] = [
-  { text: 'Draft generated by Content Agent', time: 'Aug 20, 09:14' },
-  { text: 'AI QA and SEO review completed', time: 'Aug 20, 10:05' },
-  { text: 'Submitted for approval', time: 'Aug 20, 10:06' },
-  { text: 'Approved by Marketing Manager', time: 'Aug 20, 15:40' },
-];

@@ -22,6 +22,7 @@ const DEFINITIONS = {
   gsc: { label: 'Google Search Console', kind: 'integration', milestone: 'M2' },
   ga4: { label: 'Google Analytics 4', kind: 'integration', milestone: 'M3' },
   articles: { label: 'Article inventory', kind: 'feature', milestone: 'M3' },
+  leads: { label: 'CMS leads', kind: 'integration', milestone: 'M3' },
   technicalSeo: { label: 'Technical SEO checks', kind: 'feature', milestone: 'M4' },
   seoActions: { label: 'SEO Action Center', kind: 'feature', milestone: 'M4' },
   reports: { label: 'Automated reports', kind: 'feature', milestone: 'M4' },

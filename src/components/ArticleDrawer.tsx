@@ -1,31 +1,167 @@
 import { useEffect } from 'react';
-import { ARTICLE_HISTORY, ARTICLE_TABS, type ArticleTab } from '../data/editorial';
+import type { ArticleRow, ArticlesResponse } from '../../shared/content';
+import { ARTICLE_TABS, type ArticleTab } from '../data/editorial';
+import { periodText, seoScoreClass } from '../lib/content';
+import { formatDate, formatDuration, formatNumber, formatPercent, formatPosition } from '../lib/format';
 import { statusTone } from '../lib/theme';
-import type { Article } from '../types';
+import { Requires } from './Requires';
 import { Bar, Chip, Field } from './primitives';
 
-/** Quality bars shown on the SEO tab. Only the SEO score varies per article. */
-function qualityScores(article: Article) {
-  return [
-    {
-      label: 'SEO Score',
-      value: article.seo,
-      pct: typeof article.seo === 'number' ? article.seo : 0,
-    },
-    { label: 'Readability', value: 88, pct: 88 },
-    { label: 'Brand Compliance', value: 95, pct: 95 },
-    { label: 'Content Completeness', value: 90, pct: 90 },
-    { label: 'Internal Linking', value: 72, pct: 72 },
-  ];
+const listOrDash = (values: string[]): string => (values.length > 0 ? values.join(', ') : '—');
+
+function OverviewTab({ article }: { article: ArticleRow }) {
+  return (
+    <div className="drawer-stack">
+      <div>
+        <div className="field-label">STATUS</div>
+        <div style={{ marginTop: 4 }}>
+          <Chip tone={statusTone(article.status)}>{article.status}</Chip>
+        </div>
+      </div>
+      <Field label="FOCUS KEYWORD">{article.focusKeyword ?? 'Not set in the CMS'}</Field>
+      <Field label="CLUSTER">{article.cluster}</Field>
+      <Field label="CATEGORIES">{listOrDash(article.categories)}</Field>
+      <Field label="TAGS">{listOrDash(article.tags)}</Field>
+      <Field label="AUTHOR">{article.authorName ?? '—'}</Field>
+      <Field label="PUBLISHED">{article.publishedAt ? formatDate(article.publishedAt) : '—'}</Field>
+      <Field label="LAST MODIFIED">{article.modifiedAt ? formatDate(article.modifiedAt) : '—'}</Field>
+      <Field label="LENGTH">
+        {formatNumber(article.wordCount)} words
+        {article.readingTimeMinutes ? `, ${article.readingTimeMinutes} min read` : ''}
+      </Field>
+      {article.excerpt ? (
+        <Field label="EXCERPT" variant="body">
+          {article.excerpt}
+        </Field>
+      ) : null}
+    </div>
+  );
+}
+
+function SeoTab({ article }: { article: ArticleRow }) {
+  const passed = article.seoChecks.filter((check) => check.passed).length;
+  return (
+    <div>
+      <div className="score-row">
+        <span>SEO checklist</span>
+        <strong className={seoScoreClass(article.seoScore)}>{article.seoScore}</strong>
+      </div>
+      <Bar size="thin" pct={article.seoScore} />
+      <div className="drawer-note">
+        {passed} of {article.seoChecks.length} checks pass. This is the checklist editors see in the CMS.
+      </div>
+      <ul className="check-list">
+        {article.seoChecks.map((check) => (
+          <li className="check-row" key={check.label}>
+            <span
+              className={`check-row__mark ${check.passed ? 'check-row__mark--pass' : 'check-row__mark--fail'}`}
+              aria-hidden="true"
+            >
+              {check.passed ? '✓' : '✕'}
+            </span>
+            <div>
+              <span className="sr-only">{check.passed ? 'Passes: ' : 'Fails: '}</span>
+              {check.label}
+              <div className="check-row__note">{check.note}</div>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function AnalyticsTab({ article, data }: { article: ArticleRow; data: ArticlesResponse }) {
+  const { search, traffic } = article;
+  return (
+    <div>
+      <div className="drawer-section-title">
+        Search{data.searchPeriod ? `, ${periodText(data.searchPeriod)}` : ''}
+      </div>
+      <Requires capability="gsc">
+        <div className="metric-grid">
+          <Field label="CLICKS" variant="metric">
+            {formatNumber(search.clicks)}
+          </Field>
+          <Field label="IMPRESSIONS" variant="metric">
+            {formatNumber(search.impressions)}
+          </Field>
+          <Field label="AVG. POSITION" variant="metric">
+            {formatPosition(search.position)}
+          </Field>
+          <Field label="CTR" variant="metric">
+            {formatPercent(search.ctr)}
+          </Field>
+        </div>
+        {search.previousClicks !== null ? (
+          <div className="drawer-note">
+            The 28 days before: {formatNumber(search.previousClicks)} clicks, position{' '}
+            {formatPosition(search.previousPosition)}.
+          </div>
+        ) : null}
+        {search.topQueries.length > 0 ? (
+          <div className="table-scroll drawer-table">
+            <table className="data-table data-table--compact">
+              <thead>
+                <tr>
+                  <th>QUERY</th>
+                  <th>CLICKS</th>
+                  <th>IMPR.</th>
+                  <th>POS.</th>
+                </tr>
+              </thead>
+              <tbody>
+                {search.topQueries.map((row) => (
+                  <tr key={row.query}>
+                    <td className="cell-strong">{row.query}</td>
+                    <td className="cell-text">{formatNumber(row.clicks)}</td>
+                    <td className="cell-text">{formatNumber(row.impressions)}</td>
+                    <td className="cell-text">{formatPosition(row.position)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="drawer-note">Google reported no search query for this article in these days.</div>
+        )}
+      </Requires>
+
+      <div className="drawer-section-title">
+        Visits{data.trafficPeriod ? `, ${periodText(data.trafficPeriod)}` : ''}
+      </div>
+      <Requires capability="ga4">
+        <div className="metric-grid">
+          <Field label="SESSIONS" variant="metric">
+            {formatNumber(traffic.sessions)}
+          </Field>
+          <Field label="FROM ORGANIC SEARCH" variant="metric">
+            {formatNumber(traffic.organicSessions)}
+          </Field>
+          <Field label="AVG. ENGAGEMENT" variant="metric">
+            {formatDuration(traffic.sessions ? traffic.engagementSeconds / traffic.sessions : null)}
+          </Field>
+          <Field label="LEADS" variant="metric">
+            {formatNumber(traffic.leadEvents)}
+          </Field>
+        </div>
+        <div className="drawer-note">
+          Visits that started on this article. Leads are GA4 lead events during those visits.
+        </div>
+      </Requires>
+    </div>
+  );
 }
 
 export function ArticleDrawer({
   article,
+  data,
   tab,
   onTabChange,
   onClose,
 }: {
-  article: Article;
+  article: ArticleRow;
+  data: ArticlesResponse;
   tab: ArticleTab;
   onTabChange: (tab: ArticleTab) => void;
   onClose: () => void;
@@ -50,7 +186,7 @@ export function ArticleDrawer({
         <div className="drawer__head">
           <div>
             <div className="drawer__title">{article.title}</div>
-            <div className="drawer__url">tsicertification.com{article.url}</div>
+            <div className="drawer__url">{article.url.replace(/^https:\/\//, '')}</div>
           </div>
           <button type="button" className="drawer__close" onClick={onClose} aria-label="Close">
             ✕
@@ -73,86 +209,25 @@ export function ArticleDrawer({
         </div>
 
         <div className="drawer__body" role="tabpanel">
-          {tab === 'Overview' ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <div>
-                <div className="field-label">STATUS</div>
-                <div style={{ marginTop: 4 }}>
-                  <Chip tone={statusTone(article.status)}>{article.status}</Chip>
-                </div>
-              </div>
-              <Field label="PRIMARY KEYWORD">{article.kw}</Field>
-              <Field label="SECONDARY KEYWORDS">{article.secondaryKw}</Field>
-              <Field label="AUTHOR">{article.author}</Field>
-              <Field label="PUBLISH DATE">{article.date}</Field>
-              <Field label="AI SUMMARY" variant="body">
-                {article.summary}
-              </Field>
-            </div>
-          ) : null}
-
-          {tab === 'SEO' ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              {qualityScores(article).map((score) => (
-                <div key={score.label}>
-                  <div className="score-row">
-                    <span>{score.label}</span>
-                    <strong>{score.value}</strong>
-                  </div>
-                  <Bar size="thin" pct={score.pct} />
-                </div>
-              ))}
-            </div>
-          ) : null}
-
+          {tab === 'Overview' ? <OverviewTab article={article} /> : null}
+          {tab === 'SEO' ? <SeoTab article={article} /> : null}
           {tab === 'Social' ? (
-            <div className="empty-note">
-              No linked social posts have been generated from this article yet.
-            </div>
+            <Requires capability="meta">
+              <div className="empty-note">No social posts are linked to this article yet.</div>
+            </Requires>
           ) : null}
-
-          {tab === 'Analytics' ? (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-              <Field label="TRAFFIC" variant="metric">
-                {article.traffic}
-              </Field>
-              <Field label="RANKING" variant="metric">
-                {article.rank}
-              </Field>
-              <Field label="LEADS" variant="metric">
-                {article.leads}
-              </Field>
-              <Field label="SEO SCORE" variant="metric">
-                {article.seo}
-              </Field>
-            </div>
-          ) : null}
-
+          {tab === 'Analytics' ? <AnalyticsTab article={article} data={data} /> : null}
           {tab === 'History' ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {ARTICLE_HISTORY.map((entry) => (
-                <div className="timeline-entry" key={entry.text}>
-                  <div className="timeline-entry__dot" />
-                  <div>
-                    <div className="timeline-entry__text">{entry.text}</div>
-                    <div className="timeline-entry__time">{entry.time}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <Requires capability="content">
+              <div className="empty-note">No workflow history for this article yet.</div>
+            </Requires>
           ) : null}
         </div>
 
         <div className="drawer__foot">
-          <button type="button" className="btn--ghost">
-            Edit
-          </button>
-          <button type="button" className="btn--ghost">
-            Generate Revision
-          </button>
-          <button type="button" className="btn--dark">
-            Send for Approval
-          </button>
+          <a className="btn--dark drawer__link" href={article.url} target="_blank" rel="noreferrer">
+            View on website ↗
+          </a>
         </div>
       </aside>
     </div>

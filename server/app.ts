@@ -1,4 +1,4 @@
-import { desc } from 'drizzle-orm';
+import { desc, eq } from 'drizzle-orm';
 import { Hono } from 'hono';
 import { csrf } from 'hono/csrf';
 import { HTTPException } from 'hono/http-exception';
@@ -6,10 +6,12 @@ import type { PgBoss } from 'pg-boss';
 import { z } from 'zod';
 import type { JobRun } from '../shared/api';
 import { resolveCapabilityStates, type CapabilityKey } from '../shared/capabilities';
-import { CHART_RANGES } from '../shared/seo';
+import { CHART_RANGES, type ChartRange } from '../shared/seo';
 import { authRoutes } from './auth/routes';
+import { CMS_SYNC_STATE_KEY } from './cms/sync';
+import { getAnalyticsOverview, getArticles } from './content/metrics';
 import type { Db } from './db/client';
-import { gscDaily, jobRuns } from './db/schema';
+import { appSettings, ga4ChannelDaily, gscDaily, jobRuns } from './db/schema';
 import type { Env } from './env';
 import { loadSession, requireRole, type AppEnv } from './http';
 import type { JobDefinition, JobEnvelope } from './jobs/job';
@@ -23,14 +25,27 @@ export interface AppDeps {
   jobs: JobDefinition[];
 }
 
+const rangeParam = (value: string | undefined, fallback: ChartRange): ChartRange =>
+  CHART_RANGES.find((candidate) => candidate === value) ?? fallback;
+
 export function createApp({ db, env, boss, jobs }: AppDeps) {
   const secure = env.NODE_ENV === 'production';
 
   /** A capability is live once its data exists, not merely once it is configured. */
   async function liveCapabilities(): Promise<Set<CapabilityKey>> {
+    const [[searchData], [trafficData], [cmsSync]] = await Promise.all([
+      db.select({ date: gscDaily.date }).from(gscDaily).limit(1),
+      db.select({ date: ga4ChannelDaily.date }).from(ga4ChannelDaily).limit(1),
+      db.select({ key: appSettings.key }).from(appSettings).where(eq(appSettings.key, CMS_SYNC_STATE_KEY)).limit(1),
+    ]);
     const live = new Set<CapabilityKey>();
-    const [searchData] = await db.select({ date: gscDaily.date }).from(gscDaily).limit(1);
     if (searchData) live.add('gsc');
+    if (trafficData) live.add('ga4');
+    // A finished CMS sync makes both live, even with no leads yet: zero is a real count.
+    if (cmsSync) {
+      live.add('articles');
+      live.add('leads');
+    }
     return live;
   }
 
@@ -44,10 +59,17 @@ export function createApp({ db, env, boss, jobs }: AppDeps) {
       c.json(resolveCapabilityStates(await liveCapabilities())),
     )
     .get('/seo/overview', requireRole(), async (c) => {
-      const range = CHART_RANGES.find((candidate) => candidate === c.req.query('range')) ?? '90D';
+      const range = rangeParam(c.req.query('range'), '90D');
       return c.json(await getOverview(db, range, await getSeoSettings(db)));
     })
     .get('/seo/keywords', requireRole(), async (c) => c.json(await getKeywords(db, await getSeoSettings(db))))
+    .get('/articles', requireRole(), async (c) =>
+      c.json(await getArticles(db, await getSeoSettings(db), env.TIMEZONE)),
+    )
+    .get('/analytics/overview', requireRole(), async (c) => {
+      const range = rangeParam(c.req.query('range'), '30D');
+      return c.json(await getAnalyticsOverview(db, range, await getSeoSettings(db), env.TIMEZONE));
+    })
     .get('/settings/seo', requireRole(), async (c) => c.json(await getSeoSettings(db)))
     .post('/settings/seo', requireRole('admin'), async (c) => {
       const parsed = SeoSettingsSchema.safeParse(await c.req.json().catch(() => null));

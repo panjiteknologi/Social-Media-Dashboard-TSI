@@ -19,12 +19,3 @@ export const SCREEN_PATHS: Record<ScreenKey, string> = {
   workflow: '/workflow',
   settings: '/settings',
 };
-
-/**
- * The URL-addressable key for an article, taken from its published path.
- *
- * Using the slug rather than a row index keeps a shared link pointing at the
- * same article after the table is re-sorted or the list grows.
- */
-export const articleSlug = (article: { url: string }): string =>
-  article.url.split('/').filter(Boolean).pop() ?? article.url;

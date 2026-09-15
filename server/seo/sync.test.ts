@@ -26,6 +26,12 @@ describe('planSync', () => {
     ).toBe(true);
   });
 
+  it('refetches fewer recent days when asked, as the GA4 sync does', () => {
+    expect(
+      planSync({ ...base, lastSyncedDate: '2026-09-14', coveredFrom: '2026-05-07', refetchDays: 3 }).startDate,
+    ).toBe('2026-09-12');
+  });
+
   it('never asks for more history than Search Console keeps', () => {
     expect(
       planSync({ ...base, dataStartDate: '2020-01-01', lastSyncedDate: null, coveredFrom: null }).startDate,

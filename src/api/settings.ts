@@ -15,8 +15,9 @@ export function useSaveSeoSettings() {
     mutationFn: (settings: SeoSettings) => apiPost<SeoSettings>('/settings/seo', settings),
     onSuccess: (saved) => {
       queryClient.setQueryData(['settings', 'seo'], saved);
-      // Every SEO number depends on these settings.
+      // Every SEO number, and the article and traffic numbers joined with it, depends on these settings.
       void queryClient.invalidateQueries({ queryKey: ['seo'] });
+      void queryClient.invalidateQueries({ queryKey: ['content'] });
     },
   });
 }

@@ -49,15 +49,6 @@ export interface AiOpportunity {
   cta: string;
 }
 
-export interface TopContent {
-  title: string;
-  traffic: string;
-  pos: string;
-  ctr: string;
-  leads: number;
-  trend: 'up' | 'down';
-}
-
 export type ContentStatus =
   | 'Published'
   | 'In Review'
@@ -103,22 +94,6 @@ export interface TopicRecommendation {
   cta: string;
 }
 
-export interface Article {
-  title: string;
-  kw: string;
-  cluster: string;
-  status: ContentStatus;
-  author: string;
-  seo: number | Blank;
-  rank: string;
-  traffic: string;
-  leads: number;
-  date: string;
-  url: string;
-  secondaryKw: string;
-  summary: string;
-}
-
 export interface SocialSummaryItem {
   label: string;
   capability: CapabilityKey;
@@ -156,34 +131,6 @@ export interface ActionItem {
   action: string;
   impact: string;
   status: 'Open' | 'In Progress';
-}
-
-export interface AnalyticsKpi {
-  label: string;
-  capability: CapabilityKey;
-  value: string;
-  change: string;
-}
-
-export interface AcquisitionChannel {
-  label: string;
-  pct: number;
-  color: string;
-}
-
-export interface ContentPerformanceRow {
-  title: string;
-  traffic: string;
-  engagement: string;
-  rank: string;
-  conv: string;
-  leads: number;
-  trend: 'up' | 'down';
-}
-
-export interface FunnelStage {
-  label: string;
-  value: string;
 }
 
 export interface PlatformPerformance {
@@ -234,11 +181,6 @@ export interface ReportCard {
   telegram: boolean;
   whatsapp: boolean;
   email: boolean;
-}
-
-export interface HistoryEntry {
-  text: string;
-  time: string;
 }
 
 export interface CalendarEntry {

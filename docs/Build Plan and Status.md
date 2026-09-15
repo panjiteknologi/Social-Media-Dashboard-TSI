@@ -19,17 +19,17 @@ Dokumen ini adalah acuan tunggal untuk urutan pembangunan, status setiap bagian,
 | **M1 lokal:** backend, database, migrasi, login Google, peran pengguna, kerangka job, peringatan, CLI | **Selesai dan diuji end-to-end di lokal** (13 September 2026) |
 | **M1 deploy:** Docker Compose, VPS, HTTPS, backup harian | Menunggu VPS dan subdomain |
 | **M2: data SEO dari Search Console** | **Selesai dibangun (15 September 2026):** sync harian, metrik, SEO Intelligence, bagian SEO di Dashboard, Settings SEO, dan peringatan Telegram mingguan. Menunggu tim mengecek tampilan dan mengisi keyword prioritas |
-| Integrasi GA4, CMS, Meta, dan AI | Belum dimulai |
+| Integrasi GA4, CMS, Meta, dan AI | GA4 dan CMS tersinkron otomatis, M3 selesai dibangun (15 September). Meta dan AI belum dimulai |
 
 ### Akses dan integrasi
 
 | Integrasi | Fungsi | Milestone | Status |
 |---|---|---|---|
 | Google Search Console | Keyword, posisi, klik, impressions | M2 | **Terhubung (14 September).** Properti Domain `sc-domain:tsicertification.com`. Service account `content-machine-reader` punya akses Restricted, dan uji API berhasil. Pembatasan pembuatan key sempat dibuka khusus untuk project ini |
-| Google Analytics 4 | Sessions, konversi, leads | M3 | **Tracking aktif dan API terhubung (14 September).** Property ID `495912713`, service account punya akses Viewer. GTM `GTM-WK2MV5GL` dipublikasikan dengan Google tag `G-T03867G3VG` dan tag GA4 Event untuk `generate_lead`, `form_submit`, `whatsapp_click`, `cta_click`, `share`, `contact_click`. Custom dimension sudah dibuat, dan `generate_lead` sudah menjadi key event (15 September). Form interactions di Enhanced measurement sudah nonaktif |
+| Google Analytics 4 | Sessions, konversi, leads | M3 | **Tracking aktif dan API terhubung (14 September).** Property ID `495912713`, service account punya akses Viewer. GTM `GTM-WK2MV5GL` dipublikasikan dengan Google tag `G-T03867G3VG` dan tag GA4 Event untuk `generate_lead`, `form_submit`, `whatsapp_click`, `cta_click`, `share`, `contact_click`. Custom dimension sudah dibuat, dan `generate_lead` sudah menjadi key event (15 September). Form interactions di Enhanced measurement sudah nonaktif. **Sinkronisasi harian aktif (15 September):** job `ga4-sync` pukul 07:00 menyalin sessions per channel dan landing page serta event dari GTM, sampai hari kemarin |
 | OpenRouter | Semua fitur AI | M4 | Akun dan kredit tersedia |
 | Telegram Bot | Peringatan, laporan, approval cepat | M1 | **Terhubung (14 September).** Bot `@DigmarDashboardTSI_bot`, grup "Digital Marketing Dashboard TSI". Pesan uji terkirim |
-| CMS website | Inventaris artikel, publikasi, leads | M3, M6 | CMS kustom (source: `Website TSI/cms-tsicertification`). Punya modul Articles dan **Contact Messages**, yang menyimpan setiap kiriman form beserta statusnya (new, contacted, closed). Cara Content Machine membacanya belum ditentukan |
+| CMS website | Inventaris artikel, publikasi, leads | M3, M6 | CMS kustom (source: `Website TSI/cms-tsicertification`). Punya modul Articles dan **Contact Messages**, yang menyimpan setiap kiriman form beserta statusnya (new, contacted, closed). **Akses baca terhubung (15 September):** role Neon `content_machine_reader` di database `neondb`, hanya baca, terbatas per kolom. Bisa membaca `blog_posts` (tabel artikel yang dipakai CMS dan website) dan `cms_contact_messages` tanpa data pribadi (nama, perusahaan, jabatan, email, telepon, pesan, catatan internal). `npm run cli -- cms:check` lulus 11 dari 11: 122 artikel terbit, 5 leads. **Sinkronisasi tiap jam aktif:** job `cms-sync` pada menit ke-10 menyalin artikel dan leads |
 | PageSpeed Insights API | Kecepatan halaman | M4 | Belum dibuat |
 | Meta (Facebook + Instagram) | Followers, insight, posting | M7 | Belum diurus |
 | DataForSEO | Riset keyword baru | M8 | Opsional |
@@ -168,6 +168,25 @@ Peran pengguna:
 
 ### M3 — Traffic, leads, dan inventaris artikel
 
+**Status: selesai dibangun (15 September), menunggu pengecekan tim**
+
+- Job `ga4-sync` (harian 07:00) dan `cms-sync` (tiap jam) sudah berjalan. Hasil pertama: 122 artikel, 5 leads, dan data GA4 untuk 14 September (77 sessions, 38 di antaranya dari Organic Search).
+- Artikel dicocokkan dengan GSC dan GA4 lewat slug. `/blog/{slug}`, dengan atau tanpa garis miring di akhir, dan path lama `/artikel-iso/{slug}` dihitung sebagai artikel yang sama. Semua halaman artikel di GSC berhasil dicocokkan.
+- Skor SEO tiap artikel memakai 11 poin checklist yang sama dengan editor CMS. Saat ini 32 artikel mendapat skor 80 ke atas dan 88 artikel di bawah 50, terutama karena focus keyword kosong (hanya 34 dari 122 artikel yang mengisinya).
+- Layar yang sudah memakai data asli:
+  - Articles: tabel dan drawer, dengan tab Overview, SEO, dan Analytics.
+  - Analytics: KPI, Acquisition Overview, Conversion Funnel, Content Performance.
+  - Dashboard: Organic Traffic, Website Leads, Articles Published, Top Performing Content.
+- Conversion Funnel baru tampil setelah data GSC mencakup hari yang sudah dilacak GA4. Karena data GSC tertinggal sekitar 3 hari, funnel diperkirakan muncul sekitar 17–18 September.
+- Angka sessions GA4 bisa berbeda 1–3% antar laporan (misalnya total harian dibanding jumlah per channel), karena GA4 menghitung sessions dengan estimasi.
+
+**Tugas tim**
+
+- Cek tampilan layar Articles, Analytics, dan Dashboard.
+- Bandingkan sessions Organic Search di Analytics dengan laporan Traffic acquisition GA4 untuk tanggal yang sama.
+- Bandingkan jumlah leads dengan Contact Messages di CMS.
+- Isi focus keyword artikel di CMS. Tanpa focus keyword, skor SEO dan cluster artikel kurang akurat.
+
 **Pekerjaan**
 
 - Sinkronisasi GA4 harian: sessions per channel, landing page, engaged sessions, dan event dari GTM (`generate_lead`, `whatsapp_click`, `cta_click`, `form_submit`) beserta parameternya.
@@ -184,7 +203,7 @@ Peran pengguna:
 - ~~Tag GA4 terpasang dan menerima data.~~ Beres 14 September lewat GTM.
 - `generate_lead` ditandai sebagai key event, dan custom dimension event didaftarkan di GA4 (§8).
 - Akses Google API terbuka (§1), lalu service account ditambahkan sebagai Viewer di properti GA4.
-- Keputusan cara membaca data CMS: API baru di CMS, atau akses baca ke database CMS.
+- ~~Keputusan cara membaca data CMS~~ **Diputuskan 15 September: akses baca langsung ke database CMS** lewat role hanya-baca yang terbatas per kolom, tanpa mengubah CMS maupun website. Daftar kolomnya ada di `server/cms/access.ts`. Menambah kolom berarti mengubah daftar itu dan memberi grant baru di Neon.
 
 **Selesai bila:** organic sessions sama dengan laporan GA4, dan jumlah leads sama dengan Contact Messages di CMS untuk periode yang sama.
 
@@ -301,7 +320,12 @@ Semua ambang di bawah adalah bawaan hasil kalibrasi dengan data asli pada 15 Sep
 | Average Position | Posisi rata-rata data total situs, berbobot impressions |
 | Organic CTR | Klik dibagi impressions. Perubahannya ditampilkan dalam poin persentase (pp) |
 | Keywords Top 3 / Top 10 | Query dengan posisi rata-rata ≤ 3 / ≤ 10 dalam 28 hari terakhir dan impressions di atas ambang |
-| Organic Leads | Jumlah kiriman di Contact Messages CMS. GA4 hanya untuk asal leads (M3) |
+| Website Leads | Jumlah kiriman form kontak di Contact Messages CMS, dihitung sampai hari ini (zona waktu Jakarta). Tidak dipisah per channel, karena CMS tidak mencatat asal kunjungan. Perbandingan dengan periode sebelumnya baru tampil setelah seluruh periode itu berada setelah lead pertama (M3) |
+| Sessions dan leads per artikel | Sessions GA4 yang dimulai di halaman artikel (landing page), dan jumlah event `generate_lead` dalam sessions tersebut. Semua dalam 28 hari terakhir data GA4 (M3) |
+| Skor SEO artikel | Persentase dari 11 poin checklist SEO editor CMS yang lolos, dihitung ulang setiap sinkronisasi CMS (M3) |
+| Cluster artikel | Standar yang disebut di focus keyword. Kalau focus keyword kosong atau tidak menyebut standar, diambil dari judul (M3) |
+| Articles Published | Jumlah artikel berstatus publish di CMS. Dashboard menampilkan totalnya. Di layar Articles bisa dibatasi ke 30, 60, atau 90 hari terakhir berdasarkan tanggal terbit (termasuk hari ini), dibanding jumlah hari yang sama sebelumnya (M3) |
+| Conversion Funnel | Khusus organic search: impressions dan klik GSC, sessions dan engaged sessions Organic Search, lalu event CTA, form atau WhatsApp, dan `generate_lead` dari sessions tersebut. Hanya dihitung untuk hari yang tercakup oleh GSC dan GA4 sekaligus (M3) |
 | Pergerakan keyword | Posisi 28 hari terakhir dibanding 28 hari sebelumnya. Hanya dihitung bila impressions di atas ambang di kedua periode, dan ditampilkan bila berubah minimal 2 posisi |
 | Status At Risk | Sebelumnya di halaman 1 (posisi ≤ 10), sekarang di luar halaman 1 |
 | Status Dropping / Rising | Posisi memburuk / membaik minimal 2 |
@@ -402,7 +426,7 @@ Kalau tim ingin membuat otomasi kecil sendiri, misalnya mengirim data ke Google 
 | Buat OAuth client untuk login | M1 | Redirect URI lokal: `http://localhost:5173/api/auth/google/callback` |
 | ~~Buat bot Telegram lewat @BotFather, buat grup, catat chat ID~~ | M1 | **Beres 14 September** |
 | Susun daftar pengguna dan perannya | M1 | |
-| Tentukan cara Content Machine membaca Articles dan Contact Messages dari CMS: API baru di CMS, atau akses baca ke database CMS | M3, M6 | Source CMS sudah tersedia di `Website TSI/cms-tsicertification` |
+| ~~Tentukan cara Content Machine membaca Articles dan Contact Messages dari CMS~~ | M3 | **Beres 15 September.** Akses baca ke database CMS dengan role `content_machine_reader`. Cara publikasi artikel (M6) tetap perlu diputuskan tersendiri |
 | Mulai Meta Business Verification | M7 | Prosesnya bisa berminggu-minggu |
 
 ### Sebelum milestone tertentu
