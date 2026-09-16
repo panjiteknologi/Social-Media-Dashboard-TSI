@@ -12,7 +12,12 @@ export function aiGatewayFromEnv(db: Db, env: Env): AiGateway {
     appName: env.OPENROUTER_APP_NAME,
     appUrl: env.OPENROUTER_APP_URL,
     monthlyBudgetUsd: env.AI_MONTHLY_BUDGET_USD,
-    models: { report: env.AI_MODEL_REPORT },
+    models: {
+      report: env.AI_MODEL_REPORT,
+      strategy: env.AI_MODEL_STRATEGY,
+      article: env.AI_MODEL_ARTICLE,
+      qa: env.AI_MODEL_QA,
+    },
     store: {
       async spentThisMonth() {
         const [row] = await db

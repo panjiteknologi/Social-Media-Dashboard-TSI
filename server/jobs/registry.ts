@@ -5,6 +5,8 @@ import { aiGatewayFromEnv } from '../ai/fromEnv';
 import { syncAnalytics } from '../analytics/sync';
 import { deleteExpiredSessions } from '../auth/session';
 import { syncCms } from '../cms/sync';
+import { runContentTask, runTopicRecommendations } from '../contentAi/run';
+import { CONTENT_AI_JOB, TOPICS_JOB } from '../contentAi/service';
 import type { Db } from '../db/client';
 import { jobRuns, workerHeartbeats } from '../db/schema';
 import type { Env } from '../env';
@@ -253,6 +255,32 @@ export function createJobs({ db, env }: { db: Db; env: Env }): JobDefinition[] {
         await alerter.send(message);
         return { sent: Boolean(env.TELEGRAM_BOT_TOKEN && env.TELEGRAM_CHAT_ID), message };
       },
+    },
+    {
+      name: TOPICS_JOB,
+      description:
+        'Every Monday, asks AI for article topics from the Search Console opportunity keywords (positions 8–50), skipping keywords already planned or dismissed. Replaces the recommendations nobody acted on.',
+      retryLimit: 1,
+      retryDelaySeconds: 600,
+      // Monday 08:30 Jakarta, after that morning's Search Console sync and reports.
+      schedule: '30 8 * * 1',
+      manual: true,
+      run: () => runTopicRecommendations({ db, ai, notify: alerter.send, appBaseUrl: env.APP_BASE_URL }),
+    },
+    {
+      name: CONTENT_AI_JOB,
+      description:
+        'Runs one AI writer task for a Content Planner article, started from the AI Writer tab. Input {"itemId": "…", "task": "brief" | "draft" | "qa"}; a draft also runs the QA check and moves the article to Review.',
+      // No automatic retry: each attempt is billed, a retry of a reply that was too long fails the same way,
+      // and a retry waiting in the queue let people start the same task twice. The person who started it
+      // sees the error in the AI Writer tab and decides, so no Telegram alert either.
+      retryLimit: 0,
+      retryDelaySeconds: 60,
+      alertOnFailure: false,
+      // A long draft with a slow model takes a few minutes.
+      timeoutSeconds: 20 * 60,
+      manual: true,
+      run: (input) => runContentTask({ db, ai, notify: alerter.send, appBaseUrl: env.APP_BASE_URL }, input),
     },
   ];
 }

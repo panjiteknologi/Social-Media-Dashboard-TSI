@@ -306,6 +306,7 @@ function Reporting({ data, canEdit }: { data: AutomationSettings; canEdit: boole
 const AUTOMATION_GROUPS: Array<{ group: JobGroup; title: string }> = [
   { group: 'sync', title: 'Data sync' },
   { group: 'seo', title: 'SEO checks' },
+  { group: 'content', title: 'AI content' },
   { group: 'system', title: 'System' },
 ];
 

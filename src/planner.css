@@ -253,6 +253,54 @@
   flex: 1;
 }
 
+/* Approval Queue */
+
+.approval-empty {
+  padding: 26px 20px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.approval-note {
+  margin: 16px 0;
+  padding: 10px 12px;
+  font-size: 12.5px;
+  color: var(--muted);
+  background: var(--surface-alt);
+}
+
+.approval-decide {
+  margin: 18px 0 20px;
+}
+
+.approval-decide__form {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+  padding: 14px;
+  border: 1px solid var(--line);
+}
+
+.approval-decide__confirm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.approval-actions button[aria-pressed='true'] {
+  outline: 2px solid var(--navy);
+  outline-offset: 1px;
+}
+
+.approval-decide__confirm .btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
 /* Workflow Logs */
 
 .workflow-json {
@@ -278,13 +326,336 @@
   padding: 12px 20px;
 }
 
+/* AI topic recommendations */
+
+.topics-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.topics-head .section-title {
+  margin-bottom: 4px;
+}
+
+.topics-head__note {
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+.topic-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.topic-card__title {
+  margin-top: 8px;
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--ink);
+}
+
+.topic-card__rec a {
+  color: var(--blue);
+  word-break: break-all;
+}
+
+.topic-card__angle,
+.topic-card__reason {
+  margin: 8px 0 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+.topic-card__reason {
+  color: var(--muted);
+}
+
+.topic-card__actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: auto;
+  padding-top: 14px;
+}
+
+.topic-card__actions button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* AI progress on kanban cards */
+
+.kanban-card__ai {
+  margin-top: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--blue);
+}
+
+.kanban-card__ai--pass {
+  color: var(--green);
+}
+
+.kanban-card__ai--attention {
+  color: #9a5b00;
+}
+
+.kanban-card__ai--fail {
+  color: var(--red);
+}
+
+/* AI Writer tab */
+
+.drawer--wide {
+  width: 760px;
+}
+
+.ai-panel {
+  display: grid;
+  gap: 18px;
+}
+
+.ai-banner {
+  padding: 10px 12px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text);
+  background: var(--blue-bg);
+}
+
+.ai-banner--warn {
+  background: #fdf3e2;
+}
+
+.ai-banner--error {
+  color: var(--red);
+  background: #fbeaea;
+  white-space: pre-line;
+}
+
+.ai-step {
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+.ai-step:first-of-type {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.ai-step__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.ai-step__head .btn {
+  flex-shrink: 0;
+}
+
+.ai-step__head .btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.ai-step__title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--navy);
+}
+
+.ai-step__description {
+  margin-top: 2px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.ai-empty,
+.ai-muted {
+  font-size: 12px;
+  color: var(--faint);
+}
+
+.ai-block {
+  display: grid;
+  gap: 12px;
+}
+
+.ai-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.ai-field__value {
+  margin-top: 3px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ink);
+  word-break: break-word;
+}
+
+.ai-list,
+.ai-outline {
+  margin: 4px 0 0;
+  padding-left: 18px;
+}
+
+.ai-list li,
+.ai-outline > li {
+  margin: 3px 0;
+}
+
+.ai-outline > li {
+  margin-bottom: 8px;
+}
+
+.ai-field__value a {
+  color: var(--blue);
+}
+
+.ai-preview-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.ai-preview {
+  width: 100%;
+  height: 560px;
+  background: #fff;
+  border: 1px solid var(--border);
+}
+
+.ai-verdict {
+  padding: 10px 12px;
+  font-size: 13.5px;
+  font-weight: 700;
+}
+
+.ai-verdict__time {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.ai-verdict--pass {
+  color: var(--green);
+  background: #e9f7ef;
+}
+
+.ai-verdict--attention {
+  color: #9a5b00;
+  background: #fdf3e2;
+}
+
+.ai-verdict--fail {
+  color: var(--red);
+  background: #fbeaea;
+}
+
+.ai-scores {
+  margin: 0;
+}
+
+.ai-summary {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text);
+}
+
+.ai-issues {
+  display: grid;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.ai-issue {
+  padding: 10px 12px;
+  font-size: 12.5px;
+  line-height: 1.55;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--faint);
+}
+
+.ai-issue--high {
+  border-left-color: var(--red);
+}
+
+.ai-issue--medium {
+  border-left-color: #d98e04;
+}
+
+.ai-issue__head {
+  margin-bottom: 4px;
+  font-size: 11.5px;
+  color: var(--muted);
+}
+
+.ai-issue__severity {
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.ai-issue__quote {
+  margin: 4px 0 6px;
+  padding-left: 10px;
+  font-style: italic;
+  color: var(--muted);
+  border-left: 2px solid var(--line);
+}
+
+.ai-issue__fix {
+  margin-top: 6px;
+  color: var(--ink);
+}
+
+.ai-checks {
+  display: grid;
+  gap: 3px;
+  margin: 4px 0 6px;
+  padding: 0;
+  list-style: none;
+}
+
+.ai-check--pass span:first-child {
+  color: var(--green);
+}
+
+.ai-check--fail span:first-child {
+  color: var(--red);
+}
+
 .upcoming__stage {
   font-weight: 600;
   color: var(--blue);
 }
 
+@media (max-width: 900px) {
+  .topic-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 640px) {
   .editor-row {
     grid-template-columns: 1fr;
+  }
+
+  .ai-step__head {
+    flex-direction: column;
   }
 }

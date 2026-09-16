@@ -1,5 +1,6 @@
 import { asc, desc, eq } from 'drizzle-orm';
 import { z } from 'zod';
+import { qaVerdict, type ContentAiSummary } from '../../shared/aiContent';
 import type { CurrentUser } from '../../shared/api';
 import {
   canMoveToStage,
@@ -43,7 +44,7 @@ export const ContentInputSchema = z.object({
 export class ContentError extends Error {
   constructor(
     message: string,
-    readonly status: 400 | 403 | 404,
+    readonly status: 400 | 403 | 404 | 409,
   ) {
     super(message);
     this.name = 'ContentError';
@@ -82,6 +83,16 @@ const toInput = (row: ItemRow): ContentInput => ({
   notes: row.notes,
 });
 
+export const aiSummaryOf = (row: ItemRow): ContentAiSummary => ({
+  task: row.aiTask,
+  status: row.aiStatus,
+  error: row.aiError,
+  updatedAt: row.aiUpdatedAt?.toISOString() ?? null,
+  hasBrief: row.brief !== null,
+  hasDraft: row.draft !== null,
+  qaVerdict: row.qa ? qaVerdict(row.qa) : null,
+});
+
 const toItem = (row: ItemRow, ownerName: string | null): ContentItem => ({
   id: row.id,
   ...toInput(row),
@@ -89,6 +100,7 @@ const toItem = (row: ItemRow, ownerName: string | null): ContentItem => ({
   ownerName,
   createdAt: row.createdAt.toISOString(),
   updatedAt: row.updatedAt.toISOString(),
+  ai: aiSummaryOf(row),
 });
 
 const withOwner = (db: Db) =>
@@ -102,7 +114,7 @@ export async function listContent(db: Db): Promise<ContentItem[]> {
   return rows.map((row) => toItem(row.item, row.ownerName ?? row.ownerEmail ?? null));
 }
 
-async function getContent(db: Db, id: string): Promise<ContentItem> {
+export async function getContentItem(db: Db, id: string): Promise<ContentItem> {
   const [row] = await withOwner(db).where(eq(contentItems.id, id)).limit(1);
   if (!row) throw new ContentError('Content not found', 404);
   return toItem(row.item, row.ownerName ?? row.ownerEmail ?? null);
@@ -129,7 +141,7 @@ export async function createContent(db: Db, input: ContentInput, user: CurrentUs
     await tx.insert(contentEvents).values({ itemId: row.id, kind: 'created', toStage: input.stage, userId: user.id });
     return row.id;
   });
-  return getContent(db, id);
+  return getContentItem(db, id);
 }
 
 /** Saves an edit, recording a stage move and the other changed fields in the history. */
@@ -162,7 +174,7 @@ export async function updateContent(db: Db, id: string, input: ContentInput, use
         .values({ itemId: id, kind: 'edited', note: `Changed ${fields.join(', ')}`, userId: user.id });
     }
   });
-  return getContent(db, id);
+  return getContentItem(db, id);
 }
 
 export async function deleteContent(db: Db, id: string): Promise<void> {

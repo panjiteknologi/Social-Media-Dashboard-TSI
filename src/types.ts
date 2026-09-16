@@ -65,15 +65,6 @@ export interface AgentActivity {
 
 export type Platform = 'Instagram' | 'Facebook' | 'LinkedIn' | 'Article';
 
-export interface TopicRecommendation {
-  kw: string;
-  score: number;
-  intent: string;
-  relevance: string;
-  type: string;
-  cta: string;
-}
-
 export interface SocialSummaryItem {
   label: string;
   capability: CapabilityKey;
@@ -115,26 +106,6 @@ export interface CampaignPerformance {
   engagement: string;
   leads: number;
   conv: string;
-}
-
-export interface ApprovalItem {
-  id: number;
-  title: string;
-  type: string;
-  author: string;
-  qa: number;
-  seo: number | Blank;
-  brand: number;
-  submitted: string;
-  sources: number;
-  risks: string;
-  preview: string;
-}
-
-export interface TimelineStep {
-  step: string;
-  time: string;
-  done: boolean;
 }
 
 export type ReportPeriod = 'Daily' | 'Weekly' | 'Monthly';

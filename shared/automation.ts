@@ -71,7 +71,7 @@ export function describeSchedule(shape: ScheduleShape): string {
   }
 }
 
-export type JobGroup = 'reports' | 'sync' | 'seo' | 'system';
+export type JobGroup = 'reports' | 'sync' | 'seo' | 'content' | 'system';
 
 /** How each job appears in Settings. Jobs missing here show under System with their queue name. */
 export const JOB_INFO: Record<string, { label: string; summary: string; group: JobGroup }> = {
@@ -90,6 +90,16 @@ export const JOB_INFO: Record<string, { label: string; summary: string; group: J
   'site-crawl': { label: 'Website crawl', summary: 'Checks every page and internal link for errors and missing tags.', group: 'seo' },
   'index-inspection': { label: 'Google index check', summary: 'Asks Google which sitemap pages are indexed.', group: 'seo' },
   'pagespeed-check': { label: 'Page speed check', summary: 'Tests mobile speed of the home page and top pages.', group: 'seo' },
+  'topic-recommendations': {
+    label: 'AI topic recommendations',
+    summary: 'Suggests article topics from Search Console opportunities for the Content Planner.',
+    group: 'content',
+  },
+  'content-ai': {
+    label: 'AI writer',
+    summary: 'Writes briefs and drafts and runs QA, when someone starts it from the AI Writer tab.',
+    group: 'content',
+  },
   'system-cleanup': { label: 'Cleanup', summary: 'Deletes old run logs and expired sign-in sessions.', group: 'system' },
   'system-selftest': { label: 'Job pipeline self-test', summary: 'Checks that background jobs run and alerts work.', group: 'system' },
 };

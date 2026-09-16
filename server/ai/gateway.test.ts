@@ -13,7 +13,12 @@ function gatewayWith({ apiKey = 'key', spent = 0, response = json({}) }: { apiKe
     appName: 'Content Machine',
     appUrl: 'https://cm.example.com',
     monthlyBudgetUsd: 10,
-    models: { report: 'anthropic/claude-sonnet-5' },
+    models: {
+      report: 'anthropic/claude-sonnet-5',
+      strategy: 'anthropic/claude-opus-5',
+      article: 'anthropic/claude-opus-5',
+      qa: 'anthropic/claude-opus-5',
+    },
     store: {
       spentThisMonth: async () => spent,
       record: async (entry) => {
@@ -32,7 +37,7 @@ describe('createAiGateway', () => {
     const { gateway, fetchImpl, recorded } = gatewayWith({
       response: json({
         model: 'anthropic/claude-sonnet-5',
-        choices: [{ message: { content: 'All good.' } }],
+        choices: [{ message: { content: 'All good.' }, finish_reason: 'stop' }],
         usage: { prompt_tokens: 1200, completion_tokens: 150, cost: 0.0039 },
       }),
     });
@@ -40,13 +45,19 @@ describe('createAiGateway', () => {
     const result = await gateway.complete('report', messages, { maxTokens: 500 });
 
     expect(result.text).toBe('All good.');
+    expect(result.finishReason).toBe('stop');
     expect(recorded).toEqual([
       { feature: 'report', model: 'anthropic/claude-sonnet-5', promptTokens: 1200, completionTokens: 150, costUsd: 0.0039 },
     ]);
     const [url, init] = fetchImpl.mock.calls[0];
     expect(url).toBe('https://openrouter.ai/api/v1/chat/completions');
     expect(init?.headers).toMatchObject({ Authorization: 'Bearer key', 'X-Title': 'Content Machine' });
-    expect(JSON.parse(String(init?.body))).toEqual({ model: 'anthropic/claude-sonnet-5', messages, max_tokens: 500 });
+    expect(JSON.parse(String(init?.body))).toEqual({
+      model: 'anthropic/claude-sonnet-5',
+      messages,
+      max_tokens: 500,
+      reasoning: { enabled: false },
+    });
   });
 
   it('refuses to call once the monthly budget is spent', async () => {
@@ -66,6 +77,18 @@ describe('createAiGateway', () => {
     const { gateway, recorded } = gatewayWith({ response: json({ error: { message: 'Insufficient credits' } }, 402) });
     await expect(gateway.complete('report', messages)).rejects.toThrow('OpenRouter request failed (402): Insufficient credits');
     expect(recorded).toEqual([]);
+  });
+
+  it('says so when the model hit the limit before writing anything', async () => {
+    const { gateway } = gatewayWith({
+      response: json({
+        choices: [{ message: { content: '' }, finish_reason: 'length' }],
+        usage: { prompt_tokens: 10, completion_tokens: 800, cost: 0.01 },
+      }),
+    });
+    await expect(gateway.complete('qa', messages, { maxTokens: 800 })).rejects.toThrow(
+      'The model reached the 800-token limit without writing an answer.',
+    );
   });
 
   it('still records the cost of a call that returned no text', async () => {

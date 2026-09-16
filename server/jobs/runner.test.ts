@@ -78,6 +78,21 @@ describe('executeJob', () => {
     expect(alerts[0]).toContain('GSC timed out');
   });
 
+  it('does not alert for jobs whose failures a person already sees on screen', async () => {
+    const { runs, alerts, deps } = harness();
+    const failing = {
+      ...definition(async () => {
+        throw new Error('The brief was cut off');
+      }),
+      retryLimit: 0,
+      alertOnFailure: false,
+    };
+
+    await expect(executeJob(failing, queued(0, 0), deps)).rejects.toThrow('The brief was cut off');
+    expect(runs[0]).toEqual(expect.objectContaining({ status: 'failed', attempt: 1, maxAttempts: 1 }));
+    expect(alerts).toEqual([]);
+  });
+
   it('still surfaces the job error when the alert cannot be sent', async () => {
     const { deps } = harness(async () => {
       throw new Error('Telegram down');

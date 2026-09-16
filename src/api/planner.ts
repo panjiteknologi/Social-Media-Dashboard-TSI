@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { isAiBusy } from '../../shared/aiContent';
 import type { ContentEvent, ContentInput, ContentItem, ContentStage, TeamMember } from '../../shared/planner';
 import { apiDelete, apiGet, apiPost, apiPut } from './client';
 
@@ -21,6 +22,8 @@ export function useContentItems() {
     queryKey: ITEMS_KEY,
     queryFn: () => apiGet<ContentItem[]>('/content'),
     staleTime: 30_000,
+    // Cards show the AI writer's progress, so refresh while any task works.
+    refetchInterval: (query) => (query.state.data?.some((item) => isAiBusy(item.ai)) ? 5000 : false),
   });
 }
 

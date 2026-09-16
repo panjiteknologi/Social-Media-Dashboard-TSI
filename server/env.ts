@@ -25,6 +25,12 @@ const EnvSchema = z.object({
   OPENROUTER_APP_URL: z.url().optional(),
   AI_MONTHLY_BUDGET_USD: z.coerce.number().nonnegative().default(50),
   AI_MODEL_REPORT: z.string().default('anthropic/claude-sonnet-5'),
+  AI_MODEL_ARTICLE: z.string().default('anthropic/claude-opus-5'),
+  // Sonnet follows the brand rules closely enough for briefs and QA at a third of the cost;
+  // the draft itself stays on Opus, where the quality difference shows.
+  AI_MODEL_QA: z.string().default('anthropic/claude-sonnet-5'),
+  AI_MODEL_STRATEGY: z.string().default('anthropic/claude-sonnet-5'),
+  AI_MODEL_CLASSIFY: z.string().default('anthropic/claude-haiku-4.5'),
   TELEGRAM_BOT_TOKEN: z.string().optional(),
   TELEGRAM_CHAT_ID: z.string().optional(),
 });

@@ -14,7 +14,12 @@ import {
 import { toContentInput, useContentEvents, useDeleteContent, useSaveContent, useTeam } from '../api/planner';
 import { formatDateTime } from '../lib/format';
 import { useCurrentUser } from './AuthGate';
+import { ContentAiPanel } from './ContentAiPanel';
 import { QueryState } from './QueryState';
+
+type EditorTab = 'details' | 'ai' | 'history';
+
+const TAB_LABELS: Record<EditorTab, string> = { details: 'Details', ai: 'AI Writer', history: 'History' };
 
 const EMPTY: ContentInput = {
   title: '',
@@ -109,9 +114,18 @@ export function ContentEditor({
   const titleId = useId();
   const formId = useId();
 
-  const [tab, setTab] = useState<'details' | 'history'>('details');
+  const [tab, setTab] = useState<EditorTab>('details');
   const [form, setForm] = useState<Form>(() => toForm(item ? toContentInput(item) : { ...EMPTY, ...defaults }));
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const tabs: EditorTab[] = item?.type === 'article' ? ['details', 'ai', 'history'] : ['details', 'history'];
+
+  // The AI writer moves the stage while the drawer is open; follow it unless the person changed the stage here.
+  const [shownStage, setShownStage] = useState(item?.stage);
+  useEffect(() => {
+    if (!item || item.stage === shownStage) return;
+    setForm((current) => (current.stage === shownStage ? { ...current, stage: item.stage } : current));
+    setShownStage(item.stage);
+  }, [item, shownStage]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -133,7 +147,7 @@ export function ContentEditor({
   return (
     <div className="drawer-scrim" onClick={onClose}>
       <aside
-        className="drawer"
+        className={tab === 'ai' ? 'drawer drawer--wide' : 'drawer'}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
@@ -155,7 +169,7 @@ export function ContentEditor({
 
         {item ? (
           <div className="drawer__tabs" role="tablist">
-            {(['details', 'history'] as const).map((key) => (
+            {tabs.map((key) => (
               <button
                 key={key}
                 type="button"
@@ -164,7 +178,7 @@ export function ContentEditor({
                 aria-selected={tab === key}
                 onClick={() => setTab(key)}
               >
-                {key === 'details' ? 'Details' : 'History'}
+                {TAB_LABELS[key]}
               </button>
             ))}
           </div>
@@ -173,6 +187,8 @@ export function ContentEditor({
         <div className="drawer__body" role={item ? 'tabpanel' : undefined}>
           {tab === 'history' && item ? (
             <History itemId={item.id} />
+          ) : tab === 'ai' && item ? (
+            <ContentAiPanel item={item} />
           ) : (
             <form id={formId} onSubmit={onSubmit}>
               <fieldset className="editor-form" disabled={!canEdit || save.isPending}>

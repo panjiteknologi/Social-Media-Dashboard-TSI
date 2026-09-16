@@ -1,4 +1,4 @@
-import type { AgentActivity, AiOpportunity, Kpi, NavItem, TopicRecommendation } from '../types';
+import type { AgentActivity, AiOpportunity, Kpi, NavItem } from '../types';
 
 export const NAV_ITEMS: NavItem[] = [
   { key: 'dashboard', label: 'Dashboard', group: 'Overview' },
@@ -71,12 +71,6 @@ export const AGENT_ACTIVITY: AgentActivity[] = [
   { agent: 'Content Agent', text: 'Generated draft for "ISO 37001 Certification Process".', time: '1 hr ago' },
   { agent: 'Approval', text: 'ISO 27001 fintech article approved by Marketing Manager.', time: '2 hr ago' },
   { agent: 'Social Agent', text: 'LinkedIn post scheduled for the ISO 45001 campaign.', time: '3 hr ago' },
-];
-
-export const TOPIC_RECOMMENDATIONS: TopicRecommendation[] = [
-  { kw: 'ISO 27001 for Fintech', score: 92, intent: 'Commercial Investigation', relevance: 'High', type: 'Create dedicated long-form article.', cta: 'Create Content Brief' },
-  { kw: 'ISO 42001 Requirements', score: 88, intent: 'Informational', relevance: 'High', type: 'Pillar guide with FAQ section.', cta: 'Create Content Brief' },
-  { kw: 'ISO 45001 Manufacturing', score: 81, intent: 'Commercial', relevance: 'Medium', type: 'Case study article.', cta: 'Create Content Brief' },
 ];
 
 export const ARTICLE_TABS = ['Overview', 'SEO', 'Social', 'Analytics', 'History'] as const;

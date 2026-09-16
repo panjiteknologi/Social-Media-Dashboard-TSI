@@ -14,14 +14,15 @@ import {
   type ContentStage,
   type ContentType,
 } from '../../shared/planner';
+import { AI_TASK_LABELS, isAiBusy, QA_VERDICT_LABELS } from '../../shared/aiContent';
 import { addDays } from '../../shared/seo';
 import { useContentItems, useMoveContent } from '../api/planner';
 import { useCurrentUser } from '../components/AuthGate';
 import { ContentEditor } from '../components/ContentEditor';
 import { QueryState } from '../components/QueryState';
 import { Requires } from '../components/Requires';
-import { Card, Chip, PageHeader } from '../components/primitives';
-import { TOPIC_RECOMMENDATIONS } from '../data/editorial';
+import { TopicRecommendations } from '../components/TopicRecommendations';
+import { Chip, PageHeader } from '../components/primitives';
 import { formatDate } from '../lib/format';
 import { platformTone, toneStyle } from '../lib/theme';
 
@@ -211,6 +212,21 @@ function TypeChip({ item }: { item: ContentItem }) {
   return <Chip tone={platformTone(label)}>{label}</Chip>;
 }
 
+/** The AI writer's progress on a card: working, failed, or the QA verdict. */
+function AiLine({ item }: { item: ContentItem }) {
+  const { ai } = item;
+  const label = AI_TASK_LABELS[ai.task ?? 'brief'];
+  if (isAiBusy(ai)) return <div className="kanban-card__ai">AI writing the {label}…</div>;
+  if (ai.status === 'failed') return <div className="kanban-card__ai kanban-card__ai--fail">AI {label} failed</div>;
+  if (ai.qaVerdict) {
+    return (
+      <div className={`kanban-card__ai kanban-card__ai--${ai.qaVerdict}`}>{QA_VERDICT_LABELS[ai.qaVerdict]}</div>
+    );
+  }
+  if (ai.hasBrief) return <div className="kanban-card__ai">Brief ready</div>;
+  return null;
+}
+
 function KanbanView({
   items,
   canEdit,
@@ -282,6 +298,7 @@ function KanbanView({
                 >
                   <div className="kanban-card__title">{item.title}</div>
                   {item.keyword ? <div className="kanban-card__keyword">{item.keyword}</div> : null}
+                  <AiLine item={item} />
                   <div className="kanban-card__meta">
                     <span>{item.ownerName ?? 'Unassigned'}</span>
                     {item.priority === 'high' ? <span className="kanban-card__priority">High priority</span> : null}
@@ -532,32 +549,13 @@ export function Planner({
         </QueryState>
       </Requires>
 
-      <div className="mt-32">
-        <div className="section-title">AI Topic Recommendations</div>
-        <Requires capability="ai">
-          <div className="topic-grid">
-            {TOPIC_RECOMMENDATIONS.map((topic) => (
-              <Card className="card--sm" key={topic.kw}>
-                <div className="topic-card__head">
-                  <div className="topic-card__kw">{topic.kw}</div>
-                  <div className="topic-card__score">{topic.score}</div>
-                </div>
-                <div className="topic-card__meta">Intent: {topic.intent}</div>
-                <div className="topic-card__meta">Relevance: {topic.relevance}</div>
-                <div className="topic-card__rec">Recommendation: {topic.type}</div>
-                <button type="button" className="link-cta topic-card__cta">
-                  {topic.cta} →
-                </button>
-              </Card>
-            ))}
-          </div>
-        </Requires>
-      </div>
+      <TopicRecommendations onPlanned={openItem} />
 
       {editor ? (
         <ContentEditor
           key={editor.item?.id ?? 'new'}
-          item={editor.item}
+          // The live copy, so a stage the AI writer moved shows up while the drawer is open.
+          item={editor.item ? (content.data?.find((entry) => entry.id === editor.item?.id) ?? editor.item) : null}
           defaults={editor.defaults}
           onClose={() => setEditor(null)}
         />

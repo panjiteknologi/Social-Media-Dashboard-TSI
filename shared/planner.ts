@@ -1,4 +1,5 @@
 /** Content Planner: ideas and content moving through the editorial stages. */
+import type { ContentAiSummary } from './aiContent';
 import type { UserRole } from './api';
 import { addDays } from './seo';
 
@@ -11,6 +12,7 @@ export const CONTENT_STAGES = [
   'approved',
   'scheduled',
   'published',
+  'rejected',
 ] as const;
 
 export type ContentStage = (typeof CONTENT_STAGES)[number];
@@ -24,10 +26,11 @@ export const STAGE_LABELS: Record<ContentStage, string> = {
   approved: 'Approved',
   scheduled: 'Scheduled',
   published: 'Published',
+  rejected: 'Rejected',
 };
 
 /** Stages only an approver or an admin may move content into. */
-export const APPROVER_STAGES: readonly ContentStage[] = ['approved'];
+export const APPROVER_STAGES: readonly ContentStage[] = ['approved', 'rejected'];
 
 export const canMoveToStage = (role: UserRole, stage: ContentStage): boolean =>
   !APPROVER_STAGES.includes(stage) || role === 'approver' || role === 'admin';
@@ -70,11 +73,16 @@ export interface ContentItem extends ContentInput {
   ownerName: string | null;
   createdAt: string;
   updatedAt: string;
+  ai: ContentAiSummary;
 }
 
 export interface ContentEvent {
   id: string;
-  kind: 'created' | 'stage_changed' | 'edited';
+  /**
+   * "ai" records what the AI writer did, with the model and cost in the note;
+   * "decision" records an approver's approve, revise or reject with their words.
+   */
+  kind: 'created' | 'stage_changed' | 'edited' | 'ai' | 'decision';
   fromStage: ContentStage | null;
   toStage: ContentStage | null;
   note: string | null;

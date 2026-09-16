@@ -9,7 +9,7 @@ import { SOCIAL_TABS } from './data/growth';
 import { REPORT_PERIODS } from './data/workflow';
 import { CHART_RANGES } from './lib/chart';
 import { SCREEN_PATHS } from './lib/routes';
-import { useUrlEnum, useUrlId, useUrlKey } from './lib/urlState';
+import { useUrlEnum, useUrlKey } from './lib/urlState';
 import { Analytics } from './screens/Analytics';
 import { Approval } from './screens/Approval';
 import { Articles } from './screens/Articles';
@@ -69,7 +69,7 @@ function SeoRoute() {
 }
 
 function ApprovalRoute() {
-  const [id, setId] = useUrlId('id', 1);
+  const [id, setId] = useUrlKey('id');
   return <Approval selectedId={id} onSelect={setId} />;
 }
 

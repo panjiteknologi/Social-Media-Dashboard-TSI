@@ -3,13 +3,12 @@ import type { SeoSettings } from '../../shared/seo';
 import { useSaveSeoSettings, useSeoSettings } from '../api/settings';
 import { useCurrentUser } from '../components/AuthGate';
 import { AutomationCard, ReportingCard } from '../components/AutomationSettings';
+import { BrandCard } from '../components/BrandSettings';
 import { QueryState } from '../components/QueryState';
 import { Card, PageHeader } from '../components/primitives';
 
 /** Settings areas from the design that arrive with later milestones. */
 const LATER_SECTIONS = [
-  { title: 'Brand', detail: 'Tone, company information, visual guidelines and CTA rules', milestone: 'M5' },
-  { title: 'AI', detail: 'Models, knowledge base and prompt templates', milestone: 'M5' },
   { title: 'Approval rules', detail: 'Who approves what, and publishing restrictions', milestone: 'M5' },
   { title: 'Social accounts', detail: 'Facebook and Instagram connections', milestone: 'M7' },
 ];
@@ -213,6 +212,7 @@ export function Settings() {
         </QueryState>
       </Card>
 
+      <BrandCard canEdit={user.role === 'admin'} />
       <ReportingCard canEdit={user.role === 'admin'} />
       <AutomationCard canEdit={user.role === 'admin'} />
 

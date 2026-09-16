@@ -69,7 +69,7 @@ export async function executeJob(
       error: message,
     });
 
-    if (isFinalAttempt) {
+    if (isFinalAttempt && definition.alertOnFailure !== false) {
       try {
         await deps.alerter.send(
           `Job failed: ${definition.name}\nAttempt ${attempt} of ${maxAttempts}\n${message}`,

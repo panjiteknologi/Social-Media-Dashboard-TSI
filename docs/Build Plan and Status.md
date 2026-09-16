@@ -15,7 +15,7 @@ Dokumen ini adalah acuan tunggal untuk urutan pembangunan, status setiap bagian,
 | Tampilan 8 layar: Dashboard, Content Planner, Articles, Social Media, SEO Intelligence, Analytics, Approval Queue, Reports | Selesai. Setiap bagian menampilkan status sumber datanya ("Not connected", "Not available yet", "On hold") sampai data asli masuk |
 | Media Library | Masih placeholder (M7) |
 | Content Planner dan Workflow Logs | **Berjalan dengan data asli (M5 tahap 1, 15 September):** kanban drag & drop, kalender mingguan, list, Quick Create, dan riwayat konten; daftar run job dengan detail, Retry, dan biaya AI bulan ini |
-| Settings | Bagian SEO, Reporting, dan Automation berjalan (Reporting dan Automation sejak 15 September). Brand, AI, Approval rules, dan Social accounts menyusul di M5 dan M7 |
+| Settings | Bagian SEO, Brand and AI, Reporting, dan Automation berjalan (sejak 15 September). Approval rules dan Social accounts menyusul di M5 dan M7 |
 | Routing dan URL per layar | Selesai |
 | Konfigurasi env (`.env.example`) | Selesai |
 | **M1 lokal:** backend, database, migrasi, login Google, peran pengguna, kerangka job, peringatan, CLI | **Selesai dan diuji end-to-end di lokal** (13 September 2026) |
@@ -278,7 +278,7 @@ Peran pengguna:
 
 ### M5 — Produksi konten dengan AI dan Approval Queue
 
-**Status: tahap 1 dari 4 selesai dibangun (15 September)**
+**Status: keempat tahap selesai dibangun (tahap 3 dan 4 pada 16 September). Aturan imparsialitas masih draf menunggu compliance.**
 
 Tahapan M5:
 1. Content Planner dan Workflow Logs.
@@ -299,15 +299,76 @@ Hasil tahap 1:
   - Daftar 100 run terakhir dengan filter alur dan status, diperbarui setiap 15 detik.
   - Detail input, output, dan error setiap run, dengan tombol Retry atau Run again untuk admin.
   - Biaya dan jumlah panggilan AI bulan ini.
-- **Approval Queue** tetap disembunyikan sampai tahap 4, supaya data contoh dari desain tidak tampil.
+- **Approval Queue** memakai data asli sejak tahap 4.
 - Diuji lewat API asli:
   - konten: buat, pindah tahap, ubah, riwayat, validasi, dan hapus
   - Workflow Logs: filter dan detail run, serta ringkasan biaya AI
 
+Hasil tahap 2:
+
+- **Settings > Brand and AI** menyimpan knowledge base yang dipakai AI saat menulis. Semua user bisa melihat, hanya Admin yang bisa mengubah.
+  - Profil perusahaan: hanya fakta yang tertulis di website (berdiri, alamat, kontak, nilai, layanan, akreditasi, proses sertifikasi, banding dan keluhan).
+  - Tone of voice: kepribadian, aturan bahasa, struktur artikel yang terbukti bekerja di situs, dan kata yang dihindari.
+  - Aturan CTA: penempatan, tujuan tautan per bahasa, kalimat yang boleh, dan yang dilarang.
+  - Aturan imparsialitas: 13 aturan, berangkat dari Kebijakan Ketidakberpihakan dan Quality Policy di website serta ISO/IEC 17021-1. Ada status **Draf** atau **Disetujui compliance** dengan nama dan tanggal. Selama draf, AI tetap wajib mematuhinya. Draf juga mencatat 4 kalimat di website yang sebaiknya ditinjau compliance.
+  - 8 contoh artikel, dipilih dari performa Search Console 16 Agustus–12 September 2026 dengan skor SEO checklist minimal 91.
+  - Pengaturan tulisan AI: bahasa Indonesia, 800–1.500 kata, FAQ bila cocok, dan byline.
+  - Daftar Approver diambil otomatis dari user aktif ber-role Approver atau Admin, serta model AI per fitur dari `.env`.
+- `buildBrandContext` menyusun knowledge base menjadi system prompt untuk rantai AI tahap 3, dengan aturan imparsialitas di urutan pertama.
+- Isi awal disusun dari 21 halaman tsicertification.com dan 4 artikel teratas, pada 15 September 2026. Isi ini tampil sebagai versi awal sampai Admin menekan **Save this version**.
+
+Hasil tahap 3:
+
+- **AI Topic Recommendations** di bawah Content Planner, menggantikan data contoh.
+  - Job `topic-recommendations` berjalan setiap Senin 08:30, atau lewat tombol **Generate new ideas** (Editor ke atas).
+  - Sumbernya keyword peluang dari Search Console (posisi 8–50). Keyword yang sudah ada di Planner atau pernah di-dismiss dilewati.
+  - AI hanya memilih dan menulis judul, sudut pandang, alasan, search intent, serta pilihan artikel baru atau update artikel lama. Keyword, angka, dan URL selalu diambil dari data. Usulan yang keyword-nya tidak ada di data dibuang.
+  - **Add to planner** membuat ide artikel dengan keyword, prioritas dari skor peluang, dan alasan di catatan. **Dismiss** menyembunyikan usulan untuk seterusnya.
+- **Tab AI Writer** di drawer setiap artikel di Planner.
+  1. **Brief:** search intent, pembaca, outline, poin wajib, 2–4 internal link ke artikel yang benar-benar ada, FAQ, CTA, dan catatan risiko imparsialitas. Datanya dari query Search Console terkait dan knowledge base. Catatan di tab Details ikut mengarahkan brief. Artikel pindah ke Brief Ready.
+  2. **Draft:** artikel lengkap dengan judul, SEO title, meta description, slug, tag, dan excerpt, plus preview dan tombol Copy HTML. HTML dibersihkan dari script dan tautan berbahaya.
+  3. **QA:** berjalan otomatis setelah draft. Isinya checklist SEO yang sama dengan CMS (tanpa cover image dan alt, yang diisi saat publikasi), rentang kata dari Settings, deteksi kata terlarang ("dijamin", "terbaik", "konsultasi gratis", tautan WhatsApp, dan lain-lain), dan review AI terhadap brand guideline dan aturan imparsialitas dengan kutipan dan saran perbaikan. Hasilnya **Passed QA**, **Needs attention**, atau **Failed QA**. Artikel pindah ke Review.
+- Setiap langkah tercatat di History beserta model dan biayanya, dan tampil di Workflow Logs sebagai job `content-ai`. Kartu kanban menampilkan progres AI dan hasil QA.
+- Pengaman:
+  - Satu tugas AI per artikel pada satu waktu.
+  - Draft butuh brief, QA butuh draft.
+  - Balasan AI yang terpotong atau salah format ditolak dan dicoba ulang sekali.
+  - Tugas yang macet lebih dari 30 menit bisa dijalankan lagi.
+  - Batas biaya bulanan tetap berlaku.
+- Model: brief dan rekomendasi topik memakai `AI_MODEL_STRATEGY`, draft memakai `AI_MODEL_ARTICLE`, QA memakai `AI_MODEL_QA`. Sejak 16 September, brief, rekomendasi topik, dan QA memakai Sonnet 5, sedangkan draft tetap Opus 5. Perkiraan biaya per artikel turun dari sekitar $0,58 menjadi $0,30.
+- QA juga mengecek bahasa tautan: artikel bahasa Indonesia harus menautkan halaman `/id/`, kecuali artikel blog yang memang hanya ada di `/blog/` (URL `/id/blog/...` dialihkan ke sana).
+- Semua panggilan AI mematikan mode *reasoning* (`reasoning: { enabled: false }`). Di OpenRouter, Sonnet 5 menyalakannya secara bawaan: pada 16 September satu panggilan QA menghabiskan seluruh 8.000 token untuk berpikir, tidak menghasilkan jawaban, dan tetap ditagih $0,11. Opus 5 tidak memakai token reasoning sama sekali.
+- Diuji 16 September:
+  - 21 skenario rantai lengkap di database dev dengan AI tiruan, tanpa biaya. Semua data uji dihapus setelahnya. Skenario yang dicakup: keyword dan URL karangan dibuang, plan dan dismiss, validasi antrean, brief hanya dengan link nyata, draft terpotong ditolak, script dibuang dari HTML, "dijamin" tertandai, QA gagal karena imparsialitas, perpindahan tahap, riwayat, dan post sosial ditolak.
+  - Uji dengan AI sungguhan terhenti karena saldo OpenRouter habis (sisa kira-kira $0,04). Retry job dibatalkan supaya tidak ada peringatan ke Telegram.
+  - Setelah saldo diisi: rekomendasi topik berhasil (3 topik, $0,16), tetapi brief gagal dua kali karena terpotong di batas 4.000 token. Bahasa Indonesia rata-rata sekitar 2 karakter per token, dan brief yang lengkap butuh sekitar 5.500 token.
+  - Perbaikan:
+    - Batas balasan dinaikkan: topik 6.000, brief 10.000, draft 16.000, QA 8.000.
+    - Prompt brief dibuat lebih ringkas.
+    - Job `content-ai` tidak lagi retry otomatis dan tidak mengirim peringatan Telegram, karena orang yang menjalankannya melihat error di tab AI Writer.
+  - Setelah perbaikan, brief "Sertifikasi ISO: Pengertian, Jenis Standar, dan Tahapan Prosesnya" berhasil dalam 45 detik ($0,145): 8 bagian outline, 4 internal link nyata, dan 5 FAQ.
+
+Hasil tahap 4:
+
+- **Approval Queue** memakai data asli: semua konten di tahap Review, terurut dari yang paling lama menunggu.
+  - Panel kanan menampilkan hasil QA, preview draft, tombol keputusan, dan riwayat lengkap.
+  - **Approve** memindahkan konten ke Approved. **Request Revision** mengembalikannya ke Drafting. **Reject** memindahkannya ke tahap baru **Rejected**.
+  - Revisi dan penolakan wajib disertai alasan; alasan itu tersimpan di riwayat dan ikut terkirim ke Telegram.
+  - Hanya Approver dan Admin yang bisa memutuskan. Peran lain melihat antreannya, tetapi tanpa tombol.
+  - Keputusan hanya berlaku untuk konten yang benar-benar sedang di Review. Keputusan kedua atas konten yang sama ditolak dengan pesan yang jelas.
+- **Request Revision dengan AI:** centang "Let the AI rewrite the draft", dan AI menulis ulang draft berdasarkan catatan approver ditambah temuan QA, lalu QA berjalan lagi dan konten kembali ke Review. Tanpa centang itu, konten hanya kembali ke Drafting untuk diperbaiki manusia.
+- **Notifikasi Telegram** dikirim saat konten masuk Review (berisi judul, hasil QA, dan jumlah hal yang perlu dicek) dan saat ada keputusan (berisi keputusan, nama pemutus, dan alasannya). Kegagalan Telegram tidak pernah membatalkan keputusan yang sudah tercatat.
+- Diuji 16 September: 12 skenario di database dev dengan AI tiruan, antrean tiruan, dan Telegram tiruan, jadi tidak ada biaya dan tidak ada pesan yang terkirim ke grup. Semua data uji dihapus. Route API juga dicek langsung: 404 untuk konten yang tidak ada, 400 untuk keputusan yang tidak dikenal, dan 409 untuk konten yang sudah keluar dari Review.
+- Belum diuji: pengiriman notifikasi Telegram yang sebenarnya, dan tampilan layarnya di browser.
+
 **Tugas tim**
 
 - Cek tampilan Content Planner dan Workflow Logs.
-- Mulai siapkan bahan tahap 2: brand guideline, aturan CTA, aturan imparsialitas dari compliance, 5–10 contoh artikel terbaik, dan daftar Approver.
+- Tinjau isi Settings > Brand and AI, lalu tekan **Save this version**.
+- Minta compliance meninjau aturan imparsialitas, lalu ubah statusnya menjadi Disetujui dengan nama dan tanggal.
+- Tambahkan akun Approver lain bila perlu. Saat ini hanya Admin yang bisa approve.
+- Isi saldo OpenRouter di https://openrouter.ai/settings/credits. Saat ini saldo habis, sehingga rantai AI dan ringkasan AI di laporan harian belum bisa berjalan. Satu artikel lengkap (brief, draft, dan QA dengan Opus 5) diperkirakan menghabiskan $0,30–0,60.
+- Setelah saldo diisi, klik **Generate new ideas** di Content Planner, tambahkan satu topik ke Planner, lalu jalankan brief dan draft di tab AI Writer.
 
 **Pekerjaan**
 
@@ -320,10 +381,9 @@ Hasil tahap 1:
 
 **Butuh dari tim TSI**
 
-- Brand guideline dan aturan CTA.
-- Aturan imparsialitas yang disetujui compliance, berangkat dari halaman `/impartiality-policy`.
-- 5–10 contoh artikel terbaik.
-- Daftar Approver.
+- Tinjauan brand guideline dan aturan CTA di Settings (draf sudah diisi).
+- Persetujuan compliance atas aturan imparsialitas (draf sudah diisi).
+- Konfirmasi standar yang benar-benar dilayani di luar daftar di website (misalnya ISO 37001, ISO 21001), supaya AI boleh menyebutnya.
 
 **Selesai bila:** satu artikel dibuat dari rekomendasi topik sampai di-approve, seluruhnya di dalam sistem.
 
@@ -642,8 +702,8 @@ Semua lewat OpenRouter. Model bisa diganti lewat variabel `AI_MODEL_*` di `.env`
 |---|---|---|---|
 | Ringkasan laporan | `anthropic/claude-sonnet-5` | $2 / $10 | M4 |
 | Tulis artikel dan revisi | `anthropic/claude-opus-5` | $5 / $25 | M5 |
-| QA sebelum approval | `anthropic/claude-opus-5` | $5 / $25 | M5 |
-| Brief, rekomendasi topik, peluang SEO | `anthropic/claude-opus-5` | $5 / $25 | M5 |
+| QA sebelum approval | `anthropic/claude-sonnet-5` | $2 / $10 | M5 |
+| Brief, rekomendasi topik, peluang SEO | `anthropic/claude-sonnet-5` | $2 / $10 | M5 |
 | Klasifikasi search intent dan cluster | `anthropic/claude-haiku-4.5` | $1 / $5 | M5 |
 | Caption Facebook dan Instagram | `anthropic/claude-sonnet-5` | $2 / $10 | M7 |
 | Gambar latar flyer | `google/gemini-3.1-flash-image` | $0,50 / $3 | M7 |

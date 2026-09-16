@@ -131,7 +131,7 @@ export async function saveJobSetting(deps: {
   await syncSchedule(boss, effective, deps.timeZone);
 }
 
-const GROUP_ORDER: Record<JobGroup, number> = { reports: 0, sync: 1, seo: 2, system: 3 };
+const GROUP_ORDER: Record<JobGroup, number> = { reports: 0, sync: 1, seo: 2, content: 3, system: 4 };
 
 /** Every job with its current settings and last run, for the Settings screen. */
 export async function getAutomationSettings(

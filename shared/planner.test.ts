@@ -16,6 +16,7 @@ const item = (overrides: Partial<ContentItem>): ContentItem => ({
   ownerName: null,
   createdAt: '2026-09-15T00:00:00Z',
   updatedAt: '2026-09-15T00:00:00Z',
+  ai: { task: null, status: null, error: null, updatedAt: null, hasBrief: false, hasDraft: false, qaVerdict: null },
   ...overrides,
 });
 

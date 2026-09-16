@@ -14,6 +14,16 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core';
 import { JOB_RUN_STATUSES, JOB_TRIGGERS, USER_ROLES } from '../../shared/api';
+import type {
+  AiTask,
+  AiTaskStatus,
+  ArticleDraft,
+  ContentBrief,
+  QaResult,
+  SearchIntent,
+  TopicAction,
+  TopicStatus,
+} from '../../shared/aiContent';
 import type { SeoCheck } from '../../shared/content';
 import type { ActionPriority, ActionStatus } from '../../shared/actions';
 import type { ContentEvent, ContentPriority, ContentStage, ContentType } from '../../shared/planner';
@@ -396,8 +406,42 @@ export const contentItems = pgTable(
     createdBy: uuid().references(() => users.id, { onDelete: 'set null' }),
     createdAt: instant().notNull().defaultNow(),
     updatedAt: instant().notNull().defaultNow(),
+    // The AI writer's output, each replaced when its task runs again.
+    brief: jsonb().$type<ContentBrief>(),
+    draft: jsonb().$type<ArticleDraft>(),
+    qa: jsonb().$type<QaResult>(),
+    /** The latest AI task and how it went; status is null once it finished. */
+    aiTask: text().$type<AiTask>(),
+    aiStatus: text().$type<AiTaskStatus>(),
+    aiError: text(),
+    aiUpdatedAt: instant(),
   },
   (table) => [index('content_items_stage_idx').on(table.stage), index('content_items_due_date_idx').on(table.dueDate)],
+);
+
+/** Article ideas the AI drew from Search Console opportunities, until someone plans or dismisses them. */
+export const topicRecommendations = pgTable(
+  'topic_recommendations',
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    keyword: text().notNull(),
+    title: text().notNull(),
+    intent: text().$type<SearchIntent>().notNull(),
+    action: text().$type<TopicAction>().notNull(),
+    existingUrl: text(),
+    angle: text().notNull(),
+    reason: text().notNull(),
+    cluster: text(),
+    impressions: integer().notNull(),
+    position: doublePrecision().notNull(),
+    opportunityScore: integer(),
+    status: text().$type<TopicStatus>().notNull(),
+    contentItemId: uuid().references(() => contentItems.id, { onDelete: 'set null' }),
+    model: text().notNull(),
+    createdAt: instant().notNull().defaultNow(),
+    updatedAt: instant().notNull().defaultNow(),
+  },
+  (table) => [index('topic_recommendations_status_idx').on(table.status)],
 );
 
 /** Each content item's history: created, moved between stages, edited. */

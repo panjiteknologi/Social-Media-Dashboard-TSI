@@ -14,6 +14,18 @@ import { CMS_SYNC_STATE_KEY } from './cms/sync';
 import { getAnalyticsOverview, getArticles } from './content/metrics';
 import type { Db } from './db/client';
 import { aiUsageThisMonth } from './ai/usage';
+import { BrandKnowledgeSchema, getBrandSettings, saveBrandKnowledge } from './brand/settings';
+import { decideContent, DecisionInputSchema } from './approvals/service';
+import { createAlerter } from './notify/telegram';
+import { AI_TASKS } from '../shared/aiContent';
+import {
+  dismissTopic,
+  getContentAi,
+  listTopics,
+  planTopic,
+  queueContentTask,
+  queueTopicRun,
+} from './contentAi/service';
 import { appSettings, ga4ChannelDaily, gscDaily, jobRuns, reports, siteCrawls, users } from './db/schema';
 import {
   ContentError,
@@ -64,6 +76,8 @@ const toJobRun = (
 
 export function createApp({ db, env, boss, jobs }: AppDeps) {
   const secure = env.NODE_ENV === 'production';
+  const aiConfigured = Boolean(env.OPENROUTER_API_KEY);
+  const alerter = createAlerter(env);
 
   const automationSettings = () =>
     getAutomationSettings(db, jobs, {
@@ -93,8 +107,10 @@ export function createApp({ db, env, boss, jobs }: AppDeps) {
     if (report) live.add('reports');
     if (crawl) live.add('technicalSeo');
     if (actionsLive) live.add('seoActions');
-    // The Content Planner holds real data from its first item; an empty planner is a real state too.
+    // The Content Planner and the Approval Queue hold real data from the first
+    // item; empty is a real state too.
     live.add('content');
+    live.add('approvals');
     // A finished CMS sync makes both live, even with no leads yet: zero is a real count.
     if (cmsSync) {
       live.add('articles');
@@ -198,6 +214,13 @@ export function createApp({ db, env, boss, jobs }: AppDeps) {
       }
       return c.json({ sent: true });
     })
+    .get('/settings/brand', requireRole(), async (c) => c.json(await getBrandSettings(db, env)))
+    .post('/settings/brand', requireRole('admin'), async (c) => {
+      const parsed = BrandKnowledgeSchema.safeParse(await c.req.json().catch(() => null));
+      if (!parsed.success) return c.json({ error: z.prettifyError(parsed.error) }, 400);
+      await saveBrandKnowledge(db, parsed.data, c.get('user')?.id ?? null);
+      return c.json(await getBrandSettings(db, env));
+    })
     .get('/settings/seo', requireRole(), async (c) => c.json(await getSeoSettings(db)))
     .post('/settings/seo', requireRole('admin'), async (c) => {
       const parsed = SeoSettingsSchema.safeParse(await c.req.json().catch(() => null));
@@ -270,6 +293,76 @@ export function createApp({ db, env, boss, jobs }: AppDeps) {
       if (!parsed.success) return c.json({ error: z.prettifyError(parsed.error) }, 400);
       try {
         return c.json(await updateContent(db, id.data, parsed.data, c.get('user')!));
+      } catch (error) {
+        if (error instanceof ContentError) return c.json({ error: error.message }, error.status);
+        throw error;
+      }
+    })
+    .get('/content/:id/ai', requireRole(), async (c) => {
+      const id = z.uuid().safeParse(c.req.param('id'));
+      if (!id.success) return c.json({ error: 'Content not found' }, 404);
+      try {
+        return c.json(await getContentAi(db, aiConfigured, id.data));
+      } catch (error) {
+        if (error instanceof ContentError) return c.json({ error: error.message }, error.status);
+        throw error;
+      }
+    })
+    .post('/content/:id/ai', requireRole('editor'), async (c) => {
+      const id = z.uuid().safeParse(c.req.param('id'));
+      if (!id.success) return c.json({ error: 'Content not found' }, 404);
+      const body = z.object({ task: z.enum(AI_TASKS) }).safeParse(await c.req.json().catch(() => null));
+      if (!body.success) return c.json({ error: z.prettifyError(body.error) }, 400);
+      try {
+        return c.json(
+          await queueContentTask({ db, boss, configured: aiConfigured }, id.data, body.data.task, c.get('user')!),
+          202,
+        );
+      } catch (error) {
+        if (error instanceof ContentError) return c.json({ error: error.message }, error.status);
+        throw error;
+      }
+    })
+    .post('/content/:id/decision', requireRole('approver'), async (c) => {
+      const id = z.uuid().safeParse(c.req.param('id'));
+      if (!id.success) return c.json({ error: 'Content not found' }, 404);
+      const body = DecisionInputSchema.safeParse(await c.req.json().catch(() => null));
+      if (!body.success) return c.json({ error: z.prettifyError(body.error) }, 400);
+      try {
+        const deps = { db, boss, alerter, appBaseUrl: env.APP_BASE_URL, aiConfigured };
+        return c.json(await decideContent(deps, id.data, body.data, c.get('user')!));
+      } catch (error) {
+        if (error instanceof ContentError) return c.json({ error: error.message }, error.status);
+        throw error;
+      }
+    })
+    .get('/topics', requireRole(), async (c) => c.json(await listTopics(db, aiConfigured)))
+    .post('/topics/run', requireRole('editor'), async (c) => {
+      if (!aiConfigured) return c.json({ error: 'OPENROUTER_API_KEY is not set.' }, 400);
+      try {
+        await queueTopicRun(db, boss, c.get('user')!);
+        return c.json({ queued: true }, 202);
+      } catch (error) {
+        if (error instanceof ContentError) return c.json({ error: error.message }, error.status);
+        throw error;
+      }
+    })
+    .post('/topics/:id/plan', requireRole('editor'), async (c) => {
+      const id = z.uuid().safeParse(c.req.param('id'));
+      if (!id.success) return c.json({ error: 'Recommendation not found' }, 404);
+      try {
+        return c.json(await planTopic(db, id.data, c.get('user')!), 201);
+      } catch (error) {
+        if (error instanceof ContentError) return c.json({ error: error.message }, error.status);
+        throw error;
+      }
+    })
+    .post('/topics/:id/dismiss', requireRole('editor'), async (c) => {
+      const id = z.uuid().safeParse(c.req.param('id'));
+      if (!id.success) return c.json({ error: 'Recommendation not found' }, 404);
+      try {
+        await dismissTopic(db, id.data);
+        return c.json({ dismissed: true });
       } catch (error) {
         if (error instanceof ContentError) return c.json({ error: error.message }, error.status);
         throw error;

@@ -24,6 +24,11 @@ export interface JobDefinition {
   schedule?: string;
   /** Whether an admin may start the job by hand. */
   manual: boolean;
+  /**
+   * Whether a final failure alerts Telegram. Defaults to true; jobs a person
+   * starts and watches on screen turn it off, since that person sees the error.
+   */
+  alertOnFailure?: boolean;
   /** Validates its own input; the queue only guarantees JSON. */
   run(input: unknown, signal: AbortSignal): Promise<unknown>;
 }

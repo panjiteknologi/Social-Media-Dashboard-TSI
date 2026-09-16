@@ -3,8 +3,11 @@
  * feature, every call's tokens and cost recorded, and a monthly spending cap.
  */
 
-/** Features that call AI. Later milestones add article writing, QA and captions. */
-export const AI_FEATURES = ['report'] as const;
+/**
+ * Features that call AI, each with its own model: report summaries, strategy
+ * (topic recommendations and briefs), article drafts, and QA. M7 adds captions.
+ */
+export const AI_FEATURES = ['report', 'strategy', 'article', 'qa'] as const;
 
 export type AiFeature = (typeof AI_FEATURES)[number];
 
@@ -32,6 +35,8 @@ export interface AiResult {
   text: string;
   model: string;
   usage: AiUsageEntry;
+  /** "length" when the reply hit maxTokens and was cut off. */
+  finishReason: string | null;
 }
 
 export interface AiGateway {
@@ -49,7 +54,7 @@ export class AiBudgetExceededError extends Error {
 
 interface ChatCompletionResponse {
   model?: string;
-  choices?: Array<{ message?: { content?: string | null } }>;
+  choices?: Array<{ message?: { content?: string | null }; finish_reason?: string | null }>;
   usage?: { prompt_tokens?: number; completion_tokens?: number; cost?: number };
   error?: { message?: string };
 }
@@ -86,7 +91,9 @@ export function createAiGateway(options: {
           'X-Title': options.appName,
           ...(options.appUrl ? { 'HTTP-Referer': options.appUrl } : {}),
         },
-        body: JSON.stringify({ model, messages, max_tokens: maxTokens }),
+        // Reasoning off: every feature here asks for structured output, and on
+        // 16 September Sonnet spent all 8,000 tokens thinking and wrote nothing.
+        body: JSON.stringify({ model, messages, max_tokens: maxTokens, reasoning: { enabled: false } }),
       });
       const body = (await response.json().catch(() => null)) as ChatCompletionResponse | null;
       if (!response.ok || body?.error) {
@@ -103,9 +110,17 @@ export function createAiGateway(options: {
       // Recorded before the text is checked: an empty answer is still billed.
       await options.store.record(usage);
 
+      const finishReason = body?.choices?.[0]?.finish_reason ?? null;
       const text = body?.choices?.[0]?.message?.content;
-      if (typeof text !== 'string' || text.trim() === '') throw new Error('OpenRouter returned no text.');
-      return { text, model: usage.model, usage };
+      if (typeof text !== 'string' || text.trim() === '') {
+        // An empty answer that stopped at the limit spent its tokens before writing anything.
+        throw new Error(
+          finishReason === 'length'
+            ? `The model reached the ${maxTokens.toLocaleString('en-US')}-token limit without writing an answer.`
+            : 'OpenRouter returned no text.',
+        );
+      }
+      return { text, model: usage.model, usage, finishReason };
     },
   };
 }
