@@ -14,6 +14,7 @@ import { Analytics } from './screens/Analytics';
 import { Approval } from './screens/Approval';
 import { Articles } from './screens/Articles';
 import { Dashboard } from './screens/Dashboard';
+import { Leads } from './screens/Leads';
 import { Placeholder } from './screens/Placeholder';
 import { PLANNER_VIEW_KEYS, Planner } from './screens/Planner';
 import { Reports } from './screens/Reports';
@@ -68,6 +69,12 @@ function SeoRoute() {
   return <Seo chartRange={range} onChartRangeChange={setRange} />;
 }
 
+function LeadsRoute() {
+  // The notification bell links straight to one lead: /leads?lead=7 opens it.
+  const [id, setId] = useUrlKey('lead');
+  return <Leads selectedId={id} onSelect={setId} />;
+}
+
 function ApprovalRoute() {
   const [id, setId] = useUrlKey('id');
   return <Approval selectedId={id} onSelect={setId} />;
@@ -108,6 +115,7 @@ function Shell() {
             <Route path={SCREEN_PATHS.social} element={<SocialRoute />} />
             <Route path={SCREEN_PATHS.seo} element={<SeoRoute />} />
             <Route path={SCREEN_PATHS.analytics} element={<Analytics />} />
+            <Route path={SCREEN_PATHS.leads} element={<LeadsRoute />} />
             <Route path={SCREEN_PATHS.approval} element={<ApprovalRoute />} />
             <Route path={SCREEN_PATHS.reports} element={<ReportsRoute />} />
             <Route path={SCREEN_PATHS.settings} element={<Settings />} />

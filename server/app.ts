@@ -16,6 +16,9 @@ import type { Db } from './db/client';
 import { aiUsageThisMonth } from './ai/usage';
 import { BrandKnowledgeSchema, getBrandSettings, saveBrandKnowledge } from './brand/settings';
 import { decideContent, DecisionInputSchema } from './approvals/service';
+import { queueCmsPublish } from './cms/run';
+import { getLeadDetail, getLeads, leadDetailsAvailable } from './cms/leads';
+import { todayIn } from './seo/sync';
 import { createAlerter } from './notify/telegram';
 import { AI_TASKS } from '../shared/aiContent';
 import {
@@ -78,6 +81,17 @@ export function createApp({ db, env, boss, jobs }: AppDeps) {
   const secure = env.NODE_ENV === 'production';
   const aiConfigured = Boolean(env.OPENROUTER_API_KEY);
   const alerter = createAlerter(env);
+
+  /**
+   * Whether the CMS lets us show what a person wrote in the form. Asked once
+   * and remembered after it is granted, so the Leads screen costs one query.
+   */
+  let leadDetailsGranted = false;
+  async function detailsAvailable(): Promise<boolean> {
+    if (leadDetailsGranted || !env.CMS_DATABASE_URL) return leadDetailsGranted;
+    leadDetailsGranted = await leadDetailsAvailable(env.CMS_DATABASE_URL);
+    return leadDetailsGranted;
+  }
 
   const automationSettings = () =>
     getAutomationSettings(db, jobs, {
@@ -329,10 +343,54 @@ export function createApp({ db, env, boss, jobs }: AppDeps) {
       const body = DecisionInputSchema.safeParse(await c.req.json().catch(() => null));
       if (!body.success) return c.json({ error: z.prettifyError(body.error) }, 400);
       try {
-        const deps = { db, boss, alerter, appBaseUrl: env.APP_BASE_URL, aiConfigured };
+        const deps = {
+          db,
+          boss,
+          alerter,
+          appBaseUrl: env.APP_BASE_URL,
+          aiConfigured,
+          cmsWriteConfigured: Boolean(env.CMS_WRITE_DATABASE_URL),
+        };
         return c.json(await decideContent(deps, id.data, body.data, c.get('user')!));
       } catch (error) {
         if (error instanceof ContentError) return c.json({ error: error.message }, error.status);
+        throw error;
+      }
+    })
+    .post('/content/:id/publish', requireRole('editor'), async (c) => {
+      const id = z.uuid().safeParse(c.req.param('id'));
+      if (!id.success) return c.json({ error: 'Content not found' }, 404);
+      if (!env.CMS_WRITE_DATABASE_URL) return c.json({ error: 'CMS_WRITE_DATABASE_URL is not set.' }, 400);
+      const body = z
+        .object({ force: z.boolean().default(false) })
+        .safeParse(await c.req.json().catch(() => ({})));
+      try {
+        return c.json(await queueCmsPublish({ db, boss }, id.data, c.get('user')!, body.success && body.data.force));
+      } catch (error) {
+        if (error instanceof ContentError) return c.json({ error: error.message }, error.status);
+        throw error;
+      }
+    })
+    .get('/leads', requireRole(), async (c) => {
+      const [data, available] = await Promise.all([getLeads(db, todayIn(env.TIMEZONE)), detailsAvailable()]);
+      return c.json({ ...data, detailsAvailable: available });
+    })
+    .get('/leads/:id/detail', requireRole('editor'), async (c) => {
+      const id = z.coerce.number().int().positive().safeParse(c.req.param('id'));
+      if (!id.success) return c.json({ error: 'Lead not found' }, 404);
+      if (!env.CMS_DATABASE_URL) return c.json({ error: 'CMS_DATABASE_URL is not set.' }, 400);
+      try {
+        // Read for this one request and returned straight to the person asking: never stored.
+        const detail = await getLeadDetail(env.CMS_DATABASE_URL, id.data);
+        return detail ? c.json(detail) : c.json({ error: 'Lead not found' }, 404);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        if (message.includes('permission denied')) {
+          return c.json(
+            { error: 'The CMS does not let Content Machine read what people wrote yet. Run: npm run cli -- cms:lead-grant-sql' },
+            403,
+          );
+        }
         throw error;
       }
     })

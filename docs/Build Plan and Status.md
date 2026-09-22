@@ -15,6 +15,7 @@ Dokumen ini adalah acuan tunggal untuk urutan pembangunan, status setiap bagian,
 | Tampilan 8 layar: Dashboard, Content Planner, Articles, Social Media, SEO Intelligence, Analytics, Approval Queue, Reports | Selesai. Setiap bagian menampilkan status sumber datanya ("Not connected", "Not available yet", "On hold") sampai data asli masuk |
 | Media Library | Masih placeholder (M7) |
 | Content Planner dan Workflow Logs | **Berjalan dengan data asli (M5 tahap 1, 15 September):** kanban drag & drop, kalender mingguan, list, Quick Create, dan riwayat konten; daftar run job dengan detail, Retry, dan biaya AI bulan ini |
+| Leads (menu Digital Marketing) | **Berjalan dengan data asli (22 September):** daftar lead dari formulir kontak dengan pagination, rincian per layanan dan halaman asal, seluruh sinyal minat dari GA4 (klik WhatsApp, klik CTA, form submit) per halaman dan kanal dengan filter jenis aksi dan pagination, serta isi form yang dibaca langsung dari CMS hanya saat dibuka dan tidak pernah disimpan. Lonceng di header memunculkan lead baru dan membuka lead itu langsung saat diklik |
 | Settings | Bagian SEO, Brand and AI, Reporting, dan Automation berjalan (sejak 15 September). Approval rules dan Social accounts menyusul di M5 dan M7 |
 | Routing dan URL per layar | Selesai |
 | Konfigurasi env (`.env.example`) | Selesai |
@@ -389,19 +390,51 @@ Hasil tahap 4:
 
 ### M6 — Publikasi ke website
 
-Bergantung pada CMS kustom (§2).
+**Status: selesai dibangun 16 September, belum pernah dijalankan ke CMS sungguhan** karena role tulisnya belum dibuat.
 
-**Pekerjaan**
+Cara kerja website, hasil penelusuran 16 September:
 
-- Artikel yang di-approve dikirim ke CMS sebagai draft atau dijadwalkan tayang.
-- Kunci unik untuk mencegah publikasi ganda. Status tayang disinkronkan ke Articles dan Content Planner.
-- Tab History di drawer artikel.
+- Website memakai Astro `output: 'server'` di Vercel dan membaca database Neon langsung setiap request. Jadi artikel baru langsung tampil tanpa build ulang.
+- Website hanya menyaring `status = 'publish'` dan tidak melihat tanggal. Artinya artikel berstatus `scheduling` tidak tayang sendiri; statusnya harus diubah.
+- CMS tidak punya API untuk membuat artikel, hanya upload gambar dengan sesi login admin.
 
-**Butuh dari tim TSI:** akses API CMS website, atau kerja sama dengan developer website untuk membuatnya.
+Keputusan (16 September): Content Machine menulis langsung ke tabel `blog_posts` memakai role Neon terpisah, dan artikel yang di-approve masuk sebagai **draft**, bukan langsung tayang.
 
-**Selesai bila:** artikel tayang di tsicertification.com pada jam yang dijadwalkan tanpa langkah manual.
+**Pekerjaan yang selesai**
 
-**Kalau CMS tidak punya API:** sistem menyiapkan artikel siap tempel (teks, meta, gambar), lalu mendeteksi otomatis kapan artikel sudah tayang. Publikasinya tetap manual.
+- Role `content_machine_writer`: hanya `INSERT` dan `UPDATE` di `blog_posts`, hanya kolom yang diperlukan, tanpa `DELETE`, tanpa tabel lain, dan tanpa akses pesan kontak. SQL-nya dibuat lewat `npm run cli -- cms:writer-sql`, dan `npm run cli -- cms:check-write` membuktikan batasannya.
+- Setiap baris buatan sistem ditandai `raw_meta.source = 'content-machine'` beserta id konten asalnya. Sistem hanya meng-update baris bertanda itu, sehingga artikel buatan manusia tidak mungkin tertimpa.
+- `wordpress_id` diisi angka negatif dari sequence tabel, meniru cara CMS membuat artikel.
+- Bentrok slug ditangani: slug milik artikel orang lain tidak pernah diambil alih, melainkan diberi akhiran `-2`, `-3`, dan seterusnya.
+- Job `cms-publish` berjalan otomatis saat approve, dan bisa dijalankan ulang lewat tombol **Send to the CMS** di tab AI Writer. Tanpa retry otomatis, karena penolakan tulis atau slug bentrok butuh manusia.
+- Deteksi tayang menumpang `cms-sync` yang jalan tiap jam: begitu status di CMS menjadi `publish`, konten pindah ke tahap **Published** dan URL-nya tercatat di riwayat. Kalau drafnya dihapus di CMS, itu juga tercatat.
+- Notifikasi Telegram saat artikel masuk CMS, berisi pengingat menambahkan gambar sampul.
+- Publikasi mati total bila `CMS_WRITE_DATABASE_URL` kosong; approve tetap berjalan, artikel hanya tidak dikirim.
+
+**Butuh dari tim TSI**
+
+1. Jalankan `npm run cli -- cms:writer-sql`, buka `secrets/cms-writer.sql`, jalankan isinya di Neon SQL Editor pada branch dan database produksi.
+2. Isi `CMS_WRITE_DATABASE_URL` di `.env`, lalu jalankan `npm run cli -- cms:check-write`.
+3. Uji dengan satu artikel, lalu periksa drafnya di CMS sebelum dipublikasikan.
+
+**Selesai bila:** artikel yang di-approve muncul sebagai draft di CMS, dan setelah tim menekan Publish, statusnya di Content Planner ikut menjadi Published dengan URL yang benar.
+
+**Catatan:** gambar sampul belum bisa dibuat sistem, jadi tetap diisi manusia di CMS. Pembuatan gambar masuk M7.
+
+**Uji ke CMS sungguhan, 17 September**
+
+- Role tulis dibuat di Neon dan lolos 9 dari 9 pemeriksaan `cms:check-write`.
+- Satu artikel dikirim: masuk sebagai draft ID 177 dalam sekitar satu detik, ditandai `raw_meta.source = 'content-machine'`, kategori Artikel ISO, 5 tag, estimasi baca 7 menit, skor SEO 82 dengan hanya gambar sampul dan alt text yang belum terisi.
+- URL drafnya mengembalikan 404 dan tidak muncul di daftar `/blog/`, jadi draft benar-benar tidak terlihat publik.
+- `cms-sync` melaporkan `tracked: 1, published: 0`, jadi draft tidak salah dianggap tayang.
+- Batas hak akses terbukti nyata: membaca kolom `seo_title` dengan role tulis ditolak database, karena role itu boleh menulis kolom SEO tetapi tidak boleh membacanya.
+
+**Duplikat, ditemukan dan diperbaiki 17 September**
+
+Artikel yang sama sempat masuk dua kali: sekali karena tim menempelkannya manual dari Content Machine, sekali lewat jalur otomatis. Rekomendasi topik sebenarnya sudah diberi daftar artikel, tetapi tetap mengusulkan artikel baru untuk keyword "sertifikasi iso". Dua perbaikan:
+
+1. **Saringan keras di rekomendasi topik.** Keyword yang sudah dijawab artikel lain dibuang sebelum AI melihatnya, tidak lagi hanya dilarang lewat instruksi. Artikel dianggap menjawab keyword bila focus keyword-nya sama persis, atau judulnya diawali keyword tersebut. Keyword yang lebih spesifik seperti "biaya sertifikasi iso 9001" tetap terbuka.
+2. **Penjaga duplikat sebelum kirim ke CMS.** Sebelum membuat artikel baru, sistem membaca judul dan slug langsung dari CMS, bukan dari salinan per jam, sehingga artikel yang baru saja ditempel manual tetap terhitung. Kalau ada yang sama, pengiriman ditahan dengan pesan yang menyebut artikel penghalangnya, dan tersedia tombol **Send anyway** untuk versi kedua yang memang disengaja. Memperbarui draft milik sistem sendiri tidak pernah ditahan.
 
 ### M7 — Social media: Facebook dan Instagram
 

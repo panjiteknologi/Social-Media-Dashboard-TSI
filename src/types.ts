@@ -9,13 +9,14 @@ export type ScreenKey =
   | 'social'
   | 'seo'
   | 'analytics'
+  | 'leads'
   | 'approval'
   | 'reports'
   | 'media'
   | 'workflow'
   | 'settings';
 
-export type NavGroupLabel = 'Overview' | 'Editorial' | 'Growth' | 'Workflow' | 'System';
+export type NavGroupLabel = 'Overview' | 'Editorial' | 'Growth' | 'Digital Marketing' | 'Workflow' | 'System';
 
 export interface NavItem {
   key: ScreenKey;

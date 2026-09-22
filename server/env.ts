@@ -24,6 +24,8 @@ const EnvSchema = z.object({
   OPENROUTER_APP_NAME: z.string().default('Content Machine'),
   OPENROUTER_APP_URL: z.url().optional(),
   AI_MONTHLY_BUDGET_USD: z.coerce.number().nonnegative().default(50),
+  /** The second CMS role, which may write articles; publishing is off without it. */
+  CMS_WRITE_DATABASE_URL: z.string().optional(),
   AI_MODEL_REPORT: z.string().default('anthropic/claude-sonnet-5'),
   AI_MODEL_ARTICLE: z.string().default('anthropic/claude-opus-5'),
   // Sonnet follows the brand rules closely enough for briefs and QA at a third of the cost;

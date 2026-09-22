@@ -95,6 +95,11 @@ export const JOB_INFO: Record<string, { label: string; summary: string; group: J
     summary: 'Suggests article topics from Search Console opportunities for the Content Planner.',
     group: 'content',
   },
+  'cms-publish': {
+    label: 'Send article to the CMS',
+    summary: 'Puts an approved article into the CMS as a draft, ready for its cover image.',
+    group: 'content',
+  },
   'content-ai': {
     label: 'AI writer',
     summary: 'Writes briefs and drafts and runs QA, when someone starts it from the AI Writer tab.',

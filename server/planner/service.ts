@@ -14,9 +14,17 @@ import {
   type ContentStage,
   type TeamMember,
 } from '../../shared/planner';
-import { standardOf } from '../../shared/seo';
+import type { PublishSummary } from '../../shared/publishing';
+import { DEFAULT_SEO_SETTINGS, standardOf } from '../../shared/seo';
+import { articleUrl } from '../cms/publish';
 import type { Db } from '../db/client';
 import { contentEvents, contentItems, users } from '../db/schema';
+
+/**
+ * The website host for article links. The saved SEO setting can differ, but the
+ * planner lists hundreds of items, so the default avoids a query per list.
+ */
+const CONTENT_HOST = DEFAULT_SEO_SETTINGS.contentHost;
 
 const optionalText = (max: number) =>
   z
@@ -93,6 +101,16 @@ export const aiSummaryOf = (row: ItemRow): ContentAiSummary => ({
   qaVerdict: row.qa ? qaVerdict(row.qa) : null,
 });
 
+export const publishSummaryOf = (row: ItemRow, contentHost: string): PublishSummary => ({
+  status: row.publishStatus,
+  error: row.publishError,
+  updatedAt: row.publishUpdatedAt?.toISOString() ?? null,
+  cmsPostId: row.cmsPostId,
+  cmsSlug: row.cmsSlug,
+  cmsStatus: row.cmsStatus,
+  url: row.cmsSlug ? articleUrl(contentHost, row.cmsSlug) : null,
+});
+
 const toItem = (row: ItemRow, ownerName: string | null): ContentItem => ({
   id: row.id,
   ...toInput(row),
@@ -101,6 +119,7 @@ const toItem = (row: ItemRow, ownerName: string | null): ContentItem => ({
   createdAt: row.createdAt.toISOString(),
   updatedAt: row.updatedAt.toISOString(),
   ai: aiSummaryOf(row),
+  publish: publishSummaryOf(row, CONTENT_HOST),
 });
 
 const withOwner = (db: Db) =>

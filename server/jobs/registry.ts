@@ -4,6 +4,7 @@ import type { ReportKind } from '../../shared/reports';
 import { aiGatewayFromEnv } from '../ai/fromEnv';
 import { syncAnalytics } from '../analytics/sync';
 import { deleteExpiredSessions } from '../auth/session';
+import { CMS_PUBLISH_JOB, reconcilePublished, runCmsPublish } from '../cms/run';
 import { syncCms } from '../cms/sync';
 import { runContentTask, runTopicRecommendations } from '../contentAi/run';
 import { CONTENT_AI_JOB, TOPICS_JOB } from '../contentAi/service';
@@ -160,8 +161,21 @@ export function createJobs({ db, env }: { db: Db; env: Env }): JobDefinition[] {
       manual: true,
       async run() {
         if (!env.CMS_DATABASE_URL) throw new Error('CMS_DATABASE_URL is not set in .env.');
-        return syncCms({ db, connectionString: env.CMS_DATABASE_URL });
+        const synced = await syncCms({ db, connectionString: env.CMS_DATABASE_URL });
+        const settings = await getSeoSettings(db);
+        return { ...synced, publishing: await reconcilePublished(db, settings.contentHost) };
       },
+    },
+    {
+      name: CMS_PUBLISH_JOB,
+      description:
+        'Sends one approved article to the website CMS as a draft, where a person adds the cover image and presses Publish. Input {"itemId": "…"}. Started by an approval, or by hand from the article.',
+      // No automatic retry: a refused write or a taken slug needs a person, not a second attempt.
+      retryLimit: 0,
+      retryDelaySeconds: 60,
+      manual: true,
+      alertOnFailure: false,
+      run: (input) => runCmsPublish({ db, env, notify: alerter.send }, input),
     },
     {
       name: 'seo-actions',

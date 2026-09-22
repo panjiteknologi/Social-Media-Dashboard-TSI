@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { canMoveToStage, contentSummary, weekStart, type ContentItem } from './planner';
+import { EMPTY_PUBLISH } from './publishing';
 
 const item = (overrides: Partial<ContentItem>): ContentItem => ({
   id: overrides.title ?? 'id',
@@ -17,6 +18,7 @@ const item = (overrides: Partial<ContentItem>): ContentItem => ({
   createdAt: '2026-09-15T00:00:00Z',
   updatedAt: '2026-09-15T00:00:00Z',
   ai: { task: null, status: null, error: null, updatedAt: null, hasBrief: false, hasDraft: false, qaVerdict: null },
+  publish: EMPTY_PUBLISH,
   ...overrides,
 });
 

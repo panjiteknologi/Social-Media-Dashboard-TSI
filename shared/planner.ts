@@ -1,6 +1,7 @@
 /** Content Planner: ideas and content moving through the editorial stages. */
 import type { ContentAiSummary } from './aiContent';
 import type { UserRole } from './api';
+import type { PublishSummary } from './publishing';
 import { addDays } from './seo';
 
 export const CONTENT_STAGES = [
@@ -74,6 +75,7 @@ export interface ContentItem extends ContentInput {
   createdAt: string;
   updatedAt: string;
   ai: ContentAiSummary;
+  publish: PublishSummary;
 }
 
 export interface ContentEvent {
@@ -82,7 +84,7 @@ export interface ContentEvent {
    * "ai" records what the AI writer did, with the model and cost in the note;
    * "decision" records an approver's approve, revise or reject with their words.
    */
-  kind: 'created' | 'stage_changed' | 'edited' | 'ai' | 'decision';
+  kind: 'created' | 'stage_changed' | 'edited' | 'ai' | 'decision' | 'publish';
   fromStage: ContentStage | null;
   toStage: ContentStage | null;
   note: string | null;

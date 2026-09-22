@@ -9,11 +9,15 @@
  *   telegram:test                    send a test alert to TELEGRAM_CHAT_ID
  *   cms:grant-sql                    write the SQL that creates the CMS read-only role
  *   cms:check                        prove CMS_DATABASE_URL is read-only and limited
+ *   cms:lead-grant-sql               print the SQL that lets the Leads screen show a lead's own words
+ *   cms:writer-sql                   write the SQL that creates the CMS publishing role
+ *   cms:check-write                  prove CMS_WRITE_DATABASE_URL may write articles and nothing else
  */
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { eq } from 'drizzle-orm';
 import { USER_ROLES, type UserRole } from '../shared/api';
-import { checkCmsAccess, generateReaderPassword, readerSetupSql } from './cms/access';
+import { checkCmsAccess, generateReaderPassword, leadDetailsGrantSql, readerSetupSql } from './cms/access';
+import { checkCmsWriteAccess, writerSetupSql } from './cms/writeAccess';
 import { createDb, runMigrations, waitForDatabase } from './db/client';
 import { sessions, users } from './db/schema';
 import { getEnv } from './env';
@@ -31,9 +35,13 @@ const USAGE = `Usage:
   npm run cli -- telegram:chats
   npm run cli -- telegram:test
   npm run cli -- cms:grant-sql
-  npm run cli -- cms:check`;
+  npm run cli -- cms:check
+  npm run cli -- cms:lead-grant-sql
+  npm run cli -- cms:writer-sql
+  npm run cli -- cms:check-write`;
 
 const CMS_SQL_PATH = 'secrets/cms-reader.sql';
+const CMS_WRITER_SQL_PATH = 'secrets/cms-writer.sql';
 
 const env = getEnv();
 // The pool connects lazily, so commands that never query do not need Postgres running.
@@ -153,6 +161,27 @@ async function checkCms() {
   console.log('\nCMS access is read-only and limited to the agreed columns.');
 }
 
+function writeCmsWriterSql() {
+  if (existsSync(CMS_WRITER_SQL_PATH)) {
+    fail(`${CMS_WRITER_SQL_PATH} already exists. Use it, or delete it first to get a new password.`);
+  }
+  mkdirSync('secrets', { recursive: true });
+  writeFileSync(CMS_WRITER_SQL_PATH, writerSetupSql(generateReaderPassword()), { mode: 0o600 });
+  console.log(
+    `Wrote ${CMS_WRITER_SQL_PATH}. Open it and follow the steps at the top; the password exists only there.`,
+  );
+}
+
+async function checkCmsWrite() {
+  if (!env.CMS_WRITE_DATABASE_URL) fail('Set CMS_WRITE_DATABASE_URL in .env first.');
+  const checks = await checkCmsWriteAccess(env.CMS_WRITE_DATABASE_URL);
+  for (const check of checks) {
+    console.log(`${check.ok ? 'PASS' : 'FAIL'}  ${check.name}${check.detail ? ` (${check.detail})` : ''}`);
+  }
+  if (checks.some((check) => !check.ok)) fail('\nCMS publishing is not ready: fix the FAIL lines above.');
+  console.log('\nThe writer role may add and update articles, and nothing else.');
+}
+
 async function runDatabaseCommand(name: string | undefined, args: string[]) {
   await waitForDatabase(pool, { attempts: 5 });
   await runMigrations(db, pool);
@@ -177,6 +206,9 @@ try {
   else if (command === 'telegram:test') await sendTelegramTest();
   else if (command === 'cms:grant-sql') writeCmsGrantSql();
   else if (command === 'cms:check') await checkCms();
+  else if (command === 'cms:lead-grant-sql') console.log(leadDetailsGrantSql());
+  else if (command === 'cms:writer-sql') writeCmsWriterSql();
+  else if (command === 'cms:check-write') await checkCmsWrite();
   else await runDatabaseCommand(command, args);
 } catch (error) {
   fail(error instanceof Error ? error.message : String(error));

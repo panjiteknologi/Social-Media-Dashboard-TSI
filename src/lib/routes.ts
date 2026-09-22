@@ -13,6 +13,7 @@ export const SCREEN_PATHS: Record<ScreenKey, string> = {
   social: '/social',
   seo: '/seo',
   analytics: '/analytics',
+  leads: '/leads',
   approval: '/approval',
   reports: '/reports',
   media: '/media',

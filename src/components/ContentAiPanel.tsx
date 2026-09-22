@@ -13,7 +13,9 @@ import {
   type QaResult,
 } from '../../shared/aiContent';
 import type { ContentItem } from '../../shared/planner';
+import { isPublishBusy, publishBlocker, publishStateLabel } from '../../shared/publishing';
 import { useContentAi, useQueueAiTask } from '../api/contentAi';
+import { usePublishContent } from '../api/publishing';
 import { formatDateTime } from '../lib/format';
 import { useCurrentUser } from './AuthGate';
 import { QueryState } from './QueryState';
@@ -257,7 +259,10 @@ function Step({
 function Panel({ item, data }: { item: ContentItem; data: ContentAiDetail }) {
   const user = useCurrentUser();
   const queue = useQueueAiTask(item.id);
+  const publish = usePublishContent(item.id);
+  const publishBusy = isPublishBusy(item.publish);
   const { summary } = data;
+  const publishStop = publishBlocker({ type: item.type, hasDraft: summary.hasDraft, stage: item.stage });
   const busy = isAiBusy(summary);
   const stopped = !busy && (summary.status === 'queued' || summary.status === 'running');
   const canRun = user.role !== 'viewer' && data.configured;
@@ -336,6 +341,59 @@ function Panel({ item, data }: { item: ContentItem; data: ContentAiDetail }) {
         action={button('qa', 'Run QA again', false)}
       >
         {data.qa ? <QaView qa={data.qa} /> : <div className="ai-empty">QA runs after the draft.</div>}
+      </Step>
+
+      <Step
+        number={4}
+        title="Publish"
+        description="Sends the approved article to the website CMS as a draft. Someone there adds the cover image and presses Publish, which is when it appears on the website."
+        action={
+          user.role === 'viewer' ? null : (
+            <button
+              type="button"
+              className="btn btn--ghost settings-form__button"
+              disabled={publishBusy || publish.isPending || publishStop !== null}
+              title={publishStop ?? undefined}
+              onClick={() => publish.mutate(false)}
+            >
+              {item.publish.cmsPostId === null ? 'Send to the CMS' : 'Update the CMS draft'}
+            </button>
+          )
+        }
+      >
+        <div className="ai-field__value">
+          {publishStateLabel(item.publish)}
+          {item.publish.url ? (
+            <>
+              {' · '}
+              <a href={item.publish.url} target="_blank" rel="noreferrer">
+                {item.publish.url}
+              </a>
+            </>
+          ) : null}
+        </div>
+        {item.publish.error ? (
+          <div className="ai-banner ai-banner--error" role="alert">
+            {item.publish.error}
+            {item.publish.error.includes('already holds this article') && user.role !== 'viewer' ? (
+              <div className="ai-preview-head">
+                <button
+                  type="button"
+                  className="btn btn--ghost settings-form__button"
+                  disabled={publishBusy || publish.isPending}
+                  onClick={() => publish.mutate(true)}
+                >
+                  Send anyway
+                </button>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+        {publish.isError ? (
+          <div className="ai-banner ai-banner--error" role="alert">
+            {publish.error.message}
+          </div>
+        ) : null}
       </Step>
     </div>
   );

@@ -18,6 +18,7 @@ import type { AiGateway, AiResult } from '../ai/gateway';
 import { getBrandKnowledge } from '../brand/settings';
 import type { Db } from '../db/client';
 import { articles, contentEvents, contentItems, topicRecommendations } from '../db/schema';
+import { keywordCovered } from '../cms/duplicates';
 import { buildReviewMessage } from '../notify/approvals';
 import { getKeywords } from '../seo/metrics';
 import { getSeoSettings } from '../seo/settings';
@@ -90,8 +91,7 @@ export async function runTopicRecommendations({ db, ai }: ContentAiDeps) {
 
   const [settings, brand] = await Promise.all([getSeoSettings(db), getBrandKnowledge(db)]);
   const keywords = await getKeywords(db, settings);
-  const opportunities = keywords.opportunities.slice(0, MAX_OPPORTUNITIES);
-  if (opportunities.length === 0) {
+  if (keywords.opportunities.length === 0) {
     return { created: 0, reason: 'Search Console shows no opportunity keywords yet.' };
   }
 
@@ -107,6 +107,24 @@ export async function runTopicRecommendations({ db, ai }: ContentAiDeps) {
     planned.flatMap((item) => [item.title.toLowerCase(), ...(item.keyword ? [item.keyword.toLowerCase()] : [])]),
   );
   const dismissedKeys = new Set(dismissed.map((row) => row.keyword.toLowerCase()));
+
+  // Keywords an article already answers are dropped before the model sees them:
+  // telling it to skip them was not enough on 17 September.
+  const covered: Array<{ keyword: string; article: string }> = [];
+  const opportunities = keywords.opportunities
+    .filter((row) => {
+      const article = keywordCovered(articleList, row.query);
+      if (article) covered.push({ keyword: row.query, article: article.title });
+      return !article;
+    })
+    .slice(0, MAX_OPPORTUNITIES);
+  if (opportunities.length === 0) {
+    return {
+      created: 0,
+      reason: 'Every opportunity keyword is already answered by an article. Improve those articles instead.',
+      covered,
+    };
+  }
 
   const result = await ai.complete(
     'strategy',
@@ -178,6 +196,7 @@ export async function runTopicRecommendations({ db, ai }: ContentAiDeps) {
     created: topics.length,
     proposed: proposed.length,
     keywords: topics.map((topic) => topic.keyword),
+    covered,
     model: result.model,
     costUsd: result.usage.costUsd,
   };

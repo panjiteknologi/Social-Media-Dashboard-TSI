@@ -57,6 +57,13 @@
       "when": 1789493552173,
       "tag": "0007_noisy_raider",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1789553402734,
+      "tag": "0008_petite_toad_men",
+      "breakpoints": true
     }
   ]
 }

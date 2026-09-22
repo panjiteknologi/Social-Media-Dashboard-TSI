@@ -7,6 +7,7 @@ export const NAV_ITEMS: NavItem[] = [
   { key: 'social', label: 'Social Media', group: 'Growth' },
   { key: 'seo', label: 'SEO Intelligence', group: 'Growth' },
   { key: 'analytics', label: 'Analytics', group: 'Growth' },
+  { key: 'leads', label: 'Leads', group: 'Digital Marketing' },
   { key: 'approval', label: 'Approval Queue', group: 'Workflow' },
   { key: 'reports', label: 'Reports', group: 'Workflow' },
   { key: 'media', label: 'Media Library', group: 'Workflow' },

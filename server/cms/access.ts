@@ -43,6 +43,30 @@ export const CMS_LEAD_COLUMNS = [
   'updated_at',
 ] as const;
 
+/**
+ * What the person wrote about themselves. These are never synced: the Leads
+ * screen reads them from the CMS while somebody has that one lead open, so the
+ * details stay in the CMS and out of Content Machine's database and backups.
+ * Granted separately with `cms:lead-grant-sql`; without it the screen shows
+ * everything else and says the details are not available.
+ */
+export const CMS_LEAD_DETAIL_COLUMNS = ['full_name', 'company_name', 'job_title', 'email', 'phone', 'message'] as const;
+
+/** The SQL that lets the reader role show a lead's own words, with no password in it. */
+export function leadDetailsGrantSql(): string {
+  return `-- Content Machine: let the Leads screen show what a person wrote in the contact form.
+--
+-- Content Machine reads these columns only while somebody has that one lead
+-- open, and never stores them. Internal notes stay out of reach.
+--
+-- Run this in the Neon SQL Editor, on the CMS production branch and database,
+-- then run: npm run cli -- cms:check
+
+GRANT SELECT (${CMS_LEAD_DETAIL_COLUMNS.join(', ')})
+  ON public.cms_contact_messages TO ${CMS_READER_ROLE};
+`;
+}
+
 const GRANTS = [
   { table: 'blog_posts', columns: CMS_ARTICLE_COLUMNS },
   { table: 'cms_contact_messages', columns: CMS_LEAD_COLUMNS },
@@ -169,6 +193,7 @@ export async function checkCmsAccess(connectionString: string): Promise<AccessCh
       extra.length > 0 ? `also readable: ${extra.join(', ')}` : readable.map((r) => r.name).join(', '),
     );
 
+    let detailsGranted = false;
     for (const { table, columns } of GRANTS) {
       const { rows } = await client.query<{ column: string; readable: boolean }>(
         `SELECT a.attname AS column, has_column_privilege(a.attrelid, a.attnum, 'SELECT') AS readable
@@ -176,16 +201,31 @@ export async function checkCmsAccess(connectionString: string): Promise<AccessCh
           WHERE a.attrelid = $1::regclass AND a.attnum > 0 AND NOT a.attisdropped`,
         [`public.${table}`],
       );
-      const allowed: readonly string[] = columns;
-      const missing = allowed.filter((column) => !rows.some((r) => r.column === column && r.readable));
+      // A lead's own words may be granted on top, for reading one lead at a time.
+      const optional: readonly string[] =
+        table === 'cms_contact_messages' ? CMS_LEAD_DETAIL_COLUMNS : [];
+      detailsGranted =
+        detailsGranted ||
+        (optional.length > 0 && optional.every((column) => rows.some((r) => r.column === column && r.readable)));
+      const allowed: readonly string[] = [...columns, ...optional];
+      const missing = (columns as readonly string[]).filter(
+        (column) => !rows.some((r) => r.column === column && r.readable),
+      );
       const leaked = rows.filter((r) => r.readable && !allowed.includes(r.column)).map((r) => r.column);
       add(`${table}: agreed columns readable`, missing.length === 0, missing.length ? `missing: ${missing.join(', ')}` : undefined);
       add(
-        `${table}: every other column withheld`,
+        `${table}: nothing beyond the agreed columns`,
         leaked.length === 0,
         leaked.length ? `also readable: ${leaked.join(', ')}` : `${rows.length - allowed.length} withheld`,
       );
     }
+    add(
+      'Lead details: read on demand only, never synced',
+      true,
+      detailsGranted
+        ? 'granted; the Leads screen reads them per lead and stores none of them'
+        : 'not granted; the Leads screen shows everything except what the person wrote',
+    );
 
     const {
       rows: [counts],
@@ -195,8 +235,9 @@ export async function checkCmsAccess(connectionString: string): Promise<AccessCh
              (SELECT count(*)::int FROM cms_contact_messages) AS leads`);
     add('Articles and leads can be counted', true, `${counts.published} published of ${counts.articles} articles, ${counts.leads} leads`);
 
-    const email = await isRefused(client, 'SELECT email FROM cms_contact_messages LIMIT 1');
-    add('Reading a lead email is refused', email.ok, email.detail);
+    // Internal notes are CMS staff's own words about a lead, and stay out of reach either way.
+    const notes = await isRefused(client, 'SELECT internal_notes FROM cms_contact_messages LIMIT 1');
+    add('Reading internal notes is refused', notes.ok, notes.detail);
 
     const {
       rows: [writable],

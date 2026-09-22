@@ -4,6 +4,7 @@ import { z } from 'zod';
 import type { CurrentUser } from '../../shared/api';
 import { DECISIONS, DECISION_LABELS, DECISION_STAGE, decisionBlocker, type DecisionInput } from '../../shared/approvals';
 import type { ContentItem } from '../../shared/planner';
+import { CMS_PUBLISH_JOB } from '../cms/run';
 import { CONTENT_AI_JOB } from '../contentAi/service';
 import type { Db } from '../db/client';
 import { contentEvents, contentItems } from '../db/schema';
@@ -25,6 +26,8 @@ export interface DecisionDeps {
   alerter: Alerter;
   appBaseUrl: string;
   aiConfigured: boolean;
+  /** Whether CMS_WRITE_DATABASE_URL is set, so approving can send the article on. */
+  cmsWriteConfigured: boolean;
 }
 
 /**
@@ -68,6 +71,25 @@ export async function decideContent(
       userId: user.id,
     });
   });
+
+  // Approving an article sends it straight to the CMS as a draft.
+  const publishing = input.decision === 'approve' && row.type === 'article' && row.draft !== null && deps.cmsWriteConfigured;
+  if (publishing) {
+    const envelope: JobEnvelope = { trigger: 'manual', triggeredBy: user.id, input: { itemId: id, userId: user.id } };
+    try {
+      await db
+        .update(contentItems)
+        .set({ publishStatus: 'queued', publishError: null, publishUpdatedAt: new Date() })
+        .where(eq(contentItems.id, id));
+      await deps.boss.send(CMS_PUBLISH_JOB, envelope);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      await db
+        .update(contentItems)
+        .set({ publishStatus: 'failed', publishError: message, publishUpdatedAt: new Date() })
+        .where(eq(contentItems.id, id));
+    }
+  }
 
   if (aiRevising) {
     const envelope: JobEnvelope = {

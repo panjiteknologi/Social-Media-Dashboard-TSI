@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { initials } from '../lib/initials';
 import { SCREEN_PATHS } from '../lib/routes';
 import { useCurrentUser } from './AuthGate';
+import { Notifications } from './Notifications';
 
 /** Each entry opens the Content Planner editor with suitable defaults; campaigns come later. */
 const QUICK_CREATE_ITEMS: Array<{ label: string; kind: string | null; unavailable?: string }> = [
@@ -65,9 +66,7 @@ export function TopBar({
       </div>
 
       <div className="topbar__right">
-        <button type="button" className="icon-button" aria-label="Notifications">
-          <span className="icon-button__glyph" />
-        </button>
+        <Notifications />
 
         {user.role !== 'viewer' ? (
           <div className="quick-create" ref={menuRef}>

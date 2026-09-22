@@ -27,6 +27,7 @@ import type {
 import type { SeoCheck } from '../../shared/content';
 import type { ActionPriority, ActionStatus } from '../../shared/actions';
 import type { ContentEvent, ContentPriority, ContentStage, ContentType } from '../../shared/planner';
+import type { PublishStatus } from '../../shared/publishing';
 import type { ReportData, ReportKind } from '../../shared/reports';
 
 const instant = () => timestamp({ withTimezone: true });
@@ -415,6 +416,14 @@ export const contentItems = pgTable(
     aiStatus: text().$type<AiTaskStatus>(),
     aiError: text(),
     aiUpdatedAt: instant(),
+    // Publishing to the website's CMS.
+    /** The blog_posts row this content became, and how the CMS shows it. */
+    cmsPostId: integer(),
+    cmsSlug: text(),
+    cmsStatus: text(),
+    publishStatus: text().$type<PublishStatus>(),
+    publishError: text(),
+    publishUpdatedAt: instant(),
   },
   (table) => [index('content_items_stage_idx').on(table.stage), index('content_items_due_date_idx').on(table.dueDate)],
 );
