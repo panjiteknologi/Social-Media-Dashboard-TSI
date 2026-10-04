@@ -86,15 +86,26 @@ const isHtmlPage = (page: CrawlPageRow): boolean => page.status === 200 && (page
 const visibility = (page: CrawlPageRow): number =>
   page.sources.includes('search') ? 0 : page.sources.includes('sitemap') || page.sources.includes('home') ? 1 : 2;
 
-function brokenNote(page: CrawlPageRow): string {
+/**
+ * What is wrong with a broken page, and where its fix belongs.
+ *
+ * A page reached only from its own URL without the trailing slash was not
+ * linked by anyone: the site redirected that old address here. Calling it a
+ * broken link sends people looking for a link that does not exist, so it is
+ * reported as an old address needing a redirect to whatever replaced it.
+ */
+function brokenNote(page: CrawlPageRow): { note: string; fix: 'redirect' | 'link' } {
   const status = page.status === 0 ? `No response (${page.error ?? 'request failed'})` : `Returns ${page.status}`;
-  if (page.sources.includes('search')) return `${status}; Google still shows it in search`;
-  if (page.sources.includes('sitemap')) return `${status}; listed in the sitemap`;
+  if (page.sources.includes('search')) return { note: `${status}; Google still shows it in search`, fix: 'redirect' };
+  if (page.sources.includes('sitemap')) return { note: `${status}; listed in the sitemap`, fix: 'redirect' };
+  if (page.linkedFrom.length > 0 && page.linkedFrom.every((from) => sameUrl(from, page.url))) {
+    return { note: `${status}; an old address redirects here, and nothing links to it`, fix: 'redirect' };
+  }
   if (page.linkedFrom.length > 0) {
     const more = page.linkedFrom.length > 1 ? ` and ${page.linkedFrom.length - 1} more` : '';
-    return `${status}; linked from ${page.linkedFrom[0]}${more}`;
+    return { note: `${status}; linked from ${page.linkedFrom[0]}${more}`, fix: 'link' };
   }
-  return `${status}; an article in the CMS`;
+  return { note: `${status}; an article in the CMS`, fix: 'link' };
 }
 
 /** The eight health checks from the latest crawl, inspections and speed tests. */
@@ -115,7 +126,7 @@ export function summarizeHealth(input: {
   const notCrawled = 'Runs every Sunday with the site-crawl job.';
 
   const broken = crawled
-    ? pages.filter((page) => page.status === 0 || page.status >= 400).map((page) => ({ url: page.url, note: brokenNote(page) }))
+    ? pages.filter((page) => page.status === 0 || page.status >= 400).map((page) => ({ url: page.url, ...brokenNote(page) }))
     : null;
 
   const index =

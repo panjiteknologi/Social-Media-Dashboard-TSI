@@ -170,7 +170,10 @@ export function buildActionCandidates(keywords: SeoKeywords, health: TechnicalHe
     if (check.state !== 'issues') continue;
     if (check.key === 'brokenLinks') {
       for (const issue of check.issues) {
-        const visible = issue.note.includes('Google still shows') || issue.note.includes('sitemap');
+        // Older stored issues carry no fix, so their note still decides.
+        const visible = issue.fix
+          ? issue.fix === 'redirect'
+          : issue.note.includes('Google still shows') || issue.note.includes('sitemap');
         candidates.push({
           key: `broken:${issue.url}`,
           kind: 'broken_page',

@@ -18,6 +18,12 @@ export type HealthSeverity = 'High' | 'Medium' | 'Low';
 export interface HealthIssue {
   url: string;
   note: string;
+  /**
+   * For a broken page, where its fix belongs: "redirect" when Google or an old
+   * URL still reaches it and it needs a 301, "link" when a page on the site
+   * points at it and that link is wrong.
+   */
+  fix?: 'redirect' | 'link';
 }
 
 export interface HealthCheck {

@@ -69,8 +69,9 @@ const health: TechnicalHealth = {
       state: 'issues',
       count: 2,
       issues: [
-        { url: 'https://tsicertification.com/artikel-iso/old/', note: 'Returns 404; Google still shows it in search' },
-        { url: 'https://tsicertification.com/download/privacy-policy/', note: 'Returns 404; linked from https://tsicertification.com/privacy-policy/' },
+        { url: 'https://tsicertification.com/artikel-iso/old/', note: 'Returns 404; Google still shows it in search', fix: 'redirect' as const },
+        { url: 'https://tsicertification.com/download/privacy-policy/', note: 'Returns 404; linked from https://tsicertification.com/privacy-policy/', fix: 'link' as const },
+        { url: 'https://tsicertification.com/blog/old-slug/', note: 'Returns 404; an old address redirects here, and nothing links to it', fix: 'redirect' as const },
       ],
     }),
     check({
@@ -128,6 +129,8 @@ describe('buildActionCandidates', () => {
     expect(byKey['broken:https://tsicertification.com/download/privacy-policy/'].action).toBe(
       'Fix or remove the link on the page that links here.',
     );
+    // Nothing links to this one: it is an old address people still reach.
+    expect(byKey['broken:https://tsicertification.com/blog/old-slug/'].action).toContain('Redirect it (301)');
     expect(byKey['technical:index']).toMatchObject({
       priority: 'P2',
       issue: '5 pages not indexed by Google',

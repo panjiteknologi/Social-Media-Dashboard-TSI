@@ -47,9 +47,28 @@ describe('summarizeHealth', () => {
     });
     const broken = check(health, 'brokenLinks');
     expect(broken).toMatchObject({ state: 'issues', count: 2 });
-    expect(broken.issues.map((issue) => issue.note)).toEqual([
-      'Returns 404; Google still shows it in search',
-      'Returns 404; linked from https://tsicertification.com/',
+    expect(broken.issues).toEqual([
+      { url: 'https://tsicertification.com/artikel-iso/old/', note: 'Returns 404; Google still shows it in search', fix: 'redirect' },
+      { url: 'https://tsicertification.com/missing/', note: 'Returns 404; linked from https://tsicertification.com/', fix: 'link' },
+    ]);
+  });
+
+  it('treats a page reached only from its own old address as needing a redirect, not a link fix', () => {
+    const url = 'https://tsicertification.com/blog/old-slug/';
+    const health = summarizeHealth({
+      ...base,
+      pages: [
+        page(url, {
+          status: 404,
+          sources: ['link'],
+          // The same address without the trailing slash, which redirects here.
+          linkedFrom: ['https://tsicertification.com/blog/old-slug'],
+          contentType: null,
+        }),
+      ],
+    });
+    expect(check(health, 'brokenLinks').issues).toEqual([
+      { url, note: 'Returns 404; an old address redirects here, and nothing links to it', fix: 'redirect' },
     ]);
   });
 

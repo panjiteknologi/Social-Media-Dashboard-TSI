@@ -22,7 +22,7 @@ const SECTIONS: Section[] = [
     title: 'Broken pages',
     kinds: ['broken_page'],
     whereToFix:
-      'Usually a link in a page template or component. When the linking page is a blog article (/blog/…), the link is inside the article body stored in the CMS: tell me the article and the exact link to change instead of editing code.',
+      'Read each evidence line first, because two different fixes hide here. An address Google still shows, or one an old address redirects to, is a URL that changed: add a 301 from it to the page that replaced it, in this repository. A page that is linked from somewhere is a wrong link: fix it in the template or component, or, when the linking page is a blog article (/blog/…), tell me the article and the exact link to change, since article bodies live in the CMS.',
   },
   {
     title: 'Pages with a low click-through rate in Google',
