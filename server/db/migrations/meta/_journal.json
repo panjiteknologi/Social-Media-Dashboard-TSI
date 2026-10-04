@@ -64,6 +64,20 @@
       "when": 1789553402734,
       "tag": "0008_petite_toad_men",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1791052201512,
+      "tag": "0009_modern_tattoo",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1791105582672,
+      "tag": "0010_white_silk_fever",
+      "breakpoints": true
     }
   ]
 }

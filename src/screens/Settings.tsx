@@ -10,7 +10,6 @@ import { Card, PageHeader } from '../components/primitives';
 /** Settings areas from the design that arrive with later milestones. */
 const LATER_SECTIONS = [
   { title: 'Approval rules', detail: 'Who approves what, and publishing restrictions', milestone: 'M5' },
-  { title: 'Social accounts', detail: 'Facebook and Instagram connections', milestone: 'M7' },
 ];
 
 interface FormState {

@@ -30,6 +30,8 @@ const DEFINITIONS = {
   approvals: { label: 'Approval Queue', kind: 'feature', milestone: 'M5' },
   ai: { label: 'AI recommendations', kind: 'feature', milestone: 'M5' },
   meta: { label: 'Facebook & Instagram', kind: 'integration', milestone: 'M7' },
+  socialInsights: { label: 'Social reach and engagement', kind: 'feature', milestone: 'M7' },
+  socialPublishing: { label: 'Scheduled social posts', kind: 'feature', milestone: 'M7' },
   campaigns: { label: 'Campaign tracking', kind: 'feature', milestone: 'M8' },
   seoHealthScore: { label: 'SEO Health Score', kind: 'feature', milestone: 'M8' },
   socialTrends: { label: 'Social trend research', kind: 'feature', milestone: 'M8' },

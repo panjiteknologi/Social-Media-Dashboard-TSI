@@ -29,6 +29,7 @@ import type { ActionPriority, ActionStatus } from '../../shared/actions';
 import type { ContentEvent, ContentPriority, ContentStage, ContentType } from '../../shared/planner';
 import type { PublishStatus } from '../../shared/publishing';
 import type { ReportData, ReportKind } from '../../shared/reports';
+import type { SocialAccountStatus, SocialConnection, SocialPlatformKey } from '../../shared/social';
 
 const instant = () => timestamp({ withTimezone: true });
 
@@ -470,3 +471,66 @@ export const contentEvents = pgTable(
   },
   (table) => [index('content_events_item_id_idx').on(table.itemId)],
 );
+
+// ---------------------------------------------------------------------------
+// Social accounts (M7). Tokens are encrypted with SECRETS_KEY before they are
+// stored; see server/social/secrets.ts.
+
+/** A Facebook Page or Instagram professional account connected on the Social Media screen. */
+export const socialAccounts = pgTable(
+  'social_accounts',
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    platform: text().$type<SocialPlatformKey>().notNull(),
+    /** Meta's id for the Page or the Instagram account. */
+    externalId: text().notNull(),
+    name: text().notNull(),
+    username: text(),
+    pictureUrl: text(),
+    /** Facebook Login (through a Page) or Instagram Login (the account on its own). */
+    connection: text().$type<SocialConnection>().notNull().default('facebook'),
+    /** The Page this account is reached through; empty for Instagram Login. */
+    pageId: text(),
+    pageName: text(),
+    /**
+     * Encrypted. A Page token for Facebook Login, which Instagram calls use too
+     * and which does not expire; an Instagram token for Instagram Login, which
+     * lasts 60 days and is renewed by the daily sync.
+     */
+    accessToken: text().notNull(),
+    tokenExpiresAt: instant(),
+    status: text().$type<SocialAccountStatus>().notNull().default('active'),
+    lastError: text(),
+    lastSyncedAt: instant(),
+    connectedBy: uuid().references(() => users.id, { onDelete: 'set null' }),
+    connectedAt: instant().notNull().defaultNow(),
+  },
+  (table) => [uniqueIndex('social_accounts_platform_external_idx').on(table.platform, table.externalId)],
+);
+
+/** Followers per account per day, recorded each morning and when an account is connected. */
+export const socialFollowerDaily = pgTable(
+  'social_follower_daily',
+  {
+    accountId: uuid()
+      .notNull()
+      .references(() => socialAccounts.id, { onDelete: 'cascade' }),
+    date: date().notNull(),
+    followers: integer().notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.accountId, table.date] })],
+);
+
+/**
+ * Pages found while connecting, held for a few minutes until a person picks
+ * which ones to add. The payload, which carries Page tokens, is encrypted.
+ */
+export const socialConnectRequests = pgTable('social_connect_requests', {
+  id: uuid().primaryKey().defaultRandom(),
+  userId: uuid()
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  payload: text().notNull(),
+  expiresAt: instant().notNull(),
+  createdAt: instant().notNull().defaultNow(),
+});

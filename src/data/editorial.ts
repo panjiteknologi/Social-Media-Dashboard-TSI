@@ -27,7 +27,7 @@ export const DASHBOARD_KPIS: Kpi[] = [
   { label: 'Website Leads', capability: 'leads', value: '', change: '', dir: 'flat' },
   { label: 'Articles Published', capability: 'articles', value: '', change: '', dir: 'flat' },
   { label: 'Scheduled Content', capability: 'content', value: '', change: '', dir: 'flat' },
-  { label: 'Social Engagement', capability: 'meta', value: '12.4K', change: '+7.8%', dir: 'up', period: 'vs previous period' },
+  { label: 'Social Engagement', capability: 'socialInsights', value: '12.4K', change: '+7.8%', dir: 'up', period: 'vs previous period' },
   { label: 'Pending Approvals', capability: 'content', value: '', change: '', dir: 'flat' },
 ];
 

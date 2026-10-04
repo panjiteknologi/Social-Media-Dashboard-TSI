@@ -16,7 +16,7 @@ Dokumen ini adalah acuan tunggal untuk urutan pembangunan, status setiap bagian,
 | Media Library | Masih placeholder (M7) |
 | Content Planner dan Workflow Logs | **Berjalan dengan data asli (M5 tahap 1, 15 September):** kanban drag & drop, kalender mingguan, list, Quick Create, dan riwayat konten; daftar run job dengan detail, Retry, dan biaya AI bulan ini |
 | Leads (menu Digital Marketing) | **Berjalan dengan data asli (22 September):** daftar lead dari formulir kontak dengan pagination, rincian per layanan dan halaman asal, seluruh sinyal minat dari GA4 (klik WhatsApp, klik CTA, form submit) per halaman dan kanal dengan filter jenis aksi dan pagination, serta isi form yang dibaca langsung dari CMS hanya saat dibuka dan tidak pernah disimpan. Lonceng di header memunculkan lead baru dan membuka lead itu langsung saat diklik |
-| Settings | Bagian SEO, Brand and AI, Reporting, dan Automation berjalan (sejak 15 September). Approval rules dan Social accounts menyusul di M5 dan M7 |
+| Settings | Bagian SEO, Brand and AI, Reporting, dan Automation berjalan (sejak 15 September). Approval rules menyusul. Akun sosial ditambahkan di halaman Social Media (+ Add account) |
 | Routing dan URL per layar | Selesai |
 | Konfigurasi env (`.env.example`) | Selesai |
 | **M1 lokal:** backend, database, migrasi, login Google, peran pengguna, kerangka job, peringatan, CLI | **Selesai dan diuji end-to-end di lokal** (13 September 2026) |
@@ -35,7 +35,7 @@ Dokumen ini adalah acuan tunggal untuk urutan pembangunan, status setiap bagian,
 | Telegram Bot | Peringatan, laporan, approval cepat | M1 | **Terhubung (14 September).** Bot `@DigmarDashboardTSI_bot`, grup "Digital Marketing Dashboard TSI". Pesan uji terkirim |
 | CMS website | Inventaris artikel, publikasi, leads | M3, M6 | CMS kustom (source: `Website TSI/cms-tsicertification`). Punya modul Articles dan **Contact Messages**, yang menyimpan setiap kiriman form beserta statusnya (new, contacted, closed). **Akses baca terhubung (15 September):** role Neon `content_machine_reader` di database `neondb`, hanya baca, terbatas per kolom. Bisa membaca `blog_posts` (tabel artikel yang dipakai CMS dan website) dan `cms_contact_messages` tanpa data pribadi (nama, perusahaan, jabatan, email, telepon, pesan, catatan internal). `npm run cli -- cms:check` lulus 11 dari 11: 122 artikel terbit, 5 leads. **Sinkronisasi tiap jam aktif:** job `cms-sync` pada menit ke-10 menyalin artikel dan leads |
 | PageSpeed Insights API | Kecepatan halaman | M4 | **Aktif (15 September).** Key terisi di `.env`. Uji pertama mengukur 9 halaman (§2) |
-| Meta (Facebook + Instagram) | Followers, insight, posting | M7 | Belum diurus |
+| Meta (Facebook + Instagram) | Followers, insight, posting | M7 | **Mekanisme koneksi siap (4 Oktober).** Pengguna cukup menekan **+ Add account** di halaman Social Media, lalu **Continue with Facebook** (Page beserta Instagram yang tertaut) atau **Continue with Instagram** (akun Business/Creator tanpa Facebook Page). App Meta dibuat sekali oleh pemasang dan diisi di `.env` (`docs/Social Media Setup.md`); satu app bisa melayani banyak instalasi. Ada opsi lanjutan token System User. Token disimpan terenkripsi dengan `SECRETS_KEY`, token Instagram diperpanjang otomatis. Followers dicatat saat terhubung dan setiap pagi pukul 06:30 (job `social-sync`). Token yang dicabut ditandai "Reconnect". Menunggu app Meta TSI dibuat; untuk dipakai perusahaan lain tanpa undangan Tester perlu Business Verification dan App Review |
 | DataForSEO | Riset keyword baru | M8 | Opsional |
 | LinkedIn | Followers, insight, posting | — | **Ditunda** (§9) |
 | WhatsApp | Pengiriman laporan | — | **Ditunda**, digantikan Telegram (§9) |
@@ -60,6 +60,7 @@ Dicek dari luar pada 13 September 2026, tanpa login.
 | `demo.tsicertification.com` pernah terindeks Google | Halaman demo bisa bersaing dengan situs utama dan tampil ke publik | Pastikan subdomain demo memakai `noindex` atau dilindungi password |
 | **140 dari 210 halaman di sitemap belum terindeks Google** (URL Inspection, 15 September). Kebanyakan halaman versi Indonesia (`/id/`), dengan status "Discovered – currently not indexed" atau "Crawled – currently not indexed" | Halaman tersebut tidak bisa muncul di hasil pencarian | Buka halaman penting di GSC URL Inspection. Beri versi `/id/` judul dan isi yang berbeda, tambah link internal ke halaman tersebut, lalu minta pengindeksan |
 | **Dua link rusak** (crawl 15 September): `/download/privacy-policy/` yang dirujuk halaman privacy policy, dan link WhatsApp tanpa `https://` di artikel ISO 45001, sehingga browser membukanya sebagai `/blog/…/wa.me/685283237418` | Pengunjung mendapat halaman 404 | Perbaiki link di website dan di artikel CMS |
+| **Empat slug lama mengembalikan 404** (crawl 19 September): `/blog/tujuan-dan-manfaat-iso-14001-bagi-organisasi/`, `/blog/iso-14001-pengelolaan-limbah-industri-yang-efektif/`, `/blog/monitoring-langkah-krusial-keamanan-pangan/`, dan `/blog/penerapan-haccp-dapur-mbg-untuk-perusahaan/`. Diperiksa 23 September: **tidak ada satu pun artikel CMS yang menautkannya**, jadi ini slug versi lama yang masih dikenal Google setelah artikelnya diganti nama | Pengunjung dari hasil pencarian lama mendapat 404. Dampaknya kecil, masing-masing hanya 1–2 impressions | Tambahkan redirect 301 dari slug lama ke slug baru di repo website (daftar lengkapnya di §8) |
 | **URL lama `/artikel-iso/{slug}` mengembalikan 404** tanpa redirect ke `/blog/{slug}/` (dicek 15 September). Google masih menyimpan 23 URL lama ini dari periode Mei–Agustus | Klik dari hasil pencarian lama berakhir di halaman 404 | Tambahkan redirect 301 dari `/artikel-iso/*` ke `/blog/*` |
 | **42 halaman memakai judul yang sama dengan halaman lain** (crawl 15 September), misalnya beranda dan company profile beserta versi `/id/`-nya. Artikel `/id/blog/…` memakai canonical ke versi bahasa Inggris | Google sulit membedakan halaman, dan versi Indonesia kecil peluangnya tampil | Beri judul unik per halaman dan terjemahkan judul versi `/id/`. Putuskan apakah canonical ke versi Inggris memang disengaja |
 
@@ -617,7 +618,17 @@ Kalau tim ingin membuat otomasi kecil sendiri, misalnya mengirim data ke Google 
 - ~~Tambahkan `sitemap.xml` dan `robots.txt`.~~ Beres 13 September.
 - Ubah `og:image` menjadi URL lengkap. Belum dicek ulang.
 - Redirect 301 dari `/artikel-iso/*` ke `/blog/*` (§2).
-- Perbaiki dua link rusak: `/download/privacy-policy/` dan link WhatsApp tanpa `https://` di artikel ISO 45001 (§2).
+- ~~Perbaiki dua link rusak: `/download/privacy-policy/` dan link WhatsApp tanpa `https://` di artikel ISO 45001 (§2).~~ **Beres, dicek 23 September:** kedua tugasnya berstatus done di Action Center.
+- **Redirect 301 untuk empat slug lama** (diperiksa 23 September; tidak ada artikel CMS yang menautkannya, jadi ini murni urusan redirect di repo website):
+
+  | Dari (404 sekarang) | Ke |
+  |---|---|
+  | `/blog/tujuan-dan-manfaat-iso-14001-bagi-organisasi/` | `/blog/tujuan-dan-manfaat-iso-14001-2026-bagi-organisasi/` |
+  | `/blog/iso-14001-pengelolaan-limbah-industri-yang-efektif/` | `/blog/iso-14001-2026-pengelolaan-limbah-industri-yang-efektif/` |
+  | `/blog/monitoring-langkah-krusial-keamanan-pangan/` | `/blog/monitoring-haccp-langkah-krusial-keamanan-pangan/` |
+  | `/blog/penerapan-haccp-dapur-mbg-untuk-perusahaan/` | `/blog/penerapan-haccp-di-dapur-mbg/` |
+
+  Catatan: URL tanpa garis miring sudah dialihkan 301 ke versi bergaris miring, jadi cukup buat redirect untuk versi bergaris miring. Pola yang sama akan berulang setiap kali slug artikel diganti di CMS, jadi sebaiknya redirect dibuat setiap kali mengganti slug.
 - Judul unik untuk setiap halaman, termasuk versi `/id/` (§2).
 
 ---

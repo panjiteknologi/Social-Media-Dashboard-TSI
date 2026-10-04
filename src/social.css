@@ -1,0 +1,336 @@
+/* Social Media: connected accounts and the Add account dialog. */
+
+.social-accounts__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.social-accounts__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.social-accounts {
+  display: grid;
+}
+
+.social-account {
+  display: grid;
+  grid-template-columns: 40px minmax(160px, 1.4fr) minmax(130px, 1fr) minmax(110px, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+}
+
+.social-account:first-child {
+  border-top: 0;
+}
+
+.social-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  background: var(--blue-bg);
+  border: 1px solid var(--border);
+}
+
+.social-avatar--initials {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--navy);
+}
+
+.social-account__who {
+  min-width: 0;
+}
+
+.social-account__name {
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.social-account__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.social-account__followers {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.social-account__followers span {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.social-account__change {
+  margin-top: 3px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.social-account__error {
+  margin-top: 4px;
+  font-size: 11.5px;
+  color: var(--red);
+}
+
+.social-account__remove {
+  justify-self: end;
+}
+
+.social-status {
+  display: inline-block;
+  padding: 3px 8px;
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+.social-status--ok {
+  color: var(--green);
+  background: #e6f6ef;
+}
+
+.social-status--warn {
+  color: #9a5b00;
+  background: #fdf3e2;
+}
+
+.social-status--bad {
+  color: var(--red);
+  background: var(--red-bg);
+}
+
+.social-empty {
+  padding: 28px 16px;
+  text-align: center;
+  border: 1px dashed var(--border);
+}
+
+.social-empty__title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.social-empty__detail {
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.social-empty__button {
+  display: inline-flex;
+  margin-top: 14px;
+}
+
+.social-notice {
+  position: relative;
+  padding: 12px 14px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text);
+  background: var(--blue-bg);
+}
+
+.social-notice--warn {
+  background: #fdf3e2;
+}
+
+.social-notice--ok {
+  background: #e6f6ef;
+}
+
+.social-notice code {
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
+.social-notice__close {
+  margin-left: 10px;
+}
+
+/* Dialog */
+
+.social-modal {
+  width: min(680px, 100%);
+}
+
+.social-modal__body {
+  overflow-y: auto;
+  padding: 18px 22px 22px;
+}
+
+.social-choices {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.social-choice {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.social-choice--off {
+  background: var(--surface-alt);
+}
+
+.social-choice__title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.social-choice--off .social-choice__title {
+  color: var(--muted);
+}
+
+.social-choice__detail {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.social-choice__button {
+  justify-content: center;
+  margin-top: auto;
+  padding: 11px 16px;
+}
+
+.social-choice__button:hover {
+  color: #fff;
+  text-decoration: none;
+  background: var(--blue);
+}
+
+.social-choice__off {
+  margin-top: auto;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.social-later {
+  margin-top: 12px;
+  font-size: 12.5px;
+  color: var(--faint);
+}
+
+.social-advanced {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  font-size: 13px;
+  color: var(--text);
+}
+
+.social-advanced summary {
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.social-token {
+  margin-top: 14px;
+}
+
+.social-token textarea {
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
+.social-pick {
+  display: grid;
+  gap: 12px;
+}
+
+.social-pick__page {
+  border: 1px solid var(--border);
+}
+
+.social-pick__row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  cursor: pointer;
+}
+
+.social-pick__row--child {
+  padding-left: 40px;
+  border-top: 1px solid var(--line);
+  background: var(--surface-alt);
+}
+
+.social-pick__row input {
+  width: 16px;
+  height: 16px;
+  flex: none;
+}
+
+.social-pick__name {
+  display: grid;
+  gap: 2px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.social-pick__meta {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.social-pick__none {
+  padding: 10px 14px 12px 40px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted);
+  border-top: 1px solid var(--line);
+  background: var(--surface-alt);
+}
+
+@media (max-width: 760px) {
+  .social-account {
+    grid-template-columns: 40px 1fr;
+  }
+
+  .social-account__numbers,
+  .social-account__status,
+  .social-account__remove {
+    grid-column: 2;
+    justify-self: start;
+  }
+
+  .social-choices {
+    grid-template-columns: 1fr;
+  }
+}

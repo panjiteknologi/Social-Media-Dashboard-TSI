@@ -35,6 +35,34 @@ const EnvSchema = z.object({
   AI_MODEL_CLASSIFY: z.string().default('anthropic/claude-haiku-4.5'),
   TELEGRAM_BOT_TOKEN: z.string().optional(),
   TELEGRAM_CHAT_ID: z.string().optional(),
+  /** 32 random bytes, base64 or hex: encrypts social tokens and app secrets stored in the database. */
+  SECRETS_KEY: z
+    .string()
+    .refine((value) => /^[0-9a-f]{64}$/i.test(value) || Buffer.from(value, 'base64').length === 32, {
+      message: 'SECRETS_KEY must be 32 bytes as base64 or 64 hex characters. Generate one with: npm run cli -- secrets:key',
+    })
+    .optional(),
+  /** The Meta app behind "Continue with Facebook", set up once per installation. */
+  META_APP_ID: z.string().regex(/^\d+$/, 'META_APP_ID is the numeric App ID').optional(),
+  META_APP_SECRET: z.string().optional(),
+  META_LOGIN_CONFIG_ID: z.string().regex(/^\d+$/, 'META_LOGIN_CONFIG_ID is a numeric configuration ID').optional(),
+  META_GRAPH_VERSION: z
+    .string()
+    .regex(/^v\d+\.\d+$/, 'META_GRAPH_VERSION looks like v23.0')
+    .default('v23.0'),
+  /**
+   * A public HTTPS address in front of this server, used only for the
+   * Facebook and Instagram login callbacks. Instagram refuses http://localhost,
+   * so local development puts a tunnel here; leave it unset when APP_BASE_URL
+   * is already public HTTPS.
+   */
+  SOCIAL_CALLBACK_BASE_URL: z
+    .url()
+    .transform((value) => value.replace(/\/+$/, ''))
+    .optional(),
+  /** Instagram Login, behind "Continue with Instagram": the Instagram app ID and secret, not the Meta ones. */
+  INSTAGRAM_APP_ID: z.string().regex(/^\d+$/, 'INSTAGRAM_APP_ID is the numeric Instagram app ID').optional(),
+  INSTAGRAM_APP_SECRET: z.string().optional(),
 });
 
 export type Env = z.infer<typeof EnvSchema>;

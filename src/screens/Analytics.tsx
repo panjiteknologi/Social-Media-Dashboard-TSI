@@ -256,7 +256,7 @@ export function Analytics() {
           {SOCIAL_PERFORMANCE.map((item) => (
             <Card className="card--sm" key={item.platform}>
               <div className="platform-card__name">{item.platform}</div>
-              <Requires capability={item.platform === 'LinkedIn' ? 'linkedin' : 'meta'}>
+              <Requires capability={item.platform === 'LinkedIn' ? 'linkedin' : 'socialInsights'}>
                 <div className="platform-card__stats">
                   <div>
                     Reach

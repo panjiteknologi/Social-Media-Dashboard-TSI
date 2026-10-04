@@ -19,6 +19,10 @@ import { runReport } from '../reports/run';
 import { buildActionCandidates, syncActions } from '../seo/actions';
 import { getSeoSettings } from '../seo/settings';
 import { syncSearchConsole, todayIn } from '../seo/sync';
+import { createInstagramClient } from '../social/instagram';
+import { createMetaClient } from '../social/meta';
+import { secretBoxFromEnv } from '../social/secrets';
+import { SOCIAL_SYNC_JOB, syncFollowers } from '../social/service';
 import { getTechnicalHealth } from '../technical/health';
 import { runIndexInspection, runPagespeedCheck, runSiteCrawl } from '../technical/run';
 import type { JobDefinition } from './job';
@@ -165,6 +169,25 @@ export function createJobs({ db, env }: { db: Db; env: Env }): JobDefinition[] {
         const settings = await getSeoSettings(db);
         return { ...synced, publishing: await reconcilePublished(db, settings.contentHost) };
       },
+    },
+    {
+      name: SOCIAL_SYNC_JOB,
+      description:
+        'Records followers of every Facebook Page and Instagram account connected on the Social Media screen, and renews Instagram Login tokens so they never lapse. An account whose access was revoked is marked "Reconnect" instead of failing the run.',
+      retryLimit: 2,
+      retryDelaySeconds: 600,
+      // 06:30 Jakarta, before the morning report.
+      schedule: '30 6 * * *',
+      manual: true,
+      run: () =>
+        syncFollowers(
+          { db, env, box: secretBoxFromEnv(env.SECRETS_KEY) },
+          {
+            meta: createMetaClient({ graphVersion: env.META_GRAPH_VERSION }),
+            instagram: createInstagramClient({ graphVersion: env.META_GRAPH_VERSION }),
+          },
+          todayIn(env.TIMEZONE),
+        ),
     },
     {
       name: CMS_PUBLISH_JOB,

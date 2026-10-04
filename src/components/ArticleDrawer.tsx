@@ -212,7 +212,7 @@ export function ArticleDrawer({
           {tab === 'Overview' ? <OverviewTab article={article} /> : null}
           {tab === 'SEO' ? <SeoTab article={article} /> : null}
           {tab === 'Social' ? (
-            <Requires capability="meta">
+            <Requires capability="socialPublishing">
               <div className="empty-note">No social posts are linked to this article yet.</div>
             </Requires>
           ) : null}

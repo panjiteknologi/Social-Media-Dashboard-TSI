@@ -12,7 +12,9 @@
  *   cms:lead-grant-sql               print the SQL that lets the Leads screen show a lead's own words
  *   cms:writer-sql                   write the SQL that creates the CMS publishing role
  *   cms:check-write                  prove CMS_WRITE_DATABASE_URL may write articles and nothing else
+ *   secrets:key                      print a new SECRETS_KEY for encrypting social tokens
  */
+import { randomBytes } from 'node:crypto';
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { eq } from 'drizzle-orm';
 import { USER_ROLES, type UserRole } from '../shared/api';
@@ -38,7 +40,8 @@ const USAGE = `Usage:
   npm run cli -- cms:check
   npm run cli -- cms:lead-grant-sql
   npm run cli -- cms:writer-sql
-  npm run cli -- cms:check-write`;
+  npm run cli -- cms:check-write
+  npm run cli -- secrets:key`;
 
 const CMS_SQL_PATH = 'secrets/cms-reader.sql';
 const CMS_WRITER_SQL_PATH = 'secrets/cms-writer.sql';
@@ -209,6 +212,7 @@ try {
   else if (command === 'cms:lead-grant-sql') console.log(leadDetailsGrantSql());
   else if (command === 'cms:writer-sql') writeCmsWriterSql();
   else if (command === 'cms:check-write') await checkCmsWrite();
+  else if (command === 'secrets:key') console.log(`SECRETS_KEY=${randomBytes(32).toString('base64')}`);
   else await runDatabaseCommand(command, args);
 } catch (error) {
   fail(error instanceof Error ? error.message : String(error));

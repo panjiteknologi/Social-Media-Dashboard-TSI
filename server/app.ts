@@ -1,5 +1,5 @@
 import { and, desc, eq, isNotNull } from 'drizzle-orm';
-import { Hono } from 'hono';
+import { Hono, type MiddlewareHandler } from 'hono';
 import { csrf } from 'hono/csrf';
 import { HTTPException } from 'hono/http-exception';
 import type { PgBoss } from 'pg-boss';
@@ -29,7 +29,16 @@ import {
   queueContentTask,
   queueTopicRun,
 } from './contentAi/service';
-import { appSettings, ga4ChannelDaily, gscDaily, jobRuns, reports, siteCrawls, users } from './db/schema';
+import {
+  appSettings,
+  ga4ChannelDaily,
+  gscDaily,
+  jobRuns,
+  reports,
+  siteCrawls,
+  socialFollowerDaily,
+  users,
+} from './db/schema';
 import {
   ContentError,
   ContentInputSchema,
@@ -48,7 +57,27 @@ import { sendTelegramMessage } from './notify/telegram';
 import { listSeoActions, updateActionStatus } from './seo/actions';
 import { getKeywords, getOverview } from './seo/metrics';
 import { getSeoSettings, saveSeoSettings, SeoSettingsSchema } from './seo/settings';
+import { socialRoutes } from './social/routes';
 import { getTechnicalHealth } from './technical/health';
+
+const LOGIN_CALLBACKS = new Set(['/api/social/meta/callback', '/api/social/instagram/callback']);
+
+/**
+ * The public callback address (SOCIAL_CALLBACK_BASE_URL) exists only so
+ * Facebook and Instagram can send the browser back. In development it is a
+ * tunnel to this machine, so nothing else may be reached through it.
+ */
+function callbackHostOnly(env: Env): MiddlewareHandler {
+  const callbackHost = env.SOCIAL_CALLBACK_BASE_URL ? new URL(env.SOCIAL_CALLBACK_BASE_URL).host : null;
+  const appHost = new URL(env.APP_BASE_URL).host;
+  return async (c, next) => {
+    const host = c.req.header('x-forwarded-host') ?? c.req.header('host');
+    if (callbackHost && callbackHost !== appHost && host === callbackHost && !LOGIN_CALLBACKS.has(c.req.path)) {
+      return c.json({ error: 'Not found' }, 404);
+    }
+    await next();
+  };
+}
 
 export interface AppDeps {
   db: Db;
@@ -101,7 +130,7 @@ export function createApp({ db, env, boss, jobs }: AppDeps) {
 
   /** A capability is live once its data exists, not merely once it is configured. */
   async function liveCapabilities(): Promise<Set<CapabilityKey>> {
-    const [[searchData], [trafficData], [cmsSync], [report], [crawl], [actionRun]] = await Promise.all([
+    const [[searchData], [trafficData], [cmsSync], [report], [crawl], [actionRun], [followers]] = await Promise.all([
       db.select({ date: gscDaily.date }).from(gscDaily).limit(1),
       db.select({ date: ga4ChannelDaily.date }).from(ga4ChannelDaily).limit(1),
       db.select({ key: appSettings.key }).from(appSettings).where(eq(appSettings.key, CMS_SYNC_STATE_KEY)).limit(1),
@@ -112,6 +141,7 @@ export function createApp({ db, env, boss, jobs }: AppDeps) {
         .from(jobRuns)
         .where(and(eq(jobRuns.jobName, 'seo-actions'), eq(jobRuns.status, 'success')))
         .limit(1),
+      db.select({ date: socialFollowerDaily.date }).from(socialFollowerDaily).limit(1),
     ]);
     // The Action Center is live once its job has run, even if it found nothing to do.
     const actionsLive = Boolean(actionRun);
@@ -121,6 +151,8 @@ export function createApp({ db, env, boss, jobs }: AppDeps) {
     if (report) live.add('reports');
     if (crawl) live.add('technicalSeo');
     if (actionsLive) live.add('seoActions');
+    // Facebook and Instagram are live once a connected account has a follower count.
+    if (followers) live.add('meta');
     // The Content Planner and the Approval Queue hold real data from the first
     // item; empty is a real state too.
     live.add('content');
@@ -134,10 +166,12 @@ export function createApp({ db, env, boss, jobs }: AppDeps) {
   }
 
   const api = new Hono<AppEnv>()
+    .use(callbackHostOnly(env))
     .use(csrf({ origin: new URL(env.APP_BASE_URL).origin }))
     .use(loadSession(db, secure))
     .get('/health', (c) => c.json({ ok: true }))
     .route('/auth', authRoutes(db, env))
+    .route('/social', socialRoutes({ db, env, boss }))
     .get('/me', requireRole(), (c) => c.json(c.get('user')))
     .get('/capabilities', requireRole(), async (c) =>
       c.json(resolveCapabilityStates(await liveCapabilities())),

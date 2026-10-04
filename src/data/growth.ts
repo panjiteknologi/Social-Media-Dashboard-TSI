@@ -10,8 +10,8 @@ export const SOCIAL_SUMMARY: SocialSummaryItem[] = [
   { label: 'Instagram Followers', capability: 'meta', value: '18,420', change: '+2.1%' },
   { label: 'LinkedIn Followers', capability: 'linkedin', value: '9,860', change: '+4.6%' },
   { label: 'Facebook Followers', capability: 'meta', value: '12,050', change: '+0.8%' },
-  { label: 'Total Engagement', capability: 'meta', value: '12.4K', change: '+7.8%' },
-  { label: 'Scheduled Posts', capability: 'meta', value: '14', change: '+3' },
+  { label: 'Total Engagement', capability: 'socialInsights', value: '12.4K', change: '+7.8%' },
+  { label: 'Scheduled Posts', capability: 'socialPublishing', value: '14', change: '+3' },
 ];
 
 export const POSTS: Post[] = [
