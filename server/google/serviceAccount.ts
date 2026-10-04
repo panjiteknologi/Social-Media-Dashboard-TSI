@@ -10,18 +10,38 @@ const ServiceAccountKeySchema = z.object({
 
 export type ServiceAccountKey = z.infer<typeof ServiceAccountKeySchema>;
 
-export function readServiceAccountKey(path: string): ServiceAccountKey {
+/** Parses a key file's contents; `source` names where it came from in error messages. */
+export function parseServiceAccountKey(text: string, source: string): ServiceAccountKey {
   let raw: unknown;
   try {
-    raw = JSON.parse(readFileSync(path, 'utf8'));
+    raw = JSON.parse(text);
+  } catch (error) {
+    throw new Error(`Could not read the Google service account key from ${source}: ${error instanceof Error ? error.message : error}`);
+  }
+  const parsed = ServiceAccountKeySchema.safeParse(raw);
+  if (!parsed.success) throw new Error(`${source} is not a Google service account key.`);
+  return parsed.data;
+}
+
+export function readServiceAccountKey(path: string): ServiceAccountKey {
+  let text: string;
+  try {
+    text = readFileSync(path, 'utf8');
   } catch (error) {
     throw new Error(
       `Could not read the Google service account key at ${path}: ${error instanceof Error ? error.message : error}`,
     );
   }
-  const parsed = ServiceAccountKeySchema.safeParse(raw);
-  if (!parsed.success) throw new Error(`${path} is not a Google service account key file.`);
-  return parsed.data;
+  return parseServiceAccountKey(text, path);
+}
+
+/**
+ * The key given as the contents of an environment variable, for hosts with no
+ * file to mount: the JSON itself, or the JSON in base64.
+ */
+export function serviceAccountKeyFromValue(value: string): ServiceAccountKey {
+  const text = value.trim().startsWith('{') ? value : Buffer.from(value, 'base64').toString('utf8');
+  return parseServiceAccountKey(text, 'GOOGLE_SERVICE_ACCOUNT_JSON');
 }
 
 const TOKEN_URL = 'https://oauth2.googleapis.com/token';

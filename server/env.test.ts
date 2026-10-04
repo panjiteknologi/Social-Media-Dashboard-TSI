@@ -9,6 +9,11 @@ describe('parseEnv', () => {
     expect(env.TIMEZONE).toBe('Asia/Jakarta');
   });
 
+  it("listens on the host's PORT unless API_PORT is set", () => {
+    expect(parseEnv({ DATABASE_URL: 'postgresql://localhost/test', PORT: '3000' }).API_PORT).toBe(3000);
+    expect(parseEnv({ DATABASE_URL: 'postgresql://localhost/test', PORT: '3000', API_PORT: '9000' }).API_PORT).toBe(9000);
+  });
+
   it('requires a database URL', () => {
     expect(() => parseEnv({})).toThrow(/DATABASE_URL/);
   });

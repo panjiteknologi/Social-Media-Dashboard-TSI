@@ -3,6 +3,9 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
   "scripts": {
     "dev": "npm run build:server -- --sourcemap && concurrently -k -n db,build,api,worker,web -c gray,yellow,blue,magenta,green npm:dev:db npm:dev:build npm:dev:api npm:dev:worker npm:dev:web",
     "dev:db": "tsx server/dev/postgres.ts",
@@ -12,8 +15,8 @@
     "dev:web": "vite",
     "build": "tsc -b && vite build && npm run build:server",
     "build:server": "esbuild server/index.ts server/worker.ts server/cli.ts --bundle --platform=node --format=esm --packages=external --target=node24 --outdir=dist-server",
-    "start": "node dist-server/index.js",
-    "start:worker": "node dist-server/worker.js",
+    "start": "NODE_ENV=production node dist-server/index.js",
+    "start:worker": "NODE_ENV=production node dist-server/worker.js",
     "cli": "tsx server/cli.ts",
     "db:generate": "drizzle-kit generate",
     "preview": "vite preview",

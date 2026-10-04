@@ -1,0 +1,12 @@
+{
+  "$schema": "https://railway.com/railway.schema.json",
+  "build": {
+    "buildCommand": "npm run build:server"
+  },
+  "deploy": {
+    "startCommand": "npm run start:worker",
+    "numReplicas": 1,
+    "overlapSeconds": 0,
+    "restartPolicyType": "ALWAYS"
+  }
+}

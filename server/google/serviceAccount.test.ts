@@ -1,6 +1,6 @@
 import { createVerify, generateKeyPairSync } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
-import { createTokenProvider, signJwt } from './serviceAccount';
+import { createTokenProvider, serviceAccountKeyFromValue, signJwt } from './serviceAccount';
 
 const { privateKey, publicKey } = generateKeyPairSync('rsa', {
   modulusLength: 2048,
@@ -48,5 +48,18 @@ describe('createTokenProvider', () => {
         status: 400,
       })) as typeof fetch;
     await expect(createTokenProvider(key, ['scope'], fetchImpl)()).rejects.toThrow(/Invalid JWT Signature/);
+  });
+});
+
+describe('serviceAccountKeyFromValue', () => {
+  const json = JSON.stringify({ type: 'service_account', ...key });
+
+  it('reads the key pasted as JSON or as base64', () => {
+    expect(serviceAccountKeyFromValue(json).client_email).toBe(key.client_email);
+    expect(serviceAccountKeyFromValue(Buffer.from(json).toString('base64')).client_email).toBe(key.client_email);
+  });
+
+  it('names the variable when the value is not a key', () => {
+    expect(() => serviceAccountKeyFromValue('{"hello": 1}')).toThrow(/GOOGLE_SERVICE_ACCOUNT_JSON/);
   });
 });

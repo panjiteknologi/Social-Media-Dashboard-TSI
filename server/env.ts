@@ -12,6 +12,8 @@ const EnvSchema = z.object({
   GOOGLE_OAUTH_CLIENT_ID: z.string().optional(),
   GOOGLE_OAUTH_CLIENT_SECRET: z.string().optional(),
   GOOGLE_SERVICE_ACCOUNT_JSON_PATH: z.string().optional(),
+  /** The key's contents, raw JSON or base64, for hosts with no file to mount. Wins over the path. */
+  GOOGLE_SERVICE_ACCOUNT_JSON: z.string().optional(),
   GSC_SITE_URL: z.string().optional(),
   GA4_PROPERTY_ID: z
     .string()
@@ -77,6 +79,8 @@ export function parseEnv(raw: Record<string, string | undefined>): Env {
   const present = Object.fromEntries(
     Object.entries(raw).filter(([, value]) => value !== undefined && value.trim() !== ''),
   );
+  // Hosts such as Railway say which port to listen on in PORT.
+  if (!present.API_PORT && present.PORT) present.API_PORT = present.PORT;
   const result = EnvSchema.safeParse(present);
   if (!result.success) {
     throw new Error(`Invalid configuration:\n${z.prettifyError(result.error)}`);
